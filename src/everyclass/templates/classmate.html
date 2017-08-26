@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}参加 {{ class_name }} 的同学 - EveryClass @ CSU{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">参加{{ class_name }}的同学</h1>
+        <h4 class="text-muted">共{{ student_count }}人，{{ class_day }}{{ class_time }}，{{ class_teacher }}</h4>
+        <h4 class="text-muted"><a href="{{ url_for('query.query') }}" onclick="_czc.push(['_trackEvent', '同学页', '返回课表']);">返回我的课表</a></h4>
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>姓名</th>
+                            {% if show_id %}<th>学号</th>{% endif %}
+                            <th>学院</th>
+                            <th>专业班级</th>
+                            <th>课表</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for each_student in students %}
+                            <tr>
+                                <td>{{ each_student[0] }}</td>
+                                {% if show_id %}<td>{{ each_student[1] }}</td>{% endif %}
+                                <td>{{ each_student[2] }}{% if each_student[2]=='未知' %}<a href="http://cn.mikecrm.com/FvfOST5" target="_blank" onclick="_czc.push(['_trackEvent', '同学页', '反馈未知前缀']);">反馈</a> {% endif %}</td>
+                                <td>{{ each_student[3] }} {{ each_student[4] }}{% if each_student[2]=='未知' %}<a href="http://cn.mikecrm.com/FvfOST5" target="_blank" onclick="_czc.push(['_trackEvent', '同学页', '反馈未知前缀']);">反馈</a> {% endif %}</td>
+                                <td><a href="{{ url_for('query.query', id=each_student[1]) }}" onclick="_czc.push(['_trackEvent', '同学页', '查询同学课表']);">查看课表</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

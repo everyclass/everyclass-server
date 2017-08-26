@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <img src="{{ url_for('static', filename='images/class.svg') }}" width="100" height="auto">
+        <h1 class="hero-header">EveryClass</h1>
+        <h4 class="text-muted">EveryClass 可以将你的课表导入到手机日历，让课程和你的日历事项在同一处展示，从而便于日程的安排。不仅如此，它还能查询和你上同一节课的同学。而且，这一切都是免费的。<br>每天被各种大事小事忙得晕头转向、不知所措？你可能需要了解 <a href="https://www.tail0r.com/perform-everyclass-potential/"  onclick="_czc.push(['_trackEvent', '首页', '日程管理链接']);" target="_blank">如何使用 EveryClass 让日程管理更清晰</a><br>2017-2018 学期课表将于选课结束后9月1日左右更新</h4>
+    </div>
+    <br><br>
+    <div class="row row-backbordered hidden-xs">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="panel-body">
+                    <div class="col-lg-6 hidden-xs">
+                        <div class="panel-content">
+                            <h5 class="m-b-0"><strong>输入你的学号或姓名，然后点击开始吧</strong></h5>
+                        </div>
+                    </div>
+                    <div class="clearfix visible-xs"></div>
+                    <div class="col-lg-6 col-xs-12">
+                        <div class="panel-content">
+                            <div class="panel-actions">
+                                <form class="form-inline pull-right" action="{{ url_for('query.query') }}" method="post" id="search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '桌面端']);">
+                                    <input class="form-control input-lg panel-email-input" name="id"
+                                           placeholder="学号或姓名" style="display: inline-block">
+                                    <input type="submit" value="开始" name="开始" class="btn btn-lg"
+                                           style="display: inline-block" id="search-button">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-xs-10 col-xs-offset-1 visible-xs">
+        <div class="panel-content">
+            <div class="panel-actions">
+                <form class="form-inline centre" action="{{ url_for('query.query') }}" method="post" id="mobile-search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '手机端']);">
+                    <div class="input-group">
+                        <input type="text" name="id" class="form-control" placeholder="学号或姓名">
+                        <span class="input-group-btn">
+						<button class="btn btn-default" type="submit" value="开始" name="开始">开始</button>
+					</span>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

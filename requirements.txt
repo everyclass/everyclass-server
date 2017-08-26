@@ -1,0 +1,18 @@
+appdirs==1.4.3
+beautifulsoup4==4.5.3
+click==6.7
+Flask==0.12.1
+-e git+https://github.com/pallets/flask.git@39d55525ac8f674b40be5d1d3160b9fd33ce501a#egg=flaskr&subdirectory=examples/flaskr
+icalendar==3.11.3
+itsdangerous==0.24
+Jinja2==2.9.6
+MarkupSafe==1.0
+mysql-connector==2.1.4
+packaging==16.8
+pyparsing==2.2.0
+python-dateutil==2.6.0
+pytz==2017.2
+requests==2.13.0
+six==1.10.0
+termcolor==1.1.0
+Werkzeug==0.12.1

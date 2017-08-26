@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block title %}FAQ - EveryClass @ CSU{% endblock %}
+{% block body %}
+    <h1 class="rte-heading text-center">需要帮助吗</h1>
+    <div class="row">
+        <div class="rte col-md-offset-2 col-md-8 col-sm-12 col-sm-offset-0">
+            <h4 class="p1">这里有一些常见问题的解答</h4>
+            <p class="p1"><span class="s1"><b>EveryClass 是什么？<br></b></span>EveryClass 是中南大学的学生 Frederic 开发的一个小项目，它可以生成日历交换格式(.ics)文件，从而可以把你的课表导入到手机、电脑的日历，让课程和你其他的日历事项在同一处展示，从而便于日程的安排。它还能查询和你上同一节课的同学名单，你更可以查询他们每个人的课表。
+            </p>
+            <p class="p1"><span class="s1"><b>为什么有些同学的学院、专业信息无法显示？<br></b></span>学院、专业信息是通过学号判断的，因此转专业之后这里显示的信息不会变。我一直在努力地收集关于学院和专业与学号的对应关系，但目前收集到的信息依然十分有限。由于专业开设每年都不尽相同，目前还有以下学号前缀暂时无法确定：
+            </p>
+            <ul class="postList">
+                <li class="graf--li">地球科学与信息物理学院：0103、0104、0145</li>
+                <li class="graf--li">资源加工与生物工程学院：0304、0305、0306、0308</li>
+                <li class="graf--li">未知学院：0403</li>
+                <li class="graf--li">冶金与环境学院：0505、0507、0508</li>
+                <li class="graf--li">材料科学与工程学院：0605、0607、0608</li>
+                <li class="graf--li">粉末冶金研究院：0705、0706</li>
+                <li class="graf--li">机电工程学院：0806、0814</li>
+                <li class="graf--li">信息科学与工程学院：0909</li>
+                <li class="graf--li">能源科学与工程学院：1003、1005</li>
+                <li class="graf--li">交通运输工程学院：1104</li>
+                <li class="graf--li">土木工程学院：1208、1209、1215、1217</li>
+                <li class="graf--li">数学与统计学院：1304</li>
+                <li class="graf--li">物理与电子学院：1404</li>
+                <li class="graf--li">化学化工学院：1505、1507</li>
+                <li class="graf--li">商学院：1608、1614、1615</li>
+                <li class="graf--li">外国语学院：1801、1802、1803、1804</li>
+                <li class="graf--li">建筑与艺术学院：1907、1913、1915</li>
+                <li class="graf--li">法学院：2006</li>
+                <li class="graf--li">湘雅医学院：2206、2207、2208、2209、2211</li>
+                <li class="graf--li">基础医学院：2302</li>
+                <li class="graf--li">药学院：2403</li>
+                <li class="graf--li">湘雅护理学院：2502、2503</li>
+                <li class="graf--li">公共卫生学院：2602、2604</li>
+                <li class="graf--li">生命科学学院：3701、3702</li>
+                <li class="graf--li">公共管理学院：4303</li>
+                <li class="graf--li">国际交流合作处：9301、9302</li>
+            </ul>
+            <p class="p1">以上学号前缀的专业班级多是16级以前的，由于信息来源有限，我暂时没有收集到对应信息，因此无法被查询。同时，学号非10位数字的同学（包括海外留学生等）学号命名规则与大多数人存在差异，由于我暂时没有弄明白命名规则，因此可能无法正常显示信息。如果你了解这些前缀与院系的对应关系，请 <a href="http://cn.mikecrm.com/FvfOST5" target="_blank">点击这里</a> 告诉我。</p>
+            <p class="p1"><span class="s1"><b>EveryClass 的数据来源是什么？<br></b></span>网站的所有信息都来自学校网站上的公开信息，我没有使用黑客手段取得信息，也没有通过内部渠道获得信息，仅仅是对公开的信息进行了整合。
+            </p>
+            <p class="p1"><span class="s1"><b>EveryClass 盈利吗？<br></b></span>EveryClass 是不收取任何费用的。项目的发起人 Frederic 在校期间会一直保证网站服务器的正常运行和数据的更新。如果你愿意给项目提供支持，可以支付宝给他一杯咖啡。（账号：vencent.stevens@gmail.com）
+            </p>
+            <p class="p1"><span class="s1"><b>我不是中南大学的学生，可以给这个项目做一个我们学校的版本吗？<br></b></span>EveryClass 是一个开源的项目，这意味着任何人都能获取到这个项目的源代码。<br>EveryClass@CSU 得以存在的基础是我们学校的教务系统非管理员可以查看全校学生课表。如果你们学校的教务系统也存在此特性，可以邀请你的极客朋友在 <a href="https://github.com/fr0der1c/EveryClass_CSU" target="_blank">GitHub</a> 上 fork 这个项目，然后将其修改为适合于你们学校的版本。
+            </p>
+        </div>
+    </div>
+{% endblock %}

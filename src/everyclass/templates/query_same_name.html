@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}人名重复 - EveryClass @ CSU{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">中南那么大，居然有{{ count }}个{{ student_info[0][0] }}！</h1>
+        <h4 class="text-muted">你想要查询谁的课表呢？</h4>
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>学院</th>
+                            <th>专业班级</th>
+                            <th>学号</th>
+                            <th>查询</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for each_student in student_info %}
+                            <tr>
+                                <td>{{ each_student[0] }}</td>
+                                <td>{{ each_student[2] }}</td>
+                                <td>{{ each_student[3] }}{{ each_student[4] }}</td>
+                                <td>{{ each_student[1] }}</td>
+                                <td><a href="{{ url_for('query.query', id=each_student[1]) }} " onclick="_czc.push(['_trackEvent', '重名页', '重名查询']);">点击查询</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
