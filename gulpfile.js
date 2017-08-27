@@ -16,7 +16,7 @@ gulp.task('cssCompress', function() {
 });
 
 gulp.task('copyDistToSrc',function(){
-    gulp.src('./dist/*.css')
+    gulp.src('./dist/*-*-*.css')
         .pipe(gulp.dest('./src/everyclass/static'));
 });
 
