@@ -1,0 +1,24 @@
+{
+  "name": "everyclass-server",
+  "version": "1.0.0",
+  "description": "Server part of EveryClass project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "everyclass",
+    "python",
+    "flask",
+    "csu"
+  ],
+  "author": "Frederic Chan",
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.7.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-rev": "^8.0.0"
+  }
+}
