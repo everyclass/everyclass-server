@@ -6,12 +6,12 @@ Web server part of EveryClass
 This is the server-part repo of EveryClass. We decided to separate its different module to standalone repositories for clearer structure. See [project page](https://github.com/fr0der1c/EveryClass) for more information. Since this repo is specially for college students in China, we do not offer English version of this README document.
 
 ### 最新进度
-#### August 26, 2017
+#### August 27, 2017
 - Sentry 支持
 - 多域名/CDN 支持
-- 功能修复及改进
 - 修复 ics 导出路径链接错误的 bug
 - HTML 压缩
+- 前端自动化支持
 
 在 CHANGELOG.txt 中可以找到更多信息。
 

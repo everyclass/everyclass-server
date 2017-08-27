@@ -4,6 +4,8 @@ var concat = require('gulp-concat');                            //Concat CSS fil
 var minifyCss = require('gulp-clean-css');                      //Compress CSS
 var rev = require('gulp-rev');                                  //File revision
 
+
+
 //CSS
 gulp.task('cssCompress', function() {
     gulp.src('./src/everyclass/static/*-v1.css')
@@ -20,9 +22,13 @@ gulp.task('copyDistToSrc',function(){
         .pipe(gulp.dest('./src/everyclass/static'));
 });
 
+
+
 //Task Sets
 gulp.task('default', ['css']);
 gulp.task('css', ['cssCompress', 'copyDistToSrc']);
+
+
 
 //Watch tasks
 gulp.task('watch-css',function(){
@@ -30,6 +36,7 @@ gulp.task('watch-css',function(){
 });
 //gulp.watch('./src/**/*',['rev']);
 //gulp.watch('./src/everyclass/static/*.css',['rev']);
+
 
 
 //Others
