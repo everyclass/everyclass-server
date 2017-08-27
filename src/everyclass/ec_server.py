@@ -66,6 +66,14 @@ def create_app():
             return response
         return response
 
+    # If STATIC_VERSIONED, use versioned file like 'style_v1_c012dr.css' instead of 'style_v1.css'
+    @app.template_filter('versioned')
+    def version_filter(filename):
+        if app.config['STATIC_VERSIONED']:
+            new_filename = app.config['STATIC_MANIFEST'][filename]
+            return new_filename
+        return filename
+
     # 404跳转回首页
     @app.errorhandler(404)
     def page_not_found(error):

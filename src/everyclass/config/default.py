@@ -1,17 +1,32 @@
+import os,json
+
+
 class Config(object):
-    # App basic config
+    # Basic config
     CONFIG_NAME = 'default'
     DEBUG = True
     SECRET_KEY = 'development_key'
     # SERVER_NAME = 'localhost'
+
+    # CDN settings
     CDN_DOMAIN = 'cdn.domain.com'
     CDN_ENDPOINTS = ['images', 'static']
     CDN_TIMESTAMP = False
+
+    # Sentry
     SENTRY_CONFIG = {
         'dsn': 'https://XXX@sentry.io/project',
     }
+
+    # HTML minify
     HTML_MINIFY = True
-    # Semester and database settings
+
+    # Static file settings
+    STATIC_VERSIONED = True
+    with open(os.path.join(os.getcwd(), 'rev-manifest.json'), 'r') as static_manifest_file:
+        STATIC_MANIFEST = json.load(static_manifest_file)
+
+    # Semester settings
     DATA_LAST_UPDATE_TIME = 'Apr. 29, 2017'  # 数据最后更新日期
     DEFAULT_SEMESTER = (2016, 2017, 2)
     AVAILABLE_SEMESTERS = {
