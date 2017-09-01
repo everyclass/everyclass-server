@@ -4,7 +4,7 @@ config = load_config()
 
 
 # 输入str"2016-2017-2"，输出[2016,2017,2]，因为参数可能来自表单提交，需要判断有效性
-def semester_to_tuple(xq):
+def tuple_semester(xq):
     if re.match(r'\d{4}-\d{4}-\d', xq):
         splited = re.split(r'-', xq)
         return int(splited[0]), int(splited[1]), int(splited[2])
@@ -13,7 +13,7 @@ def semester_to_tuple(xq):
 
 
 # 因为to_string的参数一定来自程序内部，所以不检查有效性
-def semester_to_string(xq, simplify=False):
+def string_semester(xq, simplify=False):
     if not simplify:
         return str(xq[0]) + '-' + str(xq[1]) + '-' + str(xq[2])
     else:

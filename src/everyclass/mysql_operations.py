@@ -33,19 +33,29 @@ def major_lookup(student_id):
         return "未知"
 
 
+# 查询某一学生的可用学期
+def get_my_available_semesters(student_id):
+    db = get_db()
+    cursor = db.cursor()
+    mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
+    cursor.execute(mysql_query, (student_id,))
+    result = cursor.fetchall()
+    my_available_semesters = json.loads(result[0][0])
+    student_name = result[0][1]
+    return my_available_semesters,student_name
+
 # 获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception
 def get_classes_for_student(student_id):
     db = get_db()
     cursor = db.cursor()
-    mysql_query = "SELECT name,classes FROM ec_students_" + semester_code(semester()) + " WHERE xh=%s"
+    mysql_query = "SELECT classes FROM ec_students_" + semester_code(semester()) + " WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
     if not result:
         cursor.close()
         raise NoStudentException(student_id)
     else:
-        student_name = result[0][0]
-        student_classes_list = json.loads(result[0][1])
+        student_classes_list = json.loads(result[0][0])
         student_classes = dict()
         for classes in student_classes_list:
             mysql_query = "SELECT clsname,day,time,teacher,duration,week,location,id FROM ec_classes_" + \
@@ -59,15 +69,15 @@ def get_classes_for_student(student_id):
                                                                       week=result[0][5], location=result[0][6],
                                                                       id=result[0][7]))
         cursor.close()
-        return student_name, student_classes
+        return student_classes
 
 
 # 获得一门课程的全部学生，若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），否则引出 exception
 def get_students_in_class(class_id):
     db = get_db()
     cursor = db.cursor()
-    mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + semester_code(
-        semester()) + " WHERE id=%s"
+    mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + semester_code(semester()) + \
+                  " WHERE id=%s"
     cursor.execute(mysql_query, (class_id,))
     result = cursor.fetchall()
     if not result:
@@ -84,20 +94,19 @@ def get_students_in_class(class_id):
             cursor.close()
             raise NoStudentException
         for each_student in students:
-            mysql_query = "SELECT name FROM ec_students_" + semester_code(semester()) + " WHERE xh=%s"
+            mysql_query = "SELECT name FROM ec_students WHERE xh=%s"
             cursor.execute(mysql_query, (each_student,))
             result = cursor.fetchall()
             # 信息包含姓名、学号、学院、专业、班级
-            students_info.append(
-                [result[0][0], each_student, faculty_lookup(each_student), major_lookup(each_student),
-                 class_lookup(each_student)])
+            students_info.append([result[0][0], each_student, faculty_lookup(each_student),
+                                  major_lookup(each_student), class_lookup(each_student)])
         cursor.close()
         return class_name, class_day, class_time, class_teacher, students_info
 
 
 # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值
 def semester():
-    if session.get('semester', None) and session.get('semester') in app.config['AVAILABLE_SEMESTERS']:
+    if session.get('semester', None):
         return session['semester']
     else:
         return app.config['DEFAULT_SEMESTER']

@@ -1,3 +1,9 @@
+"""
+Name: generate_ics.py
+Description:
+This is module to generate .ics file. Should follow RFC2445 standard.
+https://tools.ietf.org/html/rfc2445?cm_mc_uid=02098050116114871518159&cm_mc_sid_50200000=1493972416
+"""
 import pytz
 import re
 from icalendar import Calendar, Event, Alarm
@@ -6,8 +12,6 @@ from config import load_config
 from commons import get_time
 
 
-# .ics files should follow
-# https://tools.ietf.org/html/rfc2445?cm_mc_uid=02098050116114871518159&cm_mc_sid_50200000=1493972416
 def generate_ics(student_id, student_name, student_classes, semester_string, semester):
     # Create calender object
     cal = Calendar()
@@ -15,7 +19,7 @@ def generate_ics(student_id, student_name, student_classes, semester_string, sem
     cal.add('version', '2.0')
     cal.add('calscale', 'GREGORIAN')
     cal.add('method', 'PUBLISH')
-    cal.add('X-WR-CALNAME', student_name + '的课表')
+    cal.add('X-WR-CALNAME', student_name + '的' + semester_string + '学期课表')
     cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
     # Create events
     for time in range(1, 7):
@@ -35,9 +39,9 @@ def generate_ics(student_id, student_name, student_classes, semester_string, sem
                         else:
                             interval = 2
                         if every_class['week'] == '双周' and int(dur_starting_week) % 2 != 0:
-                            dur_starting_week += str(int(dur_starting_week)+1)
+                            dur_starting_week += str(int(dur_starting_week) + 1)
                         if every_class['week'] == '单周' and int(dur_starting_week) % 2 == 0:
-                            dur_starting_week += str(int(dur_starting_week)+1)
+                            dur_starting_week += str(int(dur_starting_week) + 1)
                         dtstart = __get_datetime(dur_starting_week, day, get_time(time)[0], semester)
                         dtend = __get_datetime(dur_starting_week, day, get_time(time)[1], semester)
                         until = __get_datetime(dur_ending_week, day, get_time(time)[1], semester) + timedelta(days=1)
@@ -55,8 +59,10 @@ def generate_ics(student_id, student_name, student_classes, semester_string, sem
 
 # 输入周次，星期、时间tuple（时,分），输出datetime类型的时间
 def __get_datetime(week, day, time, semester):
-    return datetime(*load_config().AVAILABLE_SEMESTERS.get(semester)['start'], *time,
-                    tzinfo=pytz.timezone("Asia/Shanghai")) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
+    return datetime(*load_config().AVAILABLE_SEMESTERS.get(semester)['start'],
+                    *time,
+                    tzinfo=pytz.timezone("Asia/Shanghai")
+                    ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
 
 # Add event
