@@ -33,6 +33,19 @@ def major_lookup(student_id):
         return "未知"
 
 
+def check_if_stu_exist(student_id):
+    db = get_db()
+    cursor = db.cursor()
+    mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
+    cursor.execute(mysql_query, (student_id,))
+    result = cursor.fetchall()
+    cursor.close()
+    if result:
+        return True
+    else:
+        return False
+
+
 # 查询某一学生的可用学期
 def get_my_available_semesters(student_id):
     db = get_db()

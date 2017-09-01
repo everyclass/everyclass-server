@@ -14,7 +14,8 @@ def query():
     from flask import current_app as app
     from .commons import is_chinese, tuple_semester, semester_code, NoStudentException, string_semester, \
         class_lookup, faculty_lookup
-    from .mysql_operations import semester, get_db, major_lookup, get_classes_for_student, get_my_available_semesters
+    from .mysql_operations import semester, get_db, major_lookup, get_classes_for_student, \
+        get_my_available_semesters, check_if_stu_exist
     db = get_db()
     cursor = db.cursor()
     # 如有 id 参数，判断是姓名还是学号，然后赋学号给student_id
@@ -42,6 +43,11 @@ def query():
         # id 为学号
         else:
             student_id = request.values.get('id')
+            # 判断学号是否有效
+            if not check_if_stu_exist(student_id):
+                no_student_handle(student_id)
+                return redirect(url_for('main'))
+        # 写入 session 的学号一定有效
         session['stu_id'] = student_id
     elif session.get('stu_id', None):
         student_id = session['stu_id']
@@ -61,7 +67,6 @@ def query():
     try:
         student_classes = get_classes_for_student(student_id)
     except NoStudentException:
-        pass
         flash('数据库中找不到你哦')
         return redirect(url_for('main'))
     else:
