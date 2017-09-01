@@ -129,5 +129,5 @@ def semester():
         else:
             return tuple_semester(my_available_semesters[-1])
     else:
-        return tuple_semester(get_my_available_semesters(session.get('stu_id', None))[0][0])
+        return tuple_semester(get_my_available_semesters(session.get('stu_id', None))[0][-1])
 
