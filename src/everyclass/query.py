@@ -62,6 +62,8 @@ def query():
         student_classes = get_classes_for_student(student_id)
     except NoStudentException:
         pass
+        flash('数据库中找不到你哦')
+        return redirect(url_for('main'))
     else:
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
         empty_wkend = True

@@ -44,6 +44,7 @@ def get_my_available_semesters(student_id):
     student_name = result[0][1]
     return my_available_semesters,student_name
 
+
 # 获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception
 def get_classes_for_student(student_id):
     db = get_db()
@@ -106,7 +107,14 @@ def get_students_in_class(class_id):
 
 # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值
 def semester():
+    from everyclass.commons import tuple_semester,string_semester
+    my_available_semesters = get_my_available_semesters(session.get('stu_id', None))[0]
+    # 如果 session 中包含学期信息且对本人有效则进入，否则选择对本人有效的最后一个学期
     if session.get('semester', None):
-        return session['semester']
+        if string_semester(session['semester']) in my_available_semesters:
+            return session['semester']
+        else:
+            return tuple_semester(my_available_semesters[-1])
     else:
-        return app.config['DEFAULT_SEMESTER']
+        return tuple_semester(get_my_available_semesters(session.get('stu_id', None))[0][0])
+
