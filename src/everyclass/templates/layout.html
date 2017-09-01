@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="renderer" content="webkit">
     <meta name="description" content="一个用来将课表导入到手机日历，并能查询和你同一节课的人的小工具。"/>
-    <title>{% block title %}EveryClass @ CSU by Frederic{% endblock %}</title>
+    <title>{% block title %}每课 @ CSU by Frederic{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
     <link href="{{ url_for('static', filename='style-v1.css'|versioned) }}" rel="stylesheet" type="text/css" media="all"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
@@ -33,7 +33,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">EveryClass @ CSU</a>
+                <a class="navbar-brand" href="/">每课 @ CSU</a>
             </div>
 
             <div class="collapse navbar-collapse" id="global-nav">
@@ -70,7 +70,7 @@
     <b>老生2017-2018新学期课表已经更新，17级新生课表将于正式上课之前上线(😂如果没上线可能是我忘了，发个邮件提醒一下我就好)</b><br>
     Public Beta | 数据更新时间：{{ config.DATA_LAST_UPDATE_TIME }}<br>
     如遇到问题，请发送邮件至 <a href="mailto:frederic.t.chan+feedback@gmail.com">frederic.t.chan#gmail.com</a> 反馈<br>
-    EveryClass 是一个 <a href="https://github.com/fr0der1c/EveryClass" target="_blank">开源项目</a>，你可以帮助我们做得更好
+    EveryClass 是一个 <a href="https://github.com/fr0der1c/EveryClass-server" target="_blank">开源项目</a>，你可以帮助我们做得更好
 
     <ul class="footer-list">
         <li class="footer-list-item">
@@ -87,7 +87,7 @@
                onclick="_czc.push(['_trackEvent', 'footer', '点击反馈']);">反馈</a>
         </li>
         <li class="footer-list-item">
-            <a class="footer-list-link" href="https://github.com/fr0der1c/EveryClass">GitHub</a>
+            <a class="footer-list-link" href="https://github.com/fr0der1c/EveryClass-server">GitHub</a>
         </li>
     </ul>
 </footer>

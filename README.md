@@ -12,6 +12,8 @@ This is the server-part repo of EveryClass. We decided to separate its different
 - 继续收集学号前缀和专业对应关系信息
 - 增加一些趣味性的统计数据
 
+更多请参见 issues 页面。
+
 ### 源码使用
 1. 在 Python 3.6.0 下安装所需要的 package （在 requirements.txt 里）
 2. 在 src/everyclass/config 目录下建立 development.py 用于开发配置

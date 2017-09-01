@@ -105,13 +105,21 @@ def query():
 # 同学名单查询
 @query_blueprint.route('/classmates')
 def get_classmates():
-    from flask import request, render_template
+    from flask import request, render_template, session,redirect, url_for
     from .commons import get_day_chinese, get_time_chinese
     from .mysql_operations import get_students_in_class
+
+    # 如果 session stu_id 不存在则回到首页
+    if not session.get('stu_id', None):
+        return redirect(url_for('main'))
+
+    # 默认不显示 ID
     if request.values.get('show_id') and request.values.get('show_id') == 'true':
         show_id = True
     else:
         show_id = False
+
+    # 获取学生信息
     class_name, class_day, class_time, class_teacher, students_info = get_students_in_class(
         request.values.get('class_id', None))
     return render_template('classmate.html', class_name=class_name, class_day=get_day_chinese(class_day),

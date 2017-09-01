@@ -1,7 +1,7 @@
 import mysql.connector
 import json
 from flask import current_app as app
-from flask import session,g
+from flask import session, g
 from everyclass.commons import semester_code, NoClassException, NoStudentException, class_lookup, faculty_lookup
 
 
@@ -55,13 +55,14 @@ def get_my_available_semesters(student_id):
     result = cursor.fetchall()
     my_available_semesters = json.loads(result[0][0])
     student_name = result[0][1]
-    return my_available_semesters,student_name
+    return my_available_semesters, student_name
 
 
 # 获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception
 def get_classes_for_student(student_id):
     db = get_db()
     cursor = db.cursor()
+
     mysql_query = "SELECT classes FROM ec_students_" + semester_code(semester()) + " WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
@@ -118,10 +119,13 @@ def get_students_in_class(class_id):
         return class_name, class_day, class_time, class_teacher, students_info
 
 
-# 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值
+# 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
+# 进入此模块前必须保证 session 内有 stu_id
 def semester():
-    from everyclass.commons import tuple_semester,string_semester
-    my_available_semesters = get_my_available_semesters(session.get('stu_id', None))[0]
+    from everyclass.commons import tuple_semester, string_semester
+
+    my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
+
     # 如果 session 中包含学期信息且对本人有效则进入，否则选择对本人有效的最后一个学期
     if session.get('semester', None):
         if string_semester(session['semester']) in my_available_semesters:
@@ -129,5 +133,4 @@ def semester():
         else:
             return tuple_semester(my_available_semesters[-1])
     else:
-        return tuple_semester(get_my_available_semesters(session.get('stu_id', None))[0][-1])
-
+        return tuple_semester(get_my_available_semesters(session.get('stu_id'))[0][-1])
