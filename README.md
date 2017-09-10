@@ -1,6 +1,10 @@
 ## EveryClass Web 服务模块
 Web server part of EveryClass
 
+![status](https://img.shields.io/badge/status-stable-green.svg)
+![python version](https://img.shields.io/badge/python-3.6-blue.svg)
+![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
+
 这是 EveryClass 的 Web 服务模块。为了结构的清晰性，我们把本项目的不同模块分成了单独的仓库。查看 [项目主页](https://github.com/fr0der1c/EveryClass) 了解详情。
 
 This is the server-part repo of EveryClass. We decided to separate its different module to standalone repositories for clearer structure. See [project page](https://github.com/fr0der1c/EveryClass) for more information. Since this repo is specially for college students in China, we do not offer English version of this README document.

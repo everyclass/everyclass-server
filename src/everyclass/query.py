@@ -2,7 +2,6 @@
 查询相关函数
 """
 from flask import Blueprint, flash
-import json
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -10,9 +9,9 @@ query_blueprint = Blueprint('query', __name__)
 # 用于查询本人课表
 @query_blueprint.route('/query', methods=['GET', 'POST'])
 def query():
-    from flask import request, render_template, redirect, url_for, session, escape
+    from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
-    from .commons import is_chinese, tuple_semester, semester_code, NoStudentException, string_semester, \
+    from .commons import is_chinese, tuple_semester, NoStudentException, string_semester, \
         class_lookup, faculty_lookup
     from .mysql_operations import semester, get_db, major_lookup, get_classes_for_student, \
         get_my_available_semesters, check_if_stu_exist
