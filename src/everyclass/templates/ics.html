@@ -5,8 +5,8 @@
     <div class="row">
         <div class="rte col-md-offset-2 col-md-8 col-sm-12 col-sm-offset-0">
             <h4 class="p1">你的 WebCal
-                日历交换文件地址为：{{ url_for('get_ics', student_id=student_id, semester=semester, _external=True, _scheme='https') }}<br>
-                <a href="webcal://{{ request.host }}{{ url_for('get_ics', student_id=student_id,semester=semester) }}"
+                日历交换文件地址为：https://every.admirable.one{{ url_for('get_ics', student_id=student_id, semester=semester) }}<br>
+                <a href="webcal://every.admirable.one{{ url_for('get_ics', student_id=student_id,semester=semester) }}"
                    onclick="_czc.push(['_trackEvent', '日历导出页', 'iOS链接']);">点击添加到日历</a>（iOS、Mac等）<br>
                 安卓系统请看下方解决方案<br><div id="wechat-notify" style="display: none; color: #c9a535;">如果你在使用微信等 App 内置浏览器，你需要选择用系统浏览器打开↗</div>
             </h4>
