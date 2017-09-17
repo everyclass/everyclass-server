@@ -5,7 +5,8 @@ from flask import Blueprint
 from flask import request, session, redirect, url_for, render_template
 from flask import current_app as app
 from everyclass.commons import string_semester, tuple_semester
-from everyclass.mysql_operations import get_classes_for_student, semester, get_my_available_semesters
+from everyclass.mysql_operations import get_classes_for_student, semester, get_my_available_semesters, \
+    check_if_stu_exist
 
 cal_blueprint = Blueprint('cal', __name__)
 
@@ -15,6 +16,8 @@ cal_blueprint = Blueprint('cal', __name__)
 def generate_ics():
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
+        if not check_if_stu_exist(request.values.get('id')):
+            return redirect(url_for("main"))
         session['stu_id'] = request.values.get('id')
 
     # 获得学生姓名和他的合法学期
@@ -31,7 +34,7 @@ def generate_ics():
         generate_ics(session['stu_id'], student_name, student_classes,
                      string_semester(semester(), simplify=True), semester())
         return render_template('ics.html', student_id=session['stu_id'],
-                               semester=string_semester(semester(),simplify=True)
+                               semester=string_semester(semester(), simplify=True)
                                )
     else:
         return redirect(url_for('main'))
