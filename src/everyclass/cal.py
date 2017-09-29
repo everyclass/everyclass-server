@@ -2,7 +2,7 @@
 日历相关函数
 """
 from flask import Blueprint
-from flask import request, session, redirect, url_for, render_template
+from flask import request, session, redirect, url_for, render_template,flash
 from flask import current_app as app
 from everyclass.commons import string_semester, tuple_semester
 from everyclass.mysql_operations import get_classes_for_student, semester, get_my_available_semesters, \
@@ -17,6 +17,7 @@ def generate_ics():
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
         if not check_if_stu_exist(request.values.get('id')):
+            flash("你输入的学号不存在")
             return redirect(url_for("main"))
         session['stu_id'] = request.values.get('id')
 
