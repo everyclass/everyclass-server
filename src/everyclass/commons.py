@@ -1,5 +1,6 @@
 import re
 from everyclass.config import load_config
+
 config = load_config()
 
 
@@ -64,9 +65,14 @@ class NoStudentException(ValueError):
 
 # 查询学生所在班级
 def class_lookup(student_id):
-    re_split_result = re.findall(r'\d{4}', student_id)[1]
-    if 10 < int(re_split_result[0:2]) < 20:  # 正则提取后切片切出来的班级一般是正确的，但有的学生学号并不是标准格式，因此这里对班级的前两位做一个年份判断(2010<年份<2020)
-        return re_split_result
+    re_splited = re.findall(r'\d{4}', student_id)
+    # 正则提取后切片切出来的班级一般是正确的，但有的学生学号并不是标准格式，因此这里对班级的前两位做一个年份判断(2010<年份<2020)
+    if len(re_splited) > 1:
+        re_split_result = re_splited[1]
+        if 10 < int(re_split_result[0:2]) < 20:
+            return re_split_result
+        else:
+            return "未知"
     else:
         return "未知"
 
