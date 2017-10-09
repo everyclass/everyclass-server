@@ -14,7 +14,7 @@ def query():
     from .commons import is_chinese, tuple_semester, NoStudentException, string_semester, \
         class_lookup, faculty_lookup
     from .mysql_operations import semester, get_db, major_lookup, get_classes_for_student, \
-        get_my_available_semesters, check_if_stu_exist
+        get_my_available_semesters, check_if_stu_exist, get_privacy_settings
     db = get_db()
     cursor = db.cursor()
     # 如有 id 参数，判断是姓名还是学号，然后赋学号给student_id
@@ -94,8 +94,23 @@ def query():
                 available_semesters.append([each_semester, True])
             else:
                 available_semesters.append([each_semester, False])
-        return render_template('query.html', name=[student_name, faculty_lookup(student_id), major_lookup(student_id),
-                                                   class_lookup(student_id)], stu_id=student_id,
+
+        # Privacy settings
+        # Available privacy setttings: "show_table_on_page", "import_to_calender", "major"
+        privacy_settings = get_privacy_settings(student_id)
+        if "show_table_on_page" in privacy_settings:
+            return render_template('blocked.html', name=[student_name,
+                                                         faculty_lookup(student_id),
+                                                         major_lookup(student_id),
+                                                         class_lookup(student_id)],
+                                   stu_id=student_id,
+                                   available_semesters=available_semesters,
+                                   no_import_to_calender=True if "import_to_calender" in privacy_settings else False)
+        return render_template('query.html', name=[student_name,
+                                                   faculty_lookup(student_id),
+                                                   major_lookup(student_id),
+                                                   class_lookup(student_id)],
+                               stu_id=student_id,
                                classes=student_classes,
                                empty_wkend=empty_wkend, empty_6=empty_6, empty_5=empty_5,
                                available_semesters=available_semesters)
@@ -104,7 +119,7 @@ def query():
 # 同学名单查询
 @query_blueprint.route('/classmates')
 def get_classmates():
-    from flask import request, render_template, session,redirect, url_for
+    from flask import request, render_template, session, redirect, url_for
     from .commons import get_day_chinese, get_time_chinese
     from .mysql_operations import get_students_in_class
 

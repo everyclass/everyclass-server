@@ -120,6 +120,25 @@ def get_students_in_class(class_id):
         return class_name, class_day, class_time, class_teacher, students_info
 
 
+# 获得隐私设定
+def get_privacy_settings(student_id):
+    db = get_db()
+    cursor = db.cursor()
+
+    mysql_query = "SELECT privacy FROM ec_students WHERE xh=%s"
+    cursor.execute(mysql_query, (student_id,))
+    result = cursor.fetchall()
+    if not result:
+        # No such student
+        return []
+    else:
+        if not result[0][0]:
+            # No privacy settings
+            return []
+        cursor.close()
+        return json.loads(result[0][0])
+
+
 # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
 # 进入此模块前必须保证 session 内有 stu_id
 def semester():

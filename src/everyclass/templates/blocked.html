@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block title %}{{ name[0] }}的课表 - EveryClass @ CSU{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">{{ name[0] }}的课表</h1>
+        <h4 class="text-muted">{{ name[1] }} {{ name[2] }}{{ name[3] }}班
+        </h4>
+        <form id="semester-choose-form" action="/query" method="post">
+            <select id="semester" name="semester">
+                {% for each_semester in available_semesters %}
+                    <option value="{{ each_semester[0] }}"
+                            {% if each_semester[1]==True %}selected{% endif %}>{{ each_semester[0] }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+
+        {% if no_import_to_calender==False %}
+            <h4 class="text-muted"><a href="{{ url_for('cal.generate_ics', id=stu_id) }}"
+                                      onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">导入到日历</a></h4>
+        {% endif %}
+
+        <br><br>
+        <h4 class="text-muted">应该同学要求，我们不能在此展示他（她）的课表。</h4>
+    </div>
+
+
+{% endblock %}
