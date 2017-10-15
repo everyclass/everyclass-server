@@ -15,6 +15,8 @@ def query():
         class_lookup, faculty_lookup
     from .mysql_operations import semester, get_db, major_lookup, get_classes_for_student, \
         get_my_available_semesters, check_if_stu_exist, get_privacy_settings
+    if app.config["MAINTENANCE"]:
+        return render_template("maintenance.html")
     db = get_db()
     cursor = db.cursor()
     # 如有 id 参数，判断是姓名还是学号，然后赋学号给student_id
