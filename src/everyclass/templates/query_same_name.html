@@ -24,7 +24,7 @@
                             <tr>
                                 <td>{{ each_student[0] }}</td>
                                 <td>{{ each_student[2] }}</td>
-                                <td>{{ each_student[3] }}{{ each_student[4] }}</td>
+                                <td>{{ each_student[3] }}</td>
                                 <td><a href="{{ url_for('query.query', id=each_student[1]) }} " onclick="_czc.push(['_trackEvent', '重名页', '重名查询']);">点击查询</a></td>
                             </tr>
                         {% endfor %}

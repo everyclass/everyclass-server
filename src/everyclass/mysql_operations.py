@@ -2,7 +2,7 @@ import mysql.connector
 import json
 from flask import current_app as app
 from flask import session, g
-from everyclass.commons import semester_code, NoClassException, NoStudentException, class_lookup, faculty_lookup
+from everyclass.commons import semester_code, NoClassException, NoStudentException
 
 
 # 初始化数据库连接
@@ -16,21 +16,6 @@ def get_db():
     if not hasattr(g, 'mysql_db'):
         g.mysql_db = connect_db()
     return g.mysql_db
-
-
-# 查询专业信息
-def major_lookup(student_id):
-    import re
-    code = re.findall(r'\d{4}', student_id)[0]
-    db = get_db()
-    cursor = db.cursor()
-    mysql_query = "SELECT name FROM ec_stu_id_prefix WHERE prefix=%s"
-    cursor.execute(mysql_query, (code,))
-    result = cursor.fetchall()
-    if result:
-        return result[0][0]
-    else:
-        return "未知"
 
 
 def check_if_stu_exist(student_id):
@@ -79,9 +64,11 @@ def get_classes_for_student(student_id):
             result = cursor.fetchall()
             if (result[0][1], result[0][2]) not in student_classes:
                 student_classes[(result[0][1], result[0][2])] = list()
-            student_classes[(result[0][1], result[0][2])].append(dict(name=result[0][0], teacher=result[0][3],
+            student_classes[(result[0][1], result[0][2])].append(dict(name=result[0][0],
+                                                                      teacher=result[0][3],
                                                                       duration=result[0][4],
-                                                                      week=result[0][5], location=result[0][6],
+                                                                      week=result[0][5],
+                                                                      location=result[0][6],
                                                                       id=result[0][7]))
         cursor.close()
         return student_classes
@@ -114,8 +101,10 @@ def get_students_in_class(class_id):
             result = cursor.fetchall()
             if result:
                 # 信息包含姓名、学号、学院、专业、班级
-                students_info.append([result[0][0], each_student, faculty_lookup(each_student),
-                                      major_lookup(each_student), class_lookup(each_student)])
+                students_info.append([result[0][0],
+                                      each_student,
+                                      faculty_lookup(each_student),
+                                      class_lookup(each_student)])
         cursor.close()
         return class_name, class_day, class_time, class_teacher, students_info
 
@@ -154,3 +143,29 @@ def semester():
             return tuple_semester(my_available_semesters[-1])
     else:
         return tuple_semester(get_my_available_semesters(session.get('stu_id'))[0][-1])
+
+
+# 查询学生所在班级
+def class_lookup(student_id):
+    db = get_db()
+    cursor = db.cursor()
+    mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
+    cursor.execute(mysql_query, (student_id,))
+    result = cursor.fetchall()
+    if result:
+        return result[0][0]
+    else:
+        return "未知"
+
+
+# 查询学生所在院系
+def faculty_lookup(student_id):
+    db = get_db()
+    cursor = db.cursor()
+    mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"
+    cursor.execute(mysql_query, (student_id,))
+    result = cursor.fetchall()
+    if result:
+        return result[0][0]
+    else:
+        return "未知"

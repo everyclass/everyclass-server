@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}{{ name[0] }}的课表 - EveryClass @ CSU{% endblock %}
+{% block title %}{{ name }}的课表 - EveryClass @ CSU{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">{{ name[0] }}的课表</h1>
-        <h4 class="text-muted">{{ name[1] }} {{ name[2] }}{{ name[3] }}班
+        <h1 class="hero-header">{{ name }}的课表</h1>
+        <h4 class="text-muted">{{ falculty }} {{ class_name }}班
         </h4>
         <form id="semester-choose-form" action="/query" method="post">
             <select id="semester" name="semester">

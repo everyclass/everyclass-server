@@ -11,9 +11,10 @@ query_blueprint = Blueprint('query', __name__)
 def query():
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
-    from .commons import is_chinese, tuple_semester, NoStudentException, string_semester, \
-        class_lookup, faculty_lookup
-    from .mysql_operations import semester, get_db, major_lookup, get_classes_for_student, \
+    from .commons import is_chinese, tuple_semester, NoStudentException, string_semester
+    from mysql_operations import faculty_lookup
+    from mysql_operations import class_lookup
+    from .mysql_operations import semester, get_db, get_classes_for_student, \
         get_my_available_semesters, check_if_stu_exist, get_privacy_settings
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
@@ -31,8 +32,10 @@ def query():
                 # 查询到多个同名，进入选择界面
                 students_list = list()
                 for each_student in result:
-                    students_list.append([each_student[0], each_student[1], faculty_lookup(each_student[1]),
-                                          major_lookup(each_student[1]), class_lookup(each_student[1])])
+                    students_list.append([each_student[0],
+                                          each_student[1],
+                                          faculty_lookup(each_student[1]),
+                                          class_lookup(each_student[1])])
                 return render_template("query_same_name.html", count=cursor.rowcount, student_info=students_list)
             elif cursor.rowcount == 1:
                 # 仅能查询到一个人，则赋值学号
@@ -72,11 +75,11 @@ def query():
         return redirect(url_for('main'))
     else:
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
-        empty_wkend = True
+        empty_weekend = True
         for cls_time in range(1, 7):
             for cls_day in range(6, 8):
                 if (cls_day, cls_time) in student_classes:
-                    empty_wkend = False
+                    empty_weekend = False
         # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
         empty_6 = True
         for cls_day in range(1, 8):
@@ -98,23 +101,25 @@ def query():
                 available_semesters.append([each_semester, False])
 
         # Privacy settings
-        # Available privacy setttings: "show_table_on_page", "import_to_calender", "major"
+        # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
         privacy_settings = get_privacy_settings(student_id)
         if "show_table_on_page" in privacy_settings:
-            return render_template('blocked.html', name=[student_name,
-                                                         faculty_lookup(student_id),
-                                                         major_lookup(student_id),
-                                                         class_lookup(student_id)],
+            return render_template('blocked.html',
+                                   name=student_name,
+                                   falculty=faculty_lookup(student_id),
+                                   class_name=class_lookup(student_id),
                                    stu_id=student_id,
                                    available_semesters=available_semesters,
                                    no_import_to_calender=True if "import_to_calender" in privacy_settings else False)
-        return render_template('query.html', name=[student_name,
-                                                   faculty_lookup(student_id),
-                                                   major_lookup(student_id),
-                                                   class_lookup(student_id)],
+        return render_template('query.html',
+                               name=student_name,
+                               falculty=faculty_lookup(student_id),
+                               class_name=class_lookup(student_id),
                                stu_id=student_id,
                                classes=student_classes,
-                               empty_wkend=empty_wkend, empty_6=empty_6, empty_5=empty_5,
+                               empty_wkend=empty_weekend,
+                               empty_6=empty_6,
+                               empty_5=empty_5,
                                available_semesters=available_semesters)
 
 
@@ -138,9 +143,14 @@ def get_classmates():
     # 获取学生信息
     class_name, class_day, class_time, class_teacher, students_info = get_students_in_class(
         request.values.get('class_id', None))
-    return render_template('classmate.html', class_name=class_name, class_day=get_day_chinese(class_day),
-                           class_time=get_time_chinese(class_time), class_teacher=class_teacher,
-                           students=students_info, student_count=len(students_info), show_id=show_id)
+    return render_template('classmate.html',
+                           class_name=class_name,
+                           class_day=get_day_chinese(class_day),
+                           class_time=get_time_chinese(class_time),
+                           class_teacher=class_teacher,
+                           students=students_info,
+                           student_count=len(students_info),
+                           show_id=show_id)
 
 
 def no_student_handle(stu_identifier):

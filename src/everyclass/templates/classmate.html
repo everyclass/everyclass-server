@@ -26,8 +26,8 @@
                             <tr>
                                 <td>{{ each_student[0] }}</td>
                                 {% if show_id %}<td>{{ each_student[1] }}</td>{% endif %}
-                                <td>{{ each_student[2] }}{% if each_student[2]=='未知' %}<a href="http://cn.mikecrm.com/FvfOST5" target="_blank" onclick="_czc.push(['_trackEvent', '同学页', '反馈未知前缀']);">反馈</a> {% endif %}</td>
-                                <td>{{ each_student[3] }} {{ each_student[4] }}{% if each_student[2]=='未知' %}<a href="http://cn.mikecrm.com/FvfOST5" target="_blank" onclick="_czc.push(['_trackEvent', '同学页', '反馈未知前缀']);">反馈</a> {% endif %}</td>
+                                <td>{{ each_student[2] }}</td>
+                                <td>{{ each_student[3] }}</td>
                                 <td><a href="{{ url_for('query.query', id=each_student[1]) }}" onclick="_czc.push(['_trackEvent', '同学页', '查询同学课表']);">查看课表</a></td>
                             </tr>
                         {% endfor %}
