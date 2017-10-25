@@ -2,7 +2,7 @@
 Name: generate_ics.py
 Description:
 This is module to generate .ics file. Should follow RFC2445 standard.
-https://tools.ietf.org/html/rfc2445?cm_mc_uid=02098050116114871518159&cm_mc_sid_50200000=1493972416
+https://tools.ietf.org/html/rfc2445
 """
 import pytz
 import re
@@ -39,9 +39,11 @@ def generate_ics(student_id, student_name, student_classes, semester_string, sem
                         else:
                             interval = 2
                         if every_class['week'] == '双周' and int(dur_starting_week) % 2 != 0:
-                            dur_starting_week += str(int(dur_starting_week) + 1)
+                            dur_starting_week = str(int(dur_starting_week) + 1)
+
                         if every_class['week'] == '单周' and int(dur_starting_week) % 2 == 0:
-                            dur_starting_week += str(int(dur_starting_week) + 1)
+                            dur_starting_week = str(int(dur_starting_week) + 1)
+
                         dtstart = __get_datetime(dur_starting_week, day, get_time(time)[0], semester)
                         dtend = __get_datetime(dur_starting_week, day, get_time(time)[1], semester)
                         until = __get_datetime(dur_ending_week, day, get_time(time)[1], semester) + timedelta(days=1)
@@ -51,6 +53,7 @@ def generate_ics(student_id, student_name, student_classes, semester_string, sem
                                         [dtstart, dtend, interval, until, each_duration, every_class['week']],
                                         every_class['location'],
                                         every_class['teacher'], student_id))
+
     # Write file
     import os
     with open(os.path.dirname(__file__) + '/ics/%s-%s.ics' % (student_id, semester_string), 'w') as f:
