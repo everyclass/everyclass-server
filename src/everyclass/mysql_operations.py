@@ -48,6 +48,8 @@ def get_classes_for_student(student_id):
     db = get_db()
     cursor = db.cursor()
 
+    if not semester():
+        raise NoStudentException(student_id)
     mysql_query = "SELECT classes FROM ec_students_" + semester_code(semester()) + " WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
@@ -140,7 +142,9 @@ def semester():
         if string_semester(session['semester']) in my_available_semesters:
             return session['semester']
         else:
-            return tuple_semester(my_available_semesters[-1])
+            if my_available_semesters:
+                return tuple_semester(my_available_semesters[-1])
+            return None
     else:
         return tuple_semester(get_my_available_semesters(session.get('stu_id'))[0][-1])
 
