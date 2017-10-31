@@ -34,7 +34,7 @@ class Config(object):
         STATIC_MANIFEST = json.load(static_manifest_file)
 
     # Semester settings
-    DATA_LAST_UPDATE_TIME = 'Oct. 14, 2017'  # 数据最后更新日期，在页面下方展示
+    DATA_LAST_UPDATE_TIME = 'Oct. 30, 2017'  # 数据最后更新日期，在页面下方展示
     DEFAULT_SEMESTER = (2017, 2018, 1)
     AVAILABLE_SEMESTERS = {
         (2016, 2017, 2): {

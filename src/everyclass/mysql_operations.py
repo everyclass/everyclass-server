@@ -144,9 +144,12 @@ def semester():
         else:
             if my_available_semesters:
                 return tuple_semester(my_available_semesters[-1])
-            return None
+            return
     else:
-        return tuple_semester(get_my_available_semesters(session.get('stu_id'))[0][-1])
+        if my_available_semesters:
+            return tuple_semester(my_available_semesters[-1])
+        else:
+            return
 
 
 # 查询学生所在班级
