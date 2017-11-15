@@ -13,7 +13,7 @@ This is the server-part repo of EveryClass. We decided to separate its different
 参见 [CHANGELOG.txt](https://github.com/fr0der1c/EveryClass-server/blob/master/CHANGELOG.txt)
 
 ### 未来计划
-- 继续收集学号前缀和专业对应关系信息
+- 每次刷新数据后自动生成ics文件，使得手机端可以自动获取新课表，而无需再次来到本网站
 - 增加一些趣味性的统计数据
 
 更多请参见 issues 页面。
