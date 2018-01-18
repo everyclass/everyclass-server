@@ -16,8 +16,7 @@ def create_app():
     print('App created. Running under [{}] config'.format(app.config['CONFIG_NAME']))
 
     # CDN
-    cdn = CDN()
-    cdn.init_app(app)
+    CDN(app)
 
     # Sentry
     sentry = Sentry(app)
