@@ -8,8 +8,8 @@ import pytz
 import re
 from icalendar import Calendar, Event, Alarm
 from datetime import datetime, timedelta
-from config import load_config
-from commons import get_time
+from .config import load_config
+from everyclass import get_time
 
 
 def generate_ics(student_id, student_name, student_classes, semester_string, semester):
