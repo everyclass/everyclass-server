@@ -1,11 +1,6 @@
-**/config/development.py
-**/config/production.py
-**/config/staging.py
 __pycache__/
 *$py.class
 
-# pyenv
-.python-version
 
 # General
 *.DS_Store
@@ -17,8 +12,6 @@ __pycache__/
 *.tar.gz
 
 # Other related to this project
-/src/everyclass_server/ics
-/src/uwsgi_config.ini
 /fabfile.py
 
 # NodeJS

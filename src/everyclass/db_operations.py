@@ -133,7 +133,7 @@ def get_privacy_settings(student_id):
 # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
 # 进入此模块前必须保证 session 内有 stu_id
 def semester():
-    from everyclass.commons import tuple_semester, string_semester
+    from .commons import tuple_semester, string_semester
 
     my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
 
