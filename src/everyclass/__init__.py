@@ -6,6 +6,7 @@ from .query import query_blueprint
 from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash
 from flask_cdn import CDN
 from htmlmin import minify
+from termcolor import cprint
 from markupsafe import escape
 from raven.contrib.flask import Sentry
 
@@ -13,7 +14,7 @@ from raven.contrib.flask import Sentry
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='')
     app.config.from_object(load_config())
-    print('App created. Running under [{}] config'.format(app.config['CONFIG_NAME']))
+    cprint('App created. Running under [{}] config'.format(app.config['CONFIG_NAME']),color='blue')
 
     # CDN
     CDN(app)
