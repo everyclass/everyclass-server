@@ -1,8 +1,8 @@
 import re
 
-from .config import load_config
 from .cal import cal_blueprint
 from .query import query_blueprint
+from .config import load_config
 
 from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash
 from flask_cdn import CDN
@@ -235,6 +235,7 @@ def tuple_semester(xq):
     :param xq: str"2016-2017-2"
     :return: [2016,2017,2]
     """
+
     if re.match(r'\d{4}-\d{4}-\d', xq):
         splited = re.split(r'-', xq)
         return int(splited[0]), int(splited[1]), int(splited[2])

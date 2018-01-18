@@ -2,10 +2,7 @@
 日历相关函数
 """
 from flask import Blueprint
-from flask import request, session, redirect, url_for, render_template,flash
-from everyclass import tuple_semester, string_semester
-from .db_operations import get_classes_for_student, semester, get_my_available_semesters, \
-    check_if_stu_exist
+from flask import request, session, redirect, url_for, render_template, flash
 
 cal_blueprint = Blueprint('cal', __name__)
 
@@ -13,6 +10,10 @@ cal_blueprint = Blueprint('cal', __name__)
 # 导出日历交换格式文件
 @cal_blueprint.route('/calendar')
 def generate_ics():
+    from .db_operations import get_classes_for_student, semester, get_my_available_semesters, \
+        check_if_stu_exist
+    from . import tuple_semester, string_semester
+
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
         if not check_if_stu_exist(request.values.get('id')):

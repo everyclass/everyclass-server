@@ -2,7 +2,6 @@ import mysql.connector
 import json
 from flask import current_app as app
 from flask import session, g
-from everyclass import NoClassException, NoStudentException, semester_code, tuple_semester, string_semester
 
 
 # 初始化数据库连接
@@ -45,6 +44,7 @@ def get_my_available_semesters(student_id):
 
 # 获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception
 def get_classes_for_student(student_id):
+    from . import NoStudentException, semester_code
     db = get_db()
     cursor = db.cursor()
 
@@ -78,6 +78,7 @@ def get_classes_for_student(student_id):
 
 # 获得一门课程的全部学生，若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），否则引出 exception
 def get_students_in_class(class_id):
+    from . import NoClassException, NoStudentException, semester_code
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + semester_code(semester()) + \
@@ -133,6 +134,7 @@ def get_privacy_settings(student_id):
 # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
 # 进入此模块前必须保证 session 内有 stu_id
 def semester():
+    from . import tuple_semester, string_semester
     my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
 
     # 如果 session 中包含学期信息且对本人有效则进入，否则选择对本人有效的最后一个学期
