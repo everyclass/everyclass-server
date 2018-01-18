@@ -1,11 +1,12 @@
-from cal import cal_blueprint
-from commons import NoStudentException, NoClassException
-from config import load_config
+from .cal import cal_blueprint
+from .commons import NoStudentException, NoClassException
+from .config import load_config
+from .query import query_blueprint
+
 from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash
 from flask_cdn import CDN
 from htmlmin import minify
 from markupsafe import escape
-from query import query_blueprint
 from raven.contrib.flask import Sentry
 
 

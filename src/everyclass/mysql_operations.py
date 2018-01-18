@@ -2,7 +2,7 @@ import mysql.connector
 import json
 from flask import current_app as app
 from flask import session, g
-from everyclass.commons import semester_code, NoClassException, NoStudentException
+from .commons import semester_code, NoClassException, NoStudentException
 
 
 # 初始化数据库连接

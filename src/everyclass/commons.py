@@ -1,6 +1,6 @@
 import re
 
-from everyclass.config import load_config
+from .config import load_config
 
 config = load_config()
 

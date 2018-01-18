@@ -3,9 +3,8 @@
 """
 from flask import Blueprint
 from flask import request, session, redirect, url_for, render_template,flash
-from flask import current_app as app
-from everyclass.commons import string_semester, tuple_semester
-from everyclass.mysql_operations import get_classes_for_student, semester, get_my_available_semesters, \
+from .commons import string_semester, tuple_semester
+from .mysql_operations import get_classes_for_student, semester, get_my_available_semesters, \
     check_if_stu_exist
 
 cal_blueprint = Blueprint('cal', __name__)
