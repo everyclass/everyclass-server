@@ -12,9 +12,9 @@ def query():
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
     from .commons import is_chinese, tuple_semester, NoStudentException, string_semester
-    from mysql_operations import faculty_lookup
-    from mysql_operations import class_lookup
-    from .mysql_operations import semester, get_db, get_classes_for_student, \
+    from db_operations import faculty_lookup
+    from db_operations import class_lookup
+    from .db_operations import semester, get_db, get_classes_for_student, \
         get_my_available_semesters, check_if_stu_exist, get_privacy_settings
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
@@ -128,7 +128,7 @@ def query():
 def get_classmates():
     from flask import request, render_template, session, redirect, url_for
     from .commons import get_day_chinese, get_time_chinese
-    from .mysql_operations import get_students_in_class
+    from .db_operations import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):
