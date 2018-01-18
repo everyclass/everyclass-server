@@ -1,5 +1,6 @@
 **/config/development.py
 **/config/production.py
+**/config/staging.py
 __pycache__/
 *$py.class
 

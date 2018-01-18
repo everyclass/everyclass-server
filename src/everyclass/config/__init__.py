@@ -5,11 +5,14 @@ def load_config():
     mode = os.environ.get('MODE')
     try:
         if mode == 'PRODUCTION':
-            from everyclass.config.production import ProductionConfig
+            from .production import ProductionConfig
             return ProductionConfig
-        else:
-            from everyclass.config.development import DevelopmentConfig
+        elif mode == 'DEVELOPMENT':
+            from .development import DevelopmentConfig
             return DevelopmentConfig
+        elif mode == 'STAGING':
+            from .staging import StagingConfig
+            return StagingConfig
     except ImportError:
-        from everyclass.config.default import Config
+        from .default import Config
         return Config

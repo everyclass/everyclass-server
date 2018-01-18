@@ -13,7 +13,7 @@ from raven.contrib.flask import Sentry
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='')
     app.config.from_object(load_config())
-    print('App created. Running under {} config'.format(app.config['CONFIG_NAME']))
+    print('App created. Running under [{}] config'.format(app.config['CONFIG_NAME']))
 
     # CDN
     cdn = CDN()
