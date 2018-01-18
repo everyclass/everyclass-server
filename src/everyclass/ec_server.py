@@ -1,3 +1,4 @@
+import os
 from flask import Flask, g, redirect, url_for, render_template, send_from_directory, flash, escape
 from flask_cdn import CDN
 from raven.contrib.flask import Sentry
@@ -11,14 +12,17 @@ from everyclass.commons import NoClassException, NoStudentException
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='')
     app.config.from_object(load_config())
+
+    # CDN
     cdn = CDN()
     cdn.init_app(app)
+
+    # Sentry
     sentry = Sentry(app)
+
+    # register blueprints
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(query_blueprint)
-    print('running under %s config' % app.config['CONFIG_NAME'])
-    import os
-    print('os.environ.get(MODE) = %s' % os.environ.get('MODE'))
 
     # 结束时关闭数据库连接
     @app.teardown_appcontext
@@ -98,13 +102,12 @@ def create_app():
     def internal_server_error(error):
         return render_template('500.html',
                                event_id=g.sentry_event_id,
-                               public_dsn=sentry.client.get_public_dsn('https')
-                               )
+                               public_dsn=sentry.client.get_public_dsn('https'))
 
     return app
 
 
-app = create_app()
-
 if __name__ == '__main__':
+    app = create_app()
+    print('MODE: {}; Running under %s config'.format(os.environ.get('MODE'), app.config['CONFIG_NAME']))
     app.run()
