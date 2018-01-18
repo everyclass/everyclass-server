@@ -1,4 +1,4 @@
-from everyclass.ec_server import create_app
+from everyclass import create_app
 from flask_script import Manager, Shell
 
 app = create_app()
