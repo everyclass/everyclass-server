@@ -2,7 +2,7 @@ import mysql.connector
 import json
 from flask import current_app as app
 from flask import session, g
-from .commons import semester_code, NoClassException, NoStudentException
+from everyclass import NoClassException, NoStudentException, semester_code, tuple_semester, string_semester
 
 
 # 初始化数据库连接
@@ -133,8 +133,6 @@ def get_privacy_settings(student_id):
 # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
 # 进入此模块前必须保证 session 内有 stu_id
 def semester():
-    from .commons import tuple_semester, string_semester
-
     my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
 
     # 如果 session 中包含学期信息且对本人有效则进入，否则选择对本人有效的最后一个学期
