@@ -1,0 +1,31 @@
+**/config/development.py
+**/config/production.py
+__pycache__/
+*$py.class
+
+# pyenv
+.python-version
+
+# General
+*.DS_Store
+.AppleDouble
+.LSOverride
+.idea
+*.xls
+*.pyc
+*.tar.gz
+
+# Other related to this project
+/src/everyclass_server/ics
+/src/uwsgi_config.ini
+/fabfile.py
+/src/touch_reload
+
+# NodeJS
+/node_modules/*
+
+# Compiled
+/dist/*
+/src/everyclass/static/*-*-*.css
+/qiniu_upload.log
+/qiniu_settings.json
