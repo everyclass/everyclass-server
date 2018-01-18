@@ -10,8 +10,6 @@ from termcolor import cprint
 from markupsafe import escape
 from raven.contrib.flask import Sentry
 
-cdn = CDN()
-
 
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='')
@@ -19,7 +17,7 @@ def create_app():
     cprint('App created. Running under [{}] config'.format(app.config['CONFIG_NAME']), color='blue')
 
     # CDN
-    cdn.init_app(app)
+    CDN(app)
 
     # Sentry
     sentry = Sentry(app)
