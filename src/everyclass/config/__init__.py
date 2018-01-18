@@ -1,4 +1,5 @@
 import os
+from termcolor import cprint
 
 
 def load_config():
@@ -13,3 +14,5 @@ def load_config():
     elif mode == 'STAGING':
         from .staging import StagingConfig
         return StagingConfig
+    else:
+        cprint('No MODE environment variable specified. The program will not run.',color='red')

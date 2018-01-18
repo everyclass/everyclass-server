@@ -20,7 +20,6 @@ __pycache__/
 /src/everyclass_server/ics
 /src/uwsgi_config.ini
 /fabfile.py
-/src/touch_reload
 
 # NodeJS
 /node_modules/*
