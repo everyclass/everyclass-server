@@ -12,8 +12,8 @@ def query():
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
     from .commons import is_chinese, tuple_semester, NoStudentException, string_semester
-    from db_operations import faculty_lookup
-    from db_operations import class_lookup
+    from .db_operations import faculty_lookup
+    from .db_operations import class_lookup
     from .db_operations import semester, get_db, get_classes_for_student, \
         get_my_available_semesters, check_if_stu_exist, get_privacy_settings
     if app.config["MAINTENANCE"]:
