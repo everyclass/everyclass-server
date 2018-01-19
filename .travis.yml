@@ -18,6 +18,6 @@ env:
 before_script:
   -
 script:
-  - nosetests tests/unittests -v --with-coverage
+  - flask test
 after_success:
   - ''
