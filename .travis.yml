@@ -1,5 +1,6 @@
 language: python
 sudo: disable
+group: trusty
 python:
   - '3.6'
   - 'nightly'
@@ -14,7 +15,7 @@ env:
     - FLASK_APP=src/ec_server.py
     - PYTHONPATH=$(pwd)/src
 before_script:
-  -
+  - echo $PYTHONPATH
 script:
   - coverage run src/tests/test_basic_function.py
 after_success:
