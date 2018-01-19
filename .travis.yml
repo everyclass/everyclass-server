@@ -8,8 +8,7 @@ before-install:
   -
 install:
   - pip install -r requirements.txt
-  - pip install coverage
-  - pip install codecov
+  - pip install coverage codecov nose
 env:
   global:
     - FLASK_APP=src/ec_server.py
@@ -17,6 +16,6 @@ before_script:
   - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
   - echo $PYTHONPATH
 script:
-  - coverage run src/tests/test_basic_function.py
+  - nosetest src/tests --with-coverage
 after_success:
   - codecov
