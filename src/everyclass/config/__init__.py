@@ -15,5 +15,6 @@ def load_config():
         from .staging import StagingConfig
         return StagingConfig
     else:
-        cprint('No MODE environment variable specified. The program will not run.', color='red')
-        return None
+        from .default import Config
+        cprint('No MODE environment variable specified. The program will use default config.', color='yellow')
+        return Config
