@@ -64,3 +64,7 @@ class BasicFunctionTestCase(unittest.TestCase):
         result = [(1, '一'), (2, '二'), (3, '三'), (4, '四'), (5, '五'), (6, '六'), (7, '日')]
         for test, ans in result:
             self.assertTrue(get_day_chinese(test) == '周' + ans)
+
+
+if __name__ == '__main__':
+    unittest.main()
