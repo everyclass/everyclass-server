@@ -16,6 +16,6 @@ before_script:
   - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
   - echo $PYTHONPATH
 script:
-  - nosetest src/tests --with-coverage
+  - nosetests src/tests --with-coverage
 after_success:
   - codecov
