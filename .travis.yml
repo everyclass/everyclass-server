@@ -13,8 +13,8 @@ install:
 env:
   global:
     - FLASK_APP=src/ec_server.py
-    - PYTHONPATH=$(pwd)/src
 before_script:
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
   - echo $PYTHONPATH
 script:
   - coverage run src/tests/test_basic_function.py
