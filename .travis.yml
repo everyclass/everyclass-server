@@ -1,6 +1,5 @@
 language: python
 sudo: disable
-services:
 addons:
   apt:
     packages:
@@ -9,6 +8,7 @@ addons:
       - libffi-dev
 python:
   - '3.6'
+  - 'nightly'
 before-install:
   -
 install:
@@ -20,4 +20,4 @@ before_script:
 script:
   - flask test
 after_success:
-  - ''
+  -
