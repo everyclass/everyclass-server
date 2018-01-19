@@ -1,0 +1,23 @@
+language: python
+sudo: disable
+services:
+addons:
+  apt:
+    packages:
+      - python-dev
+      - libssl-dev
+      - libffi-dev
+python:
+  - '3.6'
+before-install:
+  -
+install:
+  - pip install -r requirements.txt
+env:
+  -
+before_script:
+  -
+script:
+  - nosetests tests/unittests -v --with-coverage
+after_success:
+  - ''
