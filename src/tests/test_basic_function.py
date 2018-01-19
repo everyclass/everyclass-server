@@ -34,7 +34,9 @@ class BasicFunctionTestCase(unittest.TestCase):
 
     def test_tuple_semester(self):
         from everyclass import tuple_semester
+        from everyclass.config import load_config
         self.assertTrue(tuple_semester('2016-2017-2') == (2016, 2017, 2))
+        self.assertTrue(tuple_semester('123') == load_config().DEFAULT_SEMESTER)
 
     def test_is_chinese_char(self):
         from everyclass import is_chinese_char
@@ -64,7 +66,3 @@ class BasicFunctionTestCase(unittest.TestCase):
         result = [(1, '一'), (2, '二'), (3, '三'), (4, '四'), (5, '五'), (6, '六'), (7, '日')]
         for test, ans in result:
             self.assertTrue(get_day_chinese(test) == '周' + ans)
-
-
-if __name__ == '__main__':
-    unittest.main()
