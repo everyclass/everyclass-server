@@ -14,7 +14,7 @@ env:
   global:
     - FLASK_APP=src/ec_server.py
 before_script:
-  - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
   - echo $PYTHONPATH
 script:
   - coverage run src/tests/test_basic_function.py
