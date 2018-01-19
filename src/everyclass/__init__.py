@@ -163,17 +163,17 @@ def get_time(digit):
     get start and end time for a single lesson.
     """
     if digit == 1:
-        return [(8, 00), (9, 40)]
+        return (8, 00), (9, 40)
     elif digit == 2:
-        return [(10, 00), (11, 40)]
+        return (10, 00), (11, 40)
     elif digit == 3:
-        return [(14, 00), (15, 40)]
+        return (14, 00), (15, 40)
     elif digit == 4:
-        return [(16, 00), (17, 40)]
+        return (16, 00), (17, 40)
     elif digit == 5:
-        return [(19, 00), (20, 40)]
+        return (19, 00), (20, 40)
     else:
-        return [(21, 00), (22, 40)]
+        return (21, 00), (22, 40)
 
 
 def semester_code(xq):
@@ -237,8 +237,8 @@ def tuple_semester(xq):
     """
 
     if re.match(r'\d{4}-\d{4}-\d', xq):
-        splited = re.split(r'-', xq)
-        return int(splited[0]), int(splited[1]), int(splited[2])
+        splitted = re.split(r'-', xq)
+        return int(splitted[0]), int(splitted[1]), int(splitted[2])
     else:
         return config.DEFAULT_SEMESTER
 
@@ -246,9 +246,10 @@ def tuple_semester(xq):
 def string_semester(xq, simplify=False):
     """
     因为to_string的参数一定来自程序内部，所以不检查有效性
-    :param xq:
-    :param simplify:
-    :return:
+
+    :param xq: tuple or list, like [2016,2017,2]
+    :param simplify: True if you want short str
+    :return: str like '16-17-2' if simplify==True, '2016-2017-2' is simplify==False
     """
     if not simplify:
         return str(xq[0]) + '-' + str(xq[1]) + '-' + str(xq[2])
