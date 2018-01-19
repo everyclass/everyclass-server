@@ -15,7 +15,6 @@ class Config(object):
 
     # Sentry
     SENTRY_CONFIG = {
-        'dsn': 'https://XXX@sentry.io/project',
     }
 
     # Maintenance
