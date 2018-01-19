@@ -12,6 +12,7 @@ install:
 env:
   global:
     - FLASK_APP=src/ec_server.py
+    - PYTHONPATH=$(pwd)/src
 before_script:
   -
 script:
