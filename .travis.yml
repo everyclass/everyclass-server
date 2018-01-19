@@ -20,4 +20,3 @@ before_script:
 script:
   - flask test
 after_success:
-  -
