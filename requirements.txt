@@ -29,5 +29,6 @@ six==1.10.0
 smmap2==2.0.3
 SQLAlchemy==1.1.9
 termcolor==1.1.0
+uWSGI==2.0.15
 Werkzeug==0.12.1
 xlrd==1.1.0
