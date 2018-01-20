@@ -4,6 +4,8 @@ Web server part of EveryClass
 ![status](https://img.shields.io/badge/status-stable-green.svg)
 ![python version](https://img.shields.io/badge/python-3.6-blue.svg)
 ![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
+[![Build Status](https://travis-ci.org/fr0der1c/EveryClass-server.svg?branch=develop)](https://travis-ci.org/fr0der1c/EveryClass-server)
+[![codecov](https://codecov.io/gh/fr0der1c/EveryClass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/fr0der1c/EveryClass-server)
 
 这是 EveryClass 的 Web 服务模块。为了结构的清晰性，我们把本项目的不同模块分成了单独的仓库。查看 [项目主页](https://github.com/fr0der1c/EveryClass) 了解详情。
 

@@ -1,0 +1,8 @@
+# programme-generated
+ics
+
+# config
+uwsgi.ini
+**/config/development.py
+**/config/production.py
+**/config/staging.py

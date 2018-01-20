@@ -1,0 +1,25 @@
+__pycache__/
+*$py.class
+
+
+# General
+*.DS_Store
+.AppleDouble
+.LSOverride
+.idea
+.coverage
+*.xls
+*.pyc
+*.tar.gz
+
+# Other related to this project
+/fabfile.py
+
+# NodeJS
+/node_modules/*
+
+# Compiled
+/dist/*
+/src/everyclass/static/*-*-*.css
+/qiniu_upload.log
+/qiniu_settings.json

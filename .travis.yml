@@ -1,0 +1,21 @@
+language: python
+sudo: disable
+dist: trusty
+python:
+  - '3.6'
+  - 'nightly'
+before-install:
+  -
+install:
+  - pip install -r requirements.txt
+  - pip install coverage codecov nose
+env:
+  global:
+    - FLASK_APP=src/ec_server.py
+before_script:
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+  - echo $PYTHONPATH
+script:
+  - nosetests src/tests --with-coverage
+after_success:
+  - codecov

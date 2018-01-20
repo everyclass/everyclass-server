@@ -11,10 +11,13 @@ query_blueprint = Blueprint('query', __name__)
 def query():
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
-    from .commons import is_chinese, tuple_semester, NoStudentException, string_semester
-    from mysql_operations import faculty_lookup
-    from mysql_operations import class_lookup
-    from .mysql_operations import semester, get_db, get_classes_for_student, \
+    from everyclass import string_semester
+    from everyclass import tuple_semester
+    from everyclass import is_chinese_char
+    from everyclass import NoStudentException
+    from .db_operations import faculty_lookup
+    from .db_operations import class_lookup
+    from .db_operations import semester, get_db, get_classes_for_student, \
         get_my_available_semesters, check_if_stu_exist, get_privacy_settings
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
@@ -24,7 +27,7 @@ def query():
     if request.values.get('id'):
         id_or_name = request.values.get('id')
         # 首末均为中文,判断为人名
-        if is_chinese(id_or_name[0:1]) and is_chinese(id_or_name[-1:]):
+        if is_chinese_char(id_or_name[0:1]) and is_chinese_char(id_or_name[-1:]):
             mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
             cursor.execute(mysql_query, (id_or_name,))
             result = cursor.fetchall()
@@ -127,8 +130,9 @@ def query():
 @query_blueprint.route('/classmates')
 def get_classmates():
     from flask import request, render_template, session, redirect, url_for
-    from .commons import get_day_chinese, get_time_chinese
-    from .mysql_operations import get_students_in_class
+    from everyclass import get_time_chinese
+    from everyclass import get_day_chinese
+    from .db_operations import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):

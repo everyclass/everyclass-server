@@ -15,7 +15,6 @@ class Config(object):
 
     # Sentry
     SENTRY_CONFIG = {
-        'dsn': 'https://XXX@sentry.io/project',
     }
 
     # Maintenance
@@ -30,7 +29,7 @@ class Config(object):
 
     # Static file settings
     STATIC_VERSIONED = True
-    with open(os.path.join(os.getcwd(), 'rev-manifest.json'), 'r') as static_manifest_file:
+    with open(os.path.join(os.path.dirname(__file__), '../rev-manifest.json'), 'r') as static_manifest_file:
         STATIC_MANIFEST = json.load(static_manifest_file)
 
     # Semester settings
