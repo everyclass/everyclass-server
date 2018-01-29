@@ -1,3 +1,11 @@
+v0.7.1 by Jan. 20th, 2018
+=================================
+- Travis CI and codecov integration
+- Add unittests
+- Bug fixes
+- Code structure optimization
+- Other minor changes
+
 截止2017-11-15
 =================================
 - 修复若干bug
@@ -26,8 +34,3 @@
 - Sentry 支持
 - 多域名/CDN 支持
 - 功能修复及改进
-
-
-v1.0:
-=================================
-- 第一个正式版本

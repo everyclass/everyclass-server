@@ -20,6 +20,14 @@ __pycache__/
 
 # Compiled
 /dist/*
-/src/everyclass/static/*-*-*.css
+/everyclass/static/*-*-*.css
 /qiniu_upload.log
 /qiniu_settings.json
+
+# ics folder
+everyclass/ics
+
+# config
+**/config/development.py
+**/config/production.py
+**/config/staging.py
