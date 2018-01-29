@@ -1,30 +1,61 @@
-## EveryClass Web 服务模块
-Web server part of EveryClass
+# EveryClass-server
 
 ![status](https://img.shields.io/badge/status-stable-green.svg)
 ![python version](https://img.shields.io/badge/python-3.6-blue.svg)
 ![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
-[![Build Status](https://travis-ci.org/fr0der1c/EveryClass-server.svg?branch=master)](https://travis-ci.org/fr0der1c/EveryClass-server)
+[![Build Status](https://travis-ci.org/fr0der1c/EveryClass-server.svg?branch=develop)](https://travis-ci.org/fr0der1c/EveryClass-server)
 [![codecov](https://codecov.io/gh/fr0der1c/EveryClass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/fr0der1c/EveryClass-server)
 
-这是 EveryClass 的 Web 服务模块。为了结构的清晰性，我们把本项目的不同模块分成了单独的仓库。查看 [项目主页](https://github.com/fr0der1c/EveryClass) 了解详情。
 
-This is the server-part repo of EveryClass. We decided to separate its different module to standalone repositories for clearer structure. See [project page](https://github.com/fr0der1c/EveryClass) for more information. Since this repo is specially for college students in China, we do not offer English version of this README document.
+This is the web server part of [EveryClass](https://github.com/fr0der1c/EveryClass) project.
 
-### 最新进度
-参见 [CHANGELOG.txt](https://github.com/fr0der1c/EveryClass-server/blob/master/CHANGELOG.txt)
 
-### 未来计划
-- 每次刷新数据后自动生成ics文件，使得手机端可以自动获取新课表，而无需再次来到本网站
-- 增加一些趣味性的统计数据
+### Communication
 
-更多请参见 issues 页面。
+If you found any problem of the code, please open an issue here and make sure you provided much information.
 
-### 源码使用
-1. 在 Python 3.6.0 下安装所需要的 package （在 requirements.txt 里）
-2. 在 src/everyclass/config 目录下建立 development.py 用于开发配置
-3. 导入数据库（[在这里](https://github.com/fr0der1c/EveryClass-collector/tree/master/sql)）
-4. 配置环境变量`MODE`为`DEVELOPMENT`，然后运行 ec_server.py
+To discuss questions regarding the project, I suggest you join our [forum](https://base.admirable.one/c/everyclass) (Chinese).
 
-### 参与改进
-fork 本项目，然后 pull request。
+
+### Technology stack
+
+- uWSGI: the gateway between programme itself and Nginx reverse proxy
+- Flask: the micro Python web framework
+- MySQL: database
+
+
+### Using the source
+
+1. Set a Python 3.6.0 virtualenv, and install required packages in ``requirements.txt``
+2. Copy `everyclass/config/default.py`. Rename it `development.py` and change some settings for local development
+3. Import database. Structure can be found [here](https://github.com/fr0der1c/EveryClass-collector/tree/master/sql), but you need to dummy some content yourself.
+4. set the environment variable `MODE` to `DEVELOPMENT`, then run `ec_server.py`
+
+### Contributions, Bug Reports, Feature Requests
+
+This is an open source project and we would be happy to see contributors who report bugs and file feature requests submitting pull requests as well. Please report issues here [https://github.com/fr0der1c/EveryClass-server/issues](https://github.com/fr0der1c/EveryClass-server/issues)
+
+### Branch Policy
+
+Please get familiar with **git-flow** before you start contributing. It's a work flow to make source code better to manage.
+
+We have the following branches :
+- **development**: All development goes on in this branch. If you're making a contribution, please make a pull request to development. PRs to must pass a build check and a unit-test check on Travis.
+- **master**: This is the actual code running on the [server](https://every.admirable.one). After significant features/bug-fixes are accumulated on development, we make a version update, and make a release.
+
+
+### Contributions Best Practices
+#### Commits
+
+- Write clear meaningful git commit messages
+- Make sure your PR's description contains GitHub's special keyword references that automatically close the related issue when the PR is merged. (More info at  [https://github.com/blog/1506-closing-issues-via-pull-requests](https://github.com/blog/1506-closing-issues-via-pull-requests))
+- When you make very very minor changes to a PR of yours (like for example fixing a failing travis build or some small style corrections or minor changes requested by reviewers) make sure you squash your commits afterwards so that you don't have an absurd number of commits for a very small fix. (Learn how to squash at https://davidwalsh.name/squash-commits-git )
+
+
+#### Feature Requests and Bug Reports
+
+When you file a feature request or when you are submitting a bug report to the issue tracker, make sure you add steps to reproduce it. Especially if that bug is some weird/rare one.
+
+#### Join the development
+
+Feel free to join the development and happy coding. Again, please get familiar with **git-flow** before you start contributing.
