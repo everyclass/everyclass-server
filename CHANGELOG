@@ -1,4 +1,8 @@
-v0.7.1 by Jan. 20th, 2018
+v0.7.2 on Jan. 30th, 2018
+================================
+- Structural change
+
+v0.7.1 on Jan. 20th, 2018
 =================================
 - Travis CI and codecov integration
 - Add unittests
