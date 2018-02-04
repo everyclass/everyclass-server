@@ -1,6 +1,8 @@
 language: python
 dist: trusty
 sudo: false
+addons:
+  ssh_known_hosts: admirable.one
 python:
 - '3.6'
 - nightly
