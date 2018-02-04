@@ -18,8 +18,8 @@ class Config(object):
     # Git hash
     _repo = git.Repo(search_parent_directories=True)
     GIT_HASH = _repo.head.object.hexsha
-    GIT_HASH_SHORT = _repo.head.object.hexsha[0:6]
     GIT_BRANCH_NAME = _repo.active_branch.name
+    GIT_DESCRIBE = _repo.git.describe()
 
     # Sentry
     SENTRY_CONFIG = {
