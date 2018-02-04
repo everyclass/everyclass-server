@@ -18,7 +18,10 @@ class Config(object):
     # Git hash
     _repo = git.Repo(search_parent_directories=True)
     GIT_HASH = _repo.head.object.hexsha
-    GIT_BRANCH_NAME = _repo.active_branch.name
+    try:
+        GIT_BRANCH_NAME = _repo.active_branch.name
+    except TypeError:
+        print('Type error when getting branch name. Skip this error if this is a CI process.')
     GIT_DESCRIBE = _repo.git.describe()
 
     # Sentry
