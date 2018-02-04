@@ -1,6 +1,7 @@
 v0.7.3 on Feb. 4th, 2018
 ================================
-- 修正Windows上的字体显示
+- Fix font on Windows
+- Show active branch and revision hash on the front-end
 
 v0.7.2 on Jan. 30th, 2018
 ================================

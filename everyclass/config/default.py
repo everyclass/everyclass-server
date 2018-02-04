@@ -1,4 +1,6 @@
-import os, json
+import os
+import json
+import git
 
 
 class Config(object):
@@ -12,6 +14,12 @@ class Config(object):
     CDN_DOMAIN = 'cdn.domain.com'
     CDN_ENDPOINTS = ['images', 'static']
     CDN_TIMESTAMP = False
+
+    # Git hash
+    _repo = git.Repo(search_parent_directories=True)
+    GIT_HASH = _repo.head.object.hexsha
+    GIT_HASH_SHORT = _repo.head.object.hexsha[0:6]
+    GIT_BRANCH_NAME = _repo.active_branch.name
 
     # Sentry
     SENTRY_CONFIG = {
