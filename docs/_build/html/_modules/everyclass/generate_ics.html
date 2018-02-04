@@ -1,0 +1,181 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>everyclass.generate_ics &#8212; EveryClass-server 0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for everyclass.generate_ics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Name: generate_ics.py</span>
+<span class="sd">Description:</span>
+<span class="sd">This is module to generate .ics file. Should follow RFC2445 standard.</span>
+<span class="sd">https://tools.ietf.org/html/rfc2445</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">icalendar</span> <span class="k">import</span> <span class="n">Calendar</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">Alarm</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="k">import</span> <span class="n">load_config</span>
+<span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">get_time</span>
+
+
+<div class="viewcode-block" id="generate_ics"><a class="viewcode-back" href="../../everyclass.html#everyclass.generate_ics.generate_ics">[docs]</a><span class="k">def</span> <span class="nf">generate_ics</span><span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="n">student_name</span><span class="p">,</span> <span class="n">student_classes</span><span class="p">,</span> <span class="n">semester_string</span><span class="p">,</span> <span class="n">semester</span><span class="p">):</span>
+    <span class="c1"># Create calender object</span>
+    <span class="n">cal</span> <span class="o">=</span> <span class="n">Calendar</span><span class="p">()</span>
+    <span class="n">cal</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;prodid&#39;</span><span class="p">,</span> <span class="s1">&#39;-//Admirable//EveryClass 1.0//EN&#39;</span><span class="p">)</span>
+    <span class="n">cal</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="s1">&#39;2.0&#39;</span><span class="p">)</span>
+    <span class="n">cal</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;calscale&#39;</span><span class="p">,</span> <span class="s1">&#39;GREGORIAN&#39;</span><span class="p">)</span>
+    <span class="n">cal</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;PUBLISH&#39;</span><span class="p">)</span>
+    <span class="n">cal</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;X-WR-CALNAME&#39;</span><span class="p">,</span> <span class="n">student_name</span> <span class="o">+</span> <span class="s1">&#39;的&#39;</span> <span class="o">+</span> <span class="n">semester_string</span> <span class="o">+</span> <span class="s1">&#39;学期课表&#39;</span><span class="p">)</span>
+    <span class="n">cal</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;X-WR-TIMEZONE&#39;</span><span class="p">,</span> <span class="s1">&#39;Asia/Shanghai&#39;</span><span class="p">)</span>
+    <span class="c1"># Create events</span>
+    <span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span> <span class="ow">in</span> <span class="n">student_classes</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">every_class</span> <span class="ow">in</span> <span class="n">student_classes</span><span class="p">[(</span><span class="n">day</span><span class="p">,</span> <span class="n">time</span><span class="p">)]:</span>
+                    <span class="c1"># 每一节课</span>
+                    <span class="n">durations</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;duration&#39;</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">each_duration</span> <span class="ow">in</span> <span class="n">durations</span><span class="p">:</span>
+                        <span class="c1"># 每一段上课周</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d{1,2}&#39;</span><span class="p">,</span> <span class="n">each_duration</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># 仅当周</span>
+                            <span class="n">dur_starting_week</span> <span class="o">=</span> <span class="n">dur_ending_week</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d{1,2}&#39;</span><span class="p">,</span> <span class="n">each_duration</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>  <span class="c1"># X 到 X 周</span>
+                            <span class="n">dur_starting_week</span><span class="p">,</span> <span class="n">dur_ending_week</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d{1,2}&#39;</span><span class="p">,</span> <span class="n">each_duration</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;week&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;周&#39;</span><span class="p">:</span>
+                            <span class="n">interval</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">interval</span> <span class="o">=</span> <span class="mi">2</span>
+                        <span class="k">if</span> <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;week&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;双周&#39;</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">dur_starting_week</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">dur_starting_week</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">dur_starting_week</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;week&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;单周&#39;</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">dur_starting_week</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">dur_starting_week</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">dur_starting_week</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+                        <span class="n">dtstart</span> <span class="o">=</span> <span class="n">__get_datetime</span><span class="p">(</span><span class="n">dur_starting_week</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">get_time</span><span class="p">(</span><span class="n">time</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">semester</span><span class="p">)</span>
+                        <span class="n">dtend</span> <span class="o">=</span> <span class="n">__get_datetime</span><span class="p">(</span><span class="n">dur_starting_week</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">get_time</span><span class="p">(</span><span class="n">time</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">semester</span><span class="p">)</span>
+                        <span class="n">until</span> <span class="o">=</span> <span class="n">__get_datetime</span><span class="p">(</span><span class="n">dur_ending_week</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">get_time</span><span class="p">(</span><span class="n">time</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">semester</span><span class="p">)</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="c1"># 参数：课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID</span>
+                        <span class="n">cal</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span>
+                            <span class="n">__add_event</span><span class="p">(</span><span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                        <span class="p">[</span><span class="n">dtstart</span><span class="p">,</span> <span class="n">dtend</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">until</span><span class="p">,</span> <span class="n">each_duration</span><span class="p">,</span> <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;week&#39;</span><span class="p">]],</span>
+                                        <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">],</span>
+                                        <span class="n">every_class</span><span class="p">[</span><span class="s1">&#39;teacher&#39;</span><span class="p">],</span> <span class="n">student_id</span><span class="p">))</span>
+
+    <span class="c1"># Write file</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/ics/</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">.ics&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="n">semester_string</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cal</span><span class="o">.</span><span class="n">to_ical</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span></div>
+
+
+<span class="c1"># 输入周次，星期、时间tuple（时,分），输出datetime类型的时间</span>
+<span class="k">def</span> <span class="nf">__get_datetime</span><span class="p">(</span><span class="n">week</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">semester</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="p">(</span><span class="o">*</span><span class="n">load_config</span><span class="p">()</span><span class="o">.</span><span class="n">AVAILABLE_SEMESTERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">semester</span><span class="p">)[</span><span class="s1">&#39;start&#39;</span><span class="p">],</span>
+                    <span class="o">*</span><span class="n">time</span><span class="p">,</span>
+                    <span class="n">tzinfo</span><span class="o">=</span><span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s2">&quot;Asia/Shanghai&quot;</span><span class="p">)</span>
+                    <span class="p">)</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">week</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">7</span> <span class="o">+</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">day</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+
+<span class="c1"># Add event</span>
+<span class="k">def</span> <span class="nf">__add_event</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">teacher</span><span class="p">,</span> <span class="n">student_id</span><span class="p">):</span>
+    <span class="n">event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;transp&#39;</span><span class="p">,</span> <span class="s1">&#39;TRANSPARENT&#39;</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;@&#39;</span> <span class="o">+</span> <span class="n">location</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">times</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">teacher</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+        <span class="n">description</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">教师：&#39;</span> <span class="o">+</span> <span class="n">teacher</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">description</span> <span class="o">+=</span> <span class="s1">&#39;由 EveryClass (https://every.admirable.one) 导入&#39;</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;summary&#39;</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;dtstart&#39;</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;dtend&#39;</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;last-modified&#39;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+    <span class="n">event</span><span class="p">[</span><span class="s1">&#39;uid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ec-CSU&#39;</span> <span class="o">+</span> <span class="n">student_id</span> <span class="o">+</span> <span class="s1">&#39;t&#39;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%y%m</span><span class="si">%d</span><span class="s1">%H%M%S</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;@admirable.one&#39;</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;rrule&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="s1">&#39;weekly&#39;</span><span class="p">,</span> <span class="s1">&#39;interval&#39;</span><span class="p">:</span> <span class="n">times</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                        <span class="s1">&#39;until&#39;</span><span class="p">:</span> <span class="n">times</span><span class="p">[</span><span class="mi">3</span><span class="p">]})</span>
+    <span class="n">alarm</span> <span class="o">=</span> <span class="n">Alarm</span><span class="p">()</span>
+    <span class="n">alarm</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="n">alarm</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;trigger&#39;</span><span class="p">,</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1980</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">alarm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">event</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../everyclass.html">everyclass</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Frederic Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

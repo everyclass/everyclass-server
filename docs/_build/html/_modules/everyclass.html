@@ -1,0 +1,341 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>everyclass &#8212; EveryClass-server 0.8 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for everyclass</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">.cal</span> <span class="k">import</span> <span class="n">cal_blueprint</span>
+<span class="kn">from</span> <span class="nn">.query</span> <span class="k">import</span> <span class="n">query_blueprint</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="k">import</span> <span class="n">load_config</span>
+
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">send_from_directory</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">flash</span>
+<span class="kn">from</span> <span class="nn">flask_cdn</span> <span class="k">import</span> <span class="n">CDN</span>
+<span class="kn">from</span> <span class="nn">htmlmin</span> <span class="k">import</span> <span class="n">minify</span>
+<span class="kn">from</span> <span class="nn">termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">markupsafe</span> <span class="k">import</span> <span class="n">escape</span>
+<span class="kn">from</span> <span class="nn">raven.contrib.flask</span> <span class="k">import</span> <span class="n">Sentry</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="NoClassException"><a class="viewcode-back" href="../everyclass.html#everyclass.NoClassException">[docs]</a><span class="k">class</span> <span class="nc">NoClassException</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="NoStudentException"><a class="viewcode-back" href="../everyclass.html#everyclass.NoStudentException">[docs]</a><span class="k">class</span> <span class="nc">NoStudentException</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="create_app"><a class="viewcode-back" href="../everyclass.html#everyclass.create_app">[docs]</a><span class="k">def</span> <span class="nf">create_app</span><span class="p">():</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">static_folder</span><span class="o">=</span><span class="s1">&#39;static&#39;</span><span class="p">,</span> <span class="n">static_url_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">load_config</span><span class="p">())</span>
+    <span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;App created. Running under [</span><span class="si">{}</span><span class="s1">] config&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;CONFIG_NAME&#39;</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+
+    <span class="c1"># CDN</span>
+    <span class="n">CDN</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+    <span class="c1"># Sentry</span>
+    <span class="n">sentry</span> <span class="o">=</span> <span class="n">Sentry</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+    <span class="c1"># register blueprints</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">cal_blueprint</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">query_blueprint</span><span class="p">)</span>
+
+    <span class="c1"># 结束时关闭数据库连接</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">teardown_appcontext</span>
+    <span class="k">def</span> <span class="nf">close_db</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;mysql_db&#39;</span><span class="p">):</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">mysql_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># 首页</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;index.html&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 帮助</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/faq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">faq</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;faq.html&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 关于</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/about&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">about</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;about.html&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 帮助</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/guide&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">guide</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;guide.html&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 测试</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/testing&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">testing</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;testing.html&#39;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&lt;student_id&gt;-&lt;semester&gt;.ics&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_ics</span><span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="n">semester</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="s2">&quot;ics&quot;</span><span class="p">,</span> <span class="n">student_id</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">semester</span> <span class="o">+</span> <span class="s2">&quot;.ics&quot;</span><span class="p">,</span> <span class="n">as_attachment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;text/calendar&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Minify html response to decrease site traffic using htmlmin</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">after_request</span>
+    <span class="k">def</span> <span class="nf">response_minify</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;HTML_MINIFY&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">response</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;text/html; charset=utf-8&#39;</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span>
+                <span class="n">minify</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">as_text</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="c1"># If STATIC_VERSIONED, use versioned file like &#39;style_v1_c012dr.css&#39; instead of &#39;style_v1.css&#39;</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">template_filter</span><span class="p">(</span><span class="s1">&#39;versioned&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">version_filter</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;STATIC_VERSIONED&#39;</span><span class="p">]:</span>
+            <span class="n">new_filename</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;STATIC_MANIFEST&#39;</span><span class="p">][</span><span class="n">filename</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">new_filename</span>
+        <span class="k">return</span> <span class="n">filename</span>
+
+    <span class="c1"># 404跳转回首页</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">page_not_found</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+
+    <span class="c1"># 405跳转回首页</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="mi">405</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">method_not_allowed</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="n">NoStudentException</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">invalid_usage</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;没有在数据库中找到你哦。是不是输错了？你刚刚输入的是</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">escape</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="n">NoClassException</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">invalid_usage</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;没有这门课程哦&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">internal_server_error</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;500.html&#39;</span><span class="p">,</span>
+                               <span class="n">event_id</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">sentry_event_id</span><span class="p">,</span>
+                               <span class="n">public_dsn</span><span class="o">=</span><span class="n">sentry</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_public_dsn</span><span class="p">(</span><span class="s1">&#39;https&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">app</span></div>
+
+
+<div class="viewcode-block" id="get_day_chinese"><a class="viewcode-back" href="../everyclass.html#everyclass.get_day_chinese">[docs]</a><span class="k">def</span> <span class="nf">get_day_chinese</span><span class="p">(</span><span class="n">digit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get Chinese char of day of week</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周一&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周二&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周三&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周四&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周五&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周六&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;周日&#39;</span></div>
+
+
+<div class="viewcode-block" id="get_time_chinese"><a class="viewcode-back" href="../everyclass.html#everyclass.get_time_chinese">[docs]</a><span class="k">def</span> <span class="nf">get_time_chinese</span><span class="p">(</span><span class="n">digit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get Chinese time description for a single lesson time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;第1-2节&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;第3-4节&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;第5-6节&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;第7-8节&#39;</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;第9-10节&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;第11-12节&#39;</span></div>
+
+
+<div class="viewcode-block" id="get_time"><a class="viewcode-back" href="../everyclass.html#everyclass.get_time">[docs]</a><span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="n">digit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get start and end time for a single lesson.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">00</span><span class="p">),</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">00</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">00</span><span class="p">),</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">00</span><span class="p">),</span> <span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">19</span><span class="p">,</span> <span class="mi">00</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">00</span><span class="p">),</span> <span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="semester_code"><a class="viewcode-back" href="../everyclass.html#everyclass.semester_code">[docs]</a><span class="k">def</span> <span class="nf">semester_code</span><span class="p">(</span><span class="n">xq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    获取用于数据表命名的学期，输入(2016,2017,2)，输出16_17_2</span>
+
+<span class="sd">    :param xq: tuple (2016,2017,2)</span>
+<span class="sd">    :return: str 16_17_2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">xq</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">semester_code</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">DEFAULT_SEMESTER</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">xq</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">AVAILABLE_SEMESTERS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="is_chinese_char"><a class="viewcode-back" href="../everyclass.html#everyclass.is_chinese_char">[docs]</a><span class="k">def</span> <span class="nf">is_chinese_char</span><span class="p">(</span><span class="n">uchar</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a char is a Chinese character. It&#39;s used to check whether a string is a name.</span>
+
+<span class="sd">    :param uchar: char</span>
+<span class="sd">    :return: True or False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\u4e00</span><span class="s1">&#39;</span> <span class="o">&lt;=</span> <span class="n">uchar</span> <span class="o">&lt;=</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\u9fa5</span><span class="s1">&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="print_formatted_info"><a class="viewcode-back" href="../everyclass.html#everyclass.print_formatted_info">[docs]</a><span class="k">def</span> <span class="nf">print_formatted_info</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">show_debug_tip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">info_about</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    调试输出函数</span>
+
+<span class="sd">    :param info:</span>
+<span class="sd">    :param show_debug_tip:</span>
+<span class="sd">    :param info_about:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+    <span class="k">if</span> <span class="n">show_debug_tip</span><span class="p">:</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;-----&quot;</span> <span class="o">+</span> <span class="n">info_about</span> <span class="o">+</span> <span class="s2">&quot;-----&quot;</span><span class="p">,</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bold&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> =&quot;</span> <span class="o">%</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bold&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">each_info</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">each_info</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">show_debug_tip</span><span class="p">:</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;----&quot;</span> <span class="o">+</span> <span class="n">info_about</span> <span class="o">+</span> <span class="s2">&quot; ENDS----&quot;</span><span class="p">,</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bold&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="tuple_semester"><a class="viewcode-back" href="../everyclass.html#everyclass.tuple_semester">[docs]</a><span class="k">def</span> <span class="nf">tuple_semester</span><span class="p">(</span><span class="n">xq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a string like &quot;2016-2017-2&quot; to a tuple like [2016,2017,2].</span>
+<span class="sd">    `xq` may come from a form posted by user, so we NEED to check if is valid.</span>
+
+<span class="sd">    :param xq: str&quot;2016-2017-2&quot;</span>
+<span class="sd">    :return: [2016,2017,2]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d</span><span class="si">{4}</span><span class="s1">-\d</span><span class="si">{4}</span><span class="s1">-\d&#39;</span><span class="p">,</span> <span class="n">xq</span><span class="p">):</span>
+        <span class="n">splitted</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">xq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">splitted</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">splitted</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">splitted</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">DEFAULT_SEMESTER</span></div>
+
+
+<div class="viewcode-block" id="string_semester"><a class="viewcode-back" href="../everyclass.html#everyclass.string_semester">[docs]</a><span class="k">def</span> <span class="nf">string_semester</span><span class="p">(</span><span class="n">xq</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    因为to_string的参数一定来自程序内部，所以不检查有效性</span>
+
+<span class="sd">    :param xq: tuple or list, like [2016,2017,2]</span>
+<span class="sd">    :param simplify: True if you want short str</span>
+<span class="sd">    :return: str like &#39;16-17-2&#39; if simplify==True, &#39;2016-2017-2&#39; is simplify==False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">simplify</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xq</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Frederic Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

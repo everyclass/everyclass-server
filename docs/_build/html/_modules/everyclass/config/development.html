@@ -1,0 +1,134 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>everyclass.config.development &#8212; EveryClass-server 0.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for everyclass.config.development</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.default</span> <span class="k">import</span> <span class="n">Config</span>
+
+
+<div class="viewcode-block" id="DevelopmentConfig"><a class="viewcode-back" href="../../../everyclass.config.html#everyclass.config.development.DevelopmentConfig">[docs]</a><span class="k">class</span> <span class="nc">DevelopmentConfig</span><span class="p">(</span><span class="n">Config</span><span class="p">):</span>
+    <span class="c1"># Basic config</span>
+    <span class="n">CONFIG_NAME</span> <span class="o">=</span> <span class="s1">&#39;development&#39;</span>
+    <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s1">&#39;development key&#39;</span>
+    <span class="c1"># SERVER_NAME = &#39;localhost:8880&#39;</span>
+
+    <span class="c1"># CDN settings</span>
+    <span class="n">CDN_DOMAIN</span> <span class="o">=</span> <span class="s1">&#39;s2.tail0r.com&#39;</span>
+    <span class="c1">#CDN_DEBUG = False</span>
+
+    <span class="c1"># Sentry</span>
+    <span class="n">SENTRY_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1">#&#39;dsn&#39;: &#39;https://7eac20ef24f2478081bcc89c25a8472a:420fefc7e03f48b395f3728255214360@sentry.io/203385&#39;,</span>
+        <span class="c1"># 本地开发禁用 sentry</span>
+        <span class="c1"># 开发环境不设置 sentry release hash</span>
+    <span class="p">}</span>
+
+    <span class="c1"># HTML minify</span>
+    <span class="n">HTML_MINIFY</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Static file settings</span>
+    <span class="c1">#STATIC_VERSIONED = False</span>
+    <span class="n">STATIC_VERSIONED</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Database config</span>
+    <span class="n">MYSQL_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;everyclass_user&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;everyclass_pwd&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="s1">&#39;3306&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;database&#39;</span><span class="p">:</span> <span class="s1">&#39;everyclass&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;raise_on_warnings&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">MYSQL_DATABASE_HOST</span> <span class="o">=</span> <span class="s1">&#39;localhost&#39;</span>
+    <span class="n">MYSQL_DATABASE_PORT</span> <span class="o">=</span> <span class="mi">3306</span>
+    <span class="n">MYSQL_DATABASE_USER</span> <span class="o">=</span> <span class="s1">&#39;everyclass_user&#39;</span>
+    <span class="n">MYSQL_DATABASE_PASSWORD</span> <span class="o">=</span> <span class="s1">&#39;everyclass_pwd&#39;</span>
+    <span class="n">MYSQL_DATABASE_DB</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s1">&#39;mysql://everyclass_user:everyclass_pwd@localhost:3306/everyclass&#39;</span>
+    <span class="n">SQLALCHEMY_COMMIT_ON_TEARDOWN</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># 每次请求结束后都会自动提交数据库中的变动</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../everyclass.html">everyclass</a><ul>
+  <li><a href="../config.html">everyclass.config</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Frederic Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

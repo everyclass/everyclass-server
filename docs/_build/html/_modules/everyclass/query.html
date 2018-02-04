@@ -1,0 +1,248 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>everyclass.query &#8212; EveryClass-server 0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for everyclass.query</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">查询相关函数</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Blueprint</span><span class="p">,</span> <span class="n">flash</span>
+
+<span class="n">query_blueprint</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># 用于查询本人课表</span>
+<div class="viewcode-block" id="query"><a class="viewcode-back" href="../../everyclass.html#everyclass.query.query">[docs]</a><span class="nd">@query_blueprint</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/query&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">query</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">session</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">current_app</span> <span class="k">as</span> <span class="n">app</span>
+    <span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">string_semester</span>
+    <span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">tuple_semester</span>
+    <span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">is_chinese_char</span>
+    <span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">NoStudentException</span>
+    <span class="kn">from</span> <span class="nn">.db_operations</span> <span class="k">import</span> <span class="n">faculty_lookup</span>
+    <span class="kn">from</span> <span class="nn">.db_operations</span> <span class="k">import</span> <span class="n">class_lookup</span>
+    <span class="kn">from</span> <span class="nn">.db_operations</span> <span class="k">import</span> <span class="n">semester</span><span class="p">,</span> <span class="n">get_db</span><span class="p">,</span> <span class="n">get_classes_for_student</span><span class="p">,</span> \
+        <span class="n">get_my_available_semesters</span><span class="p">,</span> <span class="n">check_if_stu_exist</span><span class="p">,</span> <span class="n">get_privacy_settings</span>
+    <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;MAINTENANCE&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;maintenance.html&quot;</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="c1"># 如有 id 参数，判断是姓名还是学号，然后赋学号给student_id</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
+        <span class="n">id_or_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+        <span class="c1"># 首末均为中文,判断为人名</span>
+        <span class="k">if</span> <span class="n">is_chinese_char</span><span class="p">(</span><span class="n">id_or_name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span> <span class="n">is_chinese_char</span><span class="p">(</span><span class="n">id_or_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT name,xh FROM ec_students WHERE name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">id_or_name</span><span class="p">,))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># 查询到多个同名，进入选择界面</span>
+                <span class="n">students_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">each_student</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                    <span class="n">students_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">each_student</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="n">each_student</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                          <span class="n">faculty_lookup</span><span class="p">(</span><span class="n">each_student</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                                          <span class="n">class_lookup</span><span class="p">(</span><span class="n">each_student</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+                <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;query_same_name.html&quot;</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span><span class="p">,</span> <span class="n">student_info</span><span class="o">=</span><span class="n">students_list</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># 仅能查询到一个人，则赋值学号</span>
+                <span class="n">student_id</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># 查无此人</span>
+                <span class="n">no_student_handle</span><span class="p">(</span><span class="n">id_or_name</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+        <span class="c1"># id 为学号</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">student_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="c1"># 判断学号是否有效</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">check_if_stu_exist</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+                <span class="n">no_student_handle</span><span class="p">(</span><span class="n">student_id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+        <span class="c1"># 写入 session 的学号一定有效</span>
+        <span class="n">session</span><span class="p">[</span><span class="s1">&#39;stu_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">student_id</span>
+    <span class="k">elif</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stu_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">student_id</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s1">&#39;stu_id&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+
+    <span class="c1"># 查询学生本人的可用学期</span>
+    <span class="n">my_available_semesters</span><span class="p">,</span> <span class="n">student_name</span> <span class="o">=</span> <span class="n">get_my_available_semesters</span><span class="p">(</span><span class="n">student_id</span><span class="p">)</span>
+
+    <span class="c1"># 如参数中包含学期，判断有效性后写入 session。session 中的学期保证是准确的。后续的semester()函数需要用到session。</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;semester&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;semester&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">my_available_semesters</span><span class="p">:</span>
+        <span class="n">session</span><span class="p">[</span><span class="s1">&#39;semester&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuple_semester</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;semester&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Session semester:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s1">&#39;semester&#39;</span><span class="p">]))</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># 关闭数据库连接</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">student_classes</span> <span class="o">=</span> <span class="n">get_classes_for_student</span><span class="p">(</span><span class="n">student_id</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">NoStudentException</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;抱歉，数据库中找不到你的信息哦。如果你处于正常入学状态，请联系管理员更新信息。&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># 空闲周末判断，考虑到大多数人周末都是没有课程的</span>
+        <span class="n">empty_weekend</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">cls_time</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">cls_day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">cls_day</span><span class="p">,</span> <span class="n">cls_time</span><span class="p">)</span> <span class="ow">in</span> <span class="n">student_classes</span><span class="p">:</span>
+                    <span class="n">empty_weekend</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># 空闲课程判断，考虑到大多数人11-12节都是没有课程的</span>
+        <span class="n">empty_6</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">cls_day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">cls_day</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="ow">in</span> <span class="n">student_classes</span><span class="p">:</span>
+                <span class="n">empty_6</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">empty_5</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">cls_day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">cls_day</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="ow">in</span> <span class="n">student_classes</span><span class="p">:</span>
+                <span class="n">empty_5</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        available_semesters 为当前学生所能选择的学期，是一个list。当中每一项又是一个包含两项的list，第一项为学期string，</span>
+<span class="sd">        第二项为True/False表示是否为当前学期。</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">available_semesters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">each_semester</span> <span class="ow">in</span> <span class="n">my_available_semesters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">string_semester</span><span class="p">(</span><span class="n">semester</span><span class="p">())</span> <span class="o">==</span> <span class="n">each_semester</span><span class="p">:</span>
+                <span class="n">available_semesters</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">each_semester</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">available_semesters</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">each_semester</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+
+        <span class="c1"># Privacy settings</span>
+        <span class="c1"># Available privacy settings: &quot;show_table_on_page&quot;, &quot;import_to_calender&quot;, &quot;major&quot;</span>
+        <span class="n">privacy_settings</span> <span class="o">=</span> <span class="n">get_privacy_settings</span><span class="p">(</span><span class="n">student_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;show_table_on_page&quot;</span> <span class="ow">in</span> <span class="n">privacy_settings</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;blocked.html&#39;</span><span class="p">,</span>
+                                   <span class="n">name</span><span class="o">=</span><span class="n">student_name</span><span class="p">,</span>
+                                   <span class="n">falculty</span><span class="o">=</span><span class="n">faculty_lookup</span><span class="p">(</span><span class="n">student_id</span><span class="p">),</span>
+                                   <span class="n">class_name</span><span class="o">=</span><span class="n">class_lookup</span><span class="p">(</span><span class="n">student_id</span><span class="p">),</span>
+                                   <span class="n">stu_id</span><span class="o">=</span><span class="n">student_id</span><span class="p">,</span>
+                                   <span class="n">available_semesters</span><span class="o">=</span><span class="n">available_semesters</span><span class="p">,</span>
+                                   <span class="n">no_import_to_calender</span><span class="o">=</span><span class="kc">True</span> <span class="k">if</span> <span class="s2">&quot;import_to_calender&quot;</span> <span class="ow">in</span> <span class="n">privacy_settings</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;query.html&#39;</span><span class="p">,</span>
+                               <span class="n">name</span><span class="o">=</span><span class="n">student_name</span><span class="p">,</span>
+                               <span class="n">falculty</span><span class="o">=</span><span class="n">faculty_lookup</span><span class="p">(</span><span class="n">student_id</span><span class="p">),</span>
+                               <span class="n">class_name</span><span class="o">=</span><span class="n">class_lookup</span><span class="p">(</span><span class="n">student_id</span><span class="p">),</span>
+                               <span class="n">stu_id</span><span class="o">=</span><span class="n">student_id</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="n">student_classes</span><span class="p">,</span>
+                               <span class="n">empty_wkend</span><span class="o">=</span><span class="n">empty_weekend</span><span class="p">,</span>
+                               <span class="n">empty_6</span><span class="o">=</span><span class="n">empty_6</span><span class="p">,</span>
+                               <span class="n">empty_5</span><span class="o">=</span><span class="n">empty_5</span><span class="p">,</span>
+                               <span class="n">available_semesters</span><span class="o">=</span><span class="n">available_semesters</span><span class="p">)</span></div>
+
+
+<span class="c1"># 同学名单查询</span>
+<div class="viewcode-block" id="get_classmates"><a class="viewcode-back" href="../../everyclass.html#everyclass.query.get_classmates">[docs]</a><span class="nd">@query_blueprint</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/classmates&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_classmates</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span>
+    <span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">get_time_chinese</span>
+    <span class="kn">from</span> <span class="nn">everyclass</span> <span class="k">import</span> <span class="n">get_day_chinese</span>
+    <span class="kn">from</span> <span class="nn">.db_operations</span> <span class="k">import</span> <span class="n">get_students_in_class</span>
+
+    <span class="c1"># 如果 session stu_id 不存在则回到首页</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stu_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;main&#39;</span><span class="p">))</span>
+
+    <span class="c1"># 默认不显示 ID</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_id&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+        <span class="n">show_id</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">show_id</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># 获取学生信息</span>
+    <span class="n">class_name</span><span class="p">,</span> <span class="n">class_day</span><span class="p">,</span> <span class="n">class_time</span><span class="p">,</span> <span class="n">class_teacher</span><span class="p">,</span> <span class="n">students_info</span> <span class="o">=</span> <span class="n">get_students_in_class</span><span class="p">(</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;class_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;classmate.html&#39;</span><span class="p">,</span>
+                           <span class="n">class_name</span><span class="o">=</span><span class="n">class_name</span><span class="p">,</span>
+                           <span class="n">class_day</span><span class="o">=</span><span class="n">get_day_chinese</span><span class="p">(</span><span class="n">class_day</span><span class="p">),</span>
+                           <span class="n">class_time</span><span class="o">=</span><span class="n">get_time_chinese</span><span class="p">(</span><span class="n">class_time</span><span class="p">),</span>
+                           <span class="n">class_teacher</span><span class="o">=</span><span class="n">class_teacher</span><span class="p">,</span>
+                           <span class="n">students</span><span class="o">=</span><span class="n">students_info</span><span class="p">,</span>
+                           <span class="n">student_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">students_info</span><span class="p">),</span>
+                           <span class="n">show_id</span><span class="o">=</span><span class="n">show_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="no_student_handle"><a class="viewcode-back" href="../../everyclass.html#everyclass.query.no_student_handle">[docs]</a><span class="k">def</span> <span class="nf">no_student_handle</span><span class="p">(</span><span class="n">stu_identifier</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">escape</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;没有在数据库中找到你哦。是不是输错了？你刚刚输入的是</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">escape</span><span class="p">(</span><span class="n">stu_identifier</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../everyclass.html">everyclass</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Frederic Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
