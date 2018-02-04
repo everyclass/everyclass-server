@@ -19,7 +19,7 @@ script:
 after_success:
 - codecov
 - echo 'Connecting to production server...'
-- ssh travis@admirable.one -o PubkeyAuthentication=no
+- ssh -i /dev/null travis@admirable.one
 - echo 'cd to dir'
 - cd /home/pyweb/EveryClass-server
 - echo 'git pull'
