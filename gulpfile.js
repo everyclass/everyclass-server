@@ -8,18 +8,18 @@ var rev = require('gulp-rev');                                  //File revision
 
 //CSS
 gulp.task('cssCompress', function() {
-    gulp.src('./src/everyclass/static/*-v1.css')
+    gulp.src('./everyclass/static/*-v1.css')
         //.pipe(concat('style.min.css'))                        //Concat CSS files
         .pipe(minifyCss())                                      //Compress
         .pipe(rev())                                            //Revision
         .pipe(gulp.dest('./dist/'))                             //Output
         .pipe(rev.manifest())                                   //Generate rev-manifest.json
-        .pipe(gulp.dest('./src/everyclass'));                   //Save rev-manifest.json for flask app
+        .pipe(gulp.dest('./everyclass'));                   //Save rev-manifest.json for flask app
 });
 
 gulp.task('copyDistToSrc',function(){
     gulp.src('./dist/*-*-*.css')
-        .pipe(gulp.dest('./src/everyclass/static'));
+        .pipe(gulp.dest('./everyclass/static'));
 });
 
 
@@ -32,7 +32,7 @@ gulp.task('css', ['cssCompress', 'copyDistToSrc']);
 
 //Watch tasks
 gulp.task('watch-css',function(){
-    gulp.watch('./src/everyclass/static/*.css',['cssCompile']);
+    gulp.watch('./everyclass/static/*.css',['cssCompile']);
 });
 //gulp.watch('./src/**/*',['rev']);
 //gulp.watch('./src/everyclass/static/*.css',['rev']);

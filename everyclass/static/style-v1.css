@@ -1,9 +1,14 @@
-.centre{
-  width: auto;
-  display: table;
-  margin-left: auto;
-  margin-right: auto;
+body, button, input, select, textarea, h1, h2, h3, h4, h5, h6 {
+    font-family: "PingFang SC", "Hiragino Sans GB", Microsoft YaHei, '宋体', Tahoma, Helvetica, Arial, sans-serif;
 }
+
+.centre {
+    width: auto;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .vertical-align {
     display: -webkit-box !important;
     display: -webkit-flex !important;
@@ -517,7 +522,7 @@ label, legend {
 .form-control:focus {
     border: 1px solid #44b951;
     outline: 0;
-    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 5px rgba(68, 185, 81,0.3)
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 5px rgba(68, 185, 81, 0.3)
 }
 
 .input-lg {
@@ -1338,36 +1343,36 @@ a:hover, a:focus, p a {
 }
 
 .rte {
-	line-height: 1.8;
-	margin-bottom: 80px
+    line-height: 1.8;
+    margin-bottom: 80px
 }
 
 .rte-heading {
-	margin-top: 40px;
-	margin-bottom: 0
+    margin-top: 40px;
+    margin-bottom: 0
 }
 
 .rte a {
-	color: #369c37
+    color: #369c37
 }
 
 .rte h4 {
-	color: #697176;
-	text-align: center;
-	margin-bottom: 30px
+    color: #697176;
+    text-align: center;
+    margin-bottom: 30px
 }
 
-.rte .postList,.rte p {
-	margin-bottom: 30px
+.rte .postList, .rte p {
+    margin-bottom: 30px
 }
 
 @media (min-width: 768px) {
-	.rte-heading {
-		margin-top: 80px;
-		margin-bottom: 5px
-	}
+    .rte-heading {
+        margin-top: 80px;
+        margin-bottom: 5px
+    }
 
-	.rte h4 {
-		margin-bottom: 60px
-	}
+    .rte h4 {
+        margin-bottom: 60px
+    }
 }
