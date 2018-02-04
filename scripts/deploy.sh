@@ -7,3 +7,5 @@ cd /home/pyweb/EveryClass-server
 
 echo 'git pull'
 git pull
+
+return 0
