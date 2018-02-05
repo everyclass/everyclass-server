@@ -21,7 +21,7 @@ after_success:
 - codecov
 deploy:
 - provider: script
-  script: deploy/deploy.sh
+  script: echo $ (pwd) && deploy/deploy.sh
   on:
     branch: master
     python: '3.6'
