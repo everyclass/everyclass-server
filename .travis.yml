@@ -20,6 +20,7 @@ script:
 after_success:
 - codecov
 - echo $(pwd)
+- sh deploy/deploy.sh
 deploy:
 - provider: script
   script: deploy/deploy.sh
