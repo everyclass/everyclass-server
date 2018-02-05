@@ -21,7 +21,6 @@ script:
 - nosetests tests --with-coverage
 after_success:
 - codecov
-- cp deploy/ssh_config ~/.ssh/config
 - echo 'Connecting to production server...'
 - ssh travis@admirable.one
 - echo 'cd to dir'
