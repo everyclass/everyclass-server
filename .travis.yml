@@ -20,6 +20,6 @@ after_success:
 - codecov
 deploy:
 - provider: script
-  script: ./deploy/deploy.sh
+  script: chmod +x ./deploy/deploy.sh && ./deploy/deploy.sh
   on:
     branch: master
