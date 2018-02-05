@@ -19,7 +19,7 @@ script:
 - nosetests tests --with-coverage
 after_success:
 - codecov
-- echo $ (pwd)
+- echo $(pwd)
 deploy:
 - provider: script
   script: deploy/deploy.sh
