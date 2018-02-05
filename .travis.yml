@@ -19,9 +19,10 @@ script:
 - nosetests tests --with-coverage
 after_success:
 - codecov
+- echo $ (pwd)
 deploy:
 - provider: script
-  script: echo $ (pwd) && deploy/deploy.sh
+  script: deploy/deploy.sh
   on:
     branch: master
     python: '3.6'
