@@ -7,7 +7,7 @@ ssh-add /tmp/deploy_rsa
 
 
 
-if  $TRAVIS_BRANCH == "master"  ; then
+if [ $TRAVIS_BRANCH = "master" ] ; then
 
     ssh travis@admirable.one <<EOF
 cd /home/pyweb/EveryClass-server
