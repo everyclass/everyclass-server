@@ -1,5 +1,0 @@
-Host admirable.one
-User travis
-StrictHostKeyChecking no
-IdentityFile ~/.ssh/id_rsa
-IdentitiesOnly yes
