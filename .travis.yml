@@ -18,8 +18,4 @@ script:
 - nosetests tests --with-coverage
 after_success:
 - codecov
-deploy:
-- provider: script
-  script: chmod +x ./deploy/deploy.sh && ./deploy/deploy.sh
-  on:
-    branch: master
+- chmod +x ./deploy/deploy.sh && ./deploy/deploy.sh
