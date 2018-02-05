@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -xe
+
 eval "$(ssh-agent -s)"
 chmod 600 /tmp/deploy_rsa
 ssh-add /tmp/deploy_rsa
