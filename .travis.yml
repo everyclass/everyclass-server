@@ -18,4 +18,9 @@ script:
 - nosetests tests --with-coverage
 after_success:
 - codecov
-- chmod +x ./deploy/deploy.sh && ./deploy/deploy.sh
+deploy:
+- provider: script
+  script: chmod +x ./deploy/deploy.sh && ./deploy/deploy.sh
+  on:
+    branch: master
+    python: '3.6'
