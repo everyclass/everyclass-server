@@ -23,7 +23,7 @@ after_success:
 - bash deploy/deploy.sh
 deploy:
 - provider: script
-  script: ./deploy/deploy.sh
+  script: /home/travis/build/fr0der1c/EveryClass-server/deploy/deploy.sh
   on:
     branch: master
     python: '3.6'
