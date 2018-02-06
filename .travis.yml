@@ -23,7 +23,7 @@ after_success:
 - bash deploy/deploy.sh
 deploy:
 - provider: script
-  script: deploy/deploy.sh
+  script: ./deploy/deploy.sh
   on:
     branch: master
     python: '3.6'
