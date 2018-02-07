@@ -7,12 +7,17 @@ from flask import request, session, redirect, url_for, render_template, flash
 cal_blueprint = Blueprint('cal', __name__)
 
 
-# 导出日历交换格式文件
 @cal_blueprint.route('/calendar')
 def generate_ics():
+    """
+    View function of exporting ics file page.
+
+    :return: render_template('ics.html')
+    """
     from .db_operations import get_classes_for_student, semester, get_my_available_semesters, \
         check_if_stu_exist
     from . import tuple_semester, string_semester
+    from .generate_ics import generate_ics
 
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
@@ -30,7 +35,6 @@ def generate_ics():
         if request.values.get('semester') and request.values.get('semester') in my_available_semesters:
             session['semester'] = tuple_semester(request.values.get('semester'))
 
-        from generate_ics import generate_ics
         student_classes = get_classes_for_student(session['stu_id'])
         generate_ics(session['stu_id'],
                      student_name,
