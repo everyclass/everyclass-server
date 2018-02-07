@@ -17,7 +17,7 @@ def cal_page():
     from .db_operations import get_classes_for_student, semester, get_my_available_semesters, \
         check_if_stu_exist
     from . import tuple_semester, string_semester
-    import ics_generator
+    from . import ics_generator
 
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
