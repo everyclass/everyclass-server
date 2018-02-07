@@ -25,7 +25,7 @@ __pycache__/
 /qiniu_settings.json
 
 # ics folder
-everyclass/ics
+everyclass/ics/*.ics
 
 # config
 **/config/development.py
