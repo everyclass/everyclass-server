@@ -1,6 +1,4 @@
 """
-Name: generate_ics.py
-Description:
 This is module to generate .ics file. Should follow RFC2445 standard.
 https://tools.ietf.org/html/rfc2445
 """
@@ -8,11 +6,22 @@ import pytz
 import re
 from icalendar import Calendar, Event, Alarm
 from datetime import datetime, timedelta
-from .config import load_config
+from everyclass.config import load_config
 from everyclass import get_time
 
 
-def generate_ics(student_id, student_name, student_classes, semester_string, semester):
+def generate(student_id, student_name, student_classes, semester_string, semester):
+    """
+    generate ics file and save it to folder
+
+    :param student_id: the id of the student
+    :param student_name: the name of the student
+    :param student_classes: classes student are taking
+    :param semester_string: semester formatted in string to show in title
+    :param semester: semester currently exporting
+    :return: True
+    """
+
     # Create calender object
     cal = Calendar()
     cal.add('prodid', '-//Admirable//EveryClass 1.0//EN')
@@ -59,17 +68,37 @@ def generate_ics(student_id, student_name, student_classes, semester_string, sem
     with open(os.path.dirname(__file__) + '/ics/%s-%s.ics' % (student_id, semester_string), 'w') as f:
         f.write(cal.to_ical().decode(encoding='utf-8'))
 
+    return True
 
-# 输入周次，星期、时间tuple（时,分），输出datetime类型的时间
+
 def __get_datetime(week, day, time, semester):
+    """
+    输入周次，星期、时间tuple（时,分），输出datetime类型的时间
+
+    :param week: 周次
+    :param day: 星期
+    :param time: 时间tuple（时,分）
+    :param semester: 学期
+    :return: datetime类型的时间
+    """
     return datetime(*load_config().AVAILABLE_SEMESTERS.get(semester)['start'],
                     *time,
                     tzinfo=pytz.timezone("Asia/Shanghai")
                     ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
 
-# Add event
 def __add_event(name, times, location, teacher, student_id):
+    """
+    Add an `Event` object to the `calendar` object.
+
+    :param name: the name of the course
+    :param times: the start and end time
+    :param location: the location of the course
+    :param teacher: teacher of the course
+    :param student_id: student id
+    :return: the `Event` object
+    """
+
     event = Event()
     event.add('transp', 'TRANSPARENT')
     summary = name

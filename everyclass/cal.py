@@ -8,7 +8,7 @@ cal_blueprint = Blueprint('cal', __name__)
 
 
 @cal_blueprint.route('/calendar')
-def generate_ics():
+def cal_page():
     """
     View function of exporting ics file page.
 
@@ -17,7 +17,7 @@ def generate_ics():
     from .db_operations import get_classes_for_student, semester, get_my_available_semesters, \
         check_if_stu_exist
     from . import tuple_semester, string_semester
-    from .generate_ics import generate_ics
+    import ics_generator
 
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
@@ -36,12 +36,12 @@ def generate_ics():
             session['semester'] = tuple_semester(request.values.get('semester'))
 
         student_classes = get_classes_for_student(session['stu_id'])
-        generate_ics(session['stu_id'],
-                     student_name,
-                     student_classes,
-                     string_semester(semester(), simplify=True),
-                     semester()
-                     )
+        ics_generator.generate(session['stu_id'],
+                               student_name,
+                               student_classes,
+                               string_semester(semester(), simplify=True),
+                               semester()
+                               )
         return render_template('ics.html',
                                student_id=session['stu_id'],
                                semester=string_semester(semester(), simplify=True)
