@@ -8,7 +8,7 @@ python:
 - nightly
 before_install:
 - openssl aes-256-cbc -K $encrypted_0180fa854b5b_key -iv $encrypted_0180fa854b5b_iv -in deploy/ssh_key.enc -out /tmp/deploy_rsa -d
-- chmod +x ./deploy/deploy.sh
+- chmod +x deploy/deploy.sh
 install:
 - pip install -r requirements.txt
 - pip install coverage codecov nose
@@ -20,10 +20,9 @@ script:
 after_success:
 - codecov
 - echo $(pwd)
-- bash deploy/deploy.sh
 deploy:
 - provider: script
-  script: /home/travis/build/fr0der1c/EveryClass-server/deploy/deploy.sh
+  script: bash deploy/deploy.sh
   on:
     branch: master
     python: '3.6'
