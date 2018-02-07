@@ -12,6 +12,7 @@ if [ $TRAVIS_BRANCH = "master" ] ; then
     ssh travis@admirable.one <<EOF
 cd /home/pyweb/EveryClass-server
 git pull
+touch reload
 EOF
 
 
