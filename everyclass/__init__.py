@@ -1,15 +1,15 @@
 import re
 
-from .cal import cal_blueprint
-from .query import query_blueprint
-from .config import load_config
-
 from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
 from markupsafe import escape
 from raven.contrib.flask import Sentry
+
+from .cal import cal_blueprint
+from .query import query_blueprint
+from .config import load_config
 
 config = load_config()
 

@@ -1,5 +1,6 @@
-import mysql.connector
 import json
+
+import mysql.connector
 from flask import current_app as app
 from flask import session, g
 
