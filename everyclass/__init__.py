@@ -87,8 +87,14 @@ def create_app():
     @app.template_filter('versioned')
     def version_filter(filename):
         if app.config['STATIC_VERSIONED']:
-            new_filename = app.config['STATIC_MANIFEST'][filename]
-            return new_filename
+            if filename[:4] == 'css/':
+                new_filename = app.config['STATIC_MANIFEST'][filename[4:]]
+                return 'css/' + new_filename
+            elif filename[:3] == 'js/':
+                new_filename = app.config['STATIC_MANIFEST'][filename[3:]]
+                return new_filename
+            else:
+                return app.config['STATIC_MANIFEST'][filename]
         return filename
 
     # 404跳转回首页
