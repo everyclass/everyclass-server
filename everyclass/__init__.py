@@ -70,7 +70,8 @@ def create_app():
 
     @app.route('/<student_id>-<semester>.ics')
     def get_ics(student_id, semester):
-        return send_from_directory("ics", student_id + "-" + semester + ".ics", as_attachment=True,
+        return send_from_directory("ics", student_id + "-" + semester + ".ics",
+                                   as_attachment=True,
                                    mimetype='text/calendar')
 
     # Minify html response to decrease site traffic using htmlmin
