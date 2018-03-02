@@ -20,7 +20,7 @@ __pycache__/
 
 # Compiled
 /dist/*
-/everyclass/static/*-*-*.css
+/everyclass/static/css/*-*-*.css
 /qiniu_upload.log
 /qiniu_settings.json
 

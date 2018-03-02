@@ -1,43 +1,52 @@
-var gulp = require('gulp');
-var gutil = require('gulp-util');
-var concat = require('gulp-concat');                            //Concat CSS files
-var minifyCss = require('gulp-clean-css');                      //Compress CSS
-var uglify = require('gulp-uglify');
-var rev = require('gulp-rev');                                  //File revision
+var gulp = require('gulp'),
+    gutil = require('gulp-util'),
+    concat = require('gulp-concat'),           //Concat CSS files
+    minifyCss = require('gulp-clean-css'),     //Compress CSS
+    uglify = require('gulp-uglify'),           //JS uglify
+    rename = require('gulp-rename'),           //File renaming
+    rev = require('gulp-rev'),                 //File revision
+    pump = require('pump');
 
 
 //CSS
-//css files are uglified and saved to `dist` then should be copied to `static` for local development
+//files are uglified and saved to `dist` then should be copied to `static` for local development
 gulp.task('css', ['cssCompress', 'cssCopyToSrc']);
 
 gulp.task('cssCompress', function () {
-    gulp.src('./everyclass/static/*-v1.css')
-    //.pipe(concat('style.min.css'))                        //Concat CSS files
-        .pipe(minifyCss())                                      //Compress
-        .pipe(rev())                                            //Revision
-        .pipe(gulp.dest('./dist/'))                             //Output
-        .pipe(rev.manifest())                                   //Generate rev-manifest.json
-        .pipe(gulp.dest('./everyclass'));                   //Save rev-manifest.json for flask app
+    gulp.src('./everyclass/static/css/*-v1.css')
+    //.pipe(concat('style.min.css'))                 //Concat CSS files
+        .pipe(minifyCss())                           //Compress
+        .pipe(rev())                                 //Revision
+        .pipe(gulp.dest('./dist/css'))                  //Output
+        .pipe(rev.manifest())                        //Generate rev-manifest.json
+        .pipe(gulp.dest('./everyclass'));            //Save rev-manifest.json for flask app
 });
 
-gulp.task('cssCopyToSrc', function () {
-    gulp.src('./dist/*-*-*.css')
-        .pipe(gulp.dest('./everyclass/static'));
+gulp.task('cssCopyToSrc', ['cssCompress'], function () {
+    gulp.src('./dist/css/*-*-*.css')
+        .pipe(gulp.dest('./everyclass/static/css'));
 });
 
 
 //JS
-// javascript files is
-gulp.task('js', ['jsMinify', 'jsCopyToDist']);
+gulp.task('js', ['jsMinify', 'jsCopyToSrc']);
 
-gulp.task('jsMinify', function () {
-    gulp.src(['./everyclass/static/*.js', '!./everyclass/static/*.min.js'])
-        .pipe(uglify())
-        .pipe(gulp.dist('./dist/'))
+//use original js from src, uglify and save to `dist`
+gulp.task('jsMinify', function (cb) {
+    pump([
+            gulp.src(['./everyclass/static/js/*.js', '!./everyclass/static/js/*.min.js', '!./everyclass/static/js/*_min.js']),
+            uglify(),
+            rename({suffix: '.min'}),
+            gulp.dest('./dist/js')
+        ],
+        cb
+    );
 });
-gulp.task('jsCopyToDist', function () {
-    gulp.src('./everyclass/static/*.min.js')
-        .pipe(gulp.dest('./dist'));
+
+//copy javascript files from `dist` to `static`
+gulp.task('jsCopyToSrc', ['jsMinify'], function () {
+    gulp.src('./dist/js/*.min.js')
+        .pipe(gulp.dest('./everyclass/static/js'));
 });
 
 
@@ -46,8 +55,9 @@ gulp.task('default', ['css', 'js']);
 
 
 //Watch tasks
-gulp.task('watch-css', function () {
-    gulp.watch('./everyclass/static/*.css', ['cssCompile']);
+gulp.task('watch', function () {
+    gulp.watch('./everyclass/static/css/*.css', ['css']);
+    gulp.watch('./everyclass/static/js/*.js', ['js']);
 });
 //gulp.watch('./src/**/*',['rev']);
 //gulp.watch('./src/everyclass/static/*.css',['rev']);
