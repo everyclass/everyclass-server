@@ -17,7 +17,8 @@
 
         <h4 class="text-muted visible-xs">课表内容较多，建议登陆电脑使用哦。网址：<br><a href="https://every.admirable.one">https://every.admirable.one</a>
         </h4>
-        <h4 class="text-muted"><a href="{{ url_for('cal.cal_page', id=stu_id) }}" onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">导入到日历</a></h4>
+        <h4 class="text-muted"><a href="{{ url_for('cal.cal_page', id=stu_id) }}"
+                                  onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">导入到日历</a></h4>
     </div>
     <br><br>
     <div class="row row-backbordered">
@@ -53,7 +54,8 @@
                                                     ，{{ every_class['location'] }}
                                                 {% endif %}
                                                 <br>
-                                                <a href="{{ url_for('query.get_classmates',class_id=every_class['id']) }}" onclick="_czc.push(['_trackEvent', '查询页', '查询同学', '', '{{ every_class['id'] }}']);">查看同学</a>
+                                                <a href="{{ url_for('query.get_classmates',class_id=every_class['id']) }}"
+                                                   onclick="_czc.push(['_trackEvent', '查询页', '查询同学', '', '{{ every_class['id'] }}']);">查看同学</a>
                                                 <br>
                                             {% endfor %}
                                         </td>
@@ -67,4 +69,25 @@
             </div>
         </div>
     </div>
+{% endblock %}
+{% block scripts %}
+    {% if stu_id=='1303160109' %}
+    <script type="text/javascript">
+        function specialColor() {
+            //special pink color
+            $('.swag-line').addClass("swag-line-special");
+
+            $('.navbar-default .navbar-brand').animate({'color': '#FF69B4'});
+            $('.navbar-default .navbar-nav>li>a').animate({'color': '#FF69B4'});
+
+            $('.panel-floating').animate({'border-top-color': '#FF69B4'});
+            $('.template-index a').animate({'color': '#FF1493'});
+
+        }
+
+        $(document).ready(function () {
+            setTimeout(specialColor, 1);
+        });
+    </script>
+    {% endif %}
 {% endblock %}

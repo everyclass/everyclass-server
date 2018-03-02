@@ -8,7 +8,8 @@
     <meta name="description" content="一个用来将课表导入到手机日历，并能查询和你同一节课的人的小工具。"/>
     <title>{% block title %}每课 @ CSU by Frederic{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
-    <link href="{{ url_for('static', filename='style-v1.css'|versioned) }}" rel="stylesheet" type="text/css" media="all"/>
+    <link href="{{ url_for('static', filename='style-v1.css'|versioned) }}" rel="stylesheet" type="text/css"
+          media="all"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
@@ -71,7 +72,12 @@
     <p style="display: none; color: #c9a535;" id="wechat-browser-tip">你正在使用微信浏览器，请使用自带浏览器打开↗</p>
 
     {{ config.GIT_DESCRIBE }} ({{ config.GIT_BRANCH_NAME }}) | 数据更新时间：{{ config.DATA_LAST_UPDATE_TIME }}<br>
-    如遇到问题，请在 <a class="footer-list-link" href="https://base.admirable.one/c/everyclass" target="_blank">用户论坛</a> 发帖、<a href="mailto:frederic.t.chan+feedback@gmail.com">发送邮件</a> ，或 <a class="footer-list-link" href="http://cn.mikecrm.com/6Gwfv0K" target="_blank" onclick="_czc.push(['_trackEvent', 'footer', '点击反馈']);">点击这里</a> 反馈<br>
+    如遇到问题，请在 <a class="footer-list-link" href="https://base.admirable.one/c/everyclass" target="_blank">用户论坛</a> 发帖、<a
+        href="mailto:frederic.t.chan+feedback@gmail.com">发送邮件</a> ，或 <a class="footer-list-link"
+                                                                        href="http://cn.mikecrm.com/6Gwfv0K"
+                                                                        target="_blank"
+                                                                        onclick="_czc.push(['_trackEvent', 'footer', '点击反馈']);">点击这里</a>
+    反馈<br>
 
 
     <ul class="footer-list">
@@ -98,11 +104,14 @@
 
 
 <script src="{{ url_for('static', filename='jquery_1.11.0_min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='jquery.animate-colors.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='bootstrap.min.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
     $("select#semester").change(function () {
         $("form#semester-choose-form").submit();
     });
+
+
     $(document).ready(function () {
         var ua = window.navigator.userAgent.toLowerCase();
         if (ua.match(/MicroMessenger/i) == 'micromessenger') {
@@ -110,9 +119,12 @@
             $("#wechat-notify").css('display', 'block');
 
         }
-    })
+    });
+
 
 </script>
+{% block scripts %}
+{% endblock %}
 <div style="display: none">
     <script src="https://s11.cnzz.com/z_stat.php?id=1261874903&web_id=1261874903" language="JavaScript"></script>
 </div>
