@@ -83,7 +83,7 @@ def create_app():
             return response
         return response
 
-    # If STATIC_VERSIONED, use versioned file like 'style_v1_c012dr.css' instead of 'style_v1.css'
+    # If STATIC_VERSIONED, use versioned file like 'style-v1-c012dr.css' instead of 'style-v1.css'
     @app.template_filter('versioned')
     def version_filter(filename):
         if app.config['STATIC_VERSIONED']:
