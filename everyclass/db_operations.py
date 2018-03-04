@@ -22,7 +22,7 @@ def get_db():
 
 
 def check_if_stu_exist(student_id):
-    """检查学生是否存在"""
+    """检查指定学号的学生是否存在于ec_students表"""
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
@@ -47,21 +47,30 @@ def get_my_available_semesters(student_id):
     return my_available_semesters, student_name
 
 
-def get_classes_for_student(student_id):
+def get_classes_for_student(student_id, sem):
     """
     获得一个学生的全部课程。
     若学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
     否则引出 NoStudentException
+
+    :param student_id: 学号
+    :param sem: semester code
     """
-    from . import semester_code
-    from .exceptions import NoStudentException
+    from everyclass import semester_code
+    from everyclass.exceptions import NoStudentException
 
     db = get_db()
     cursor = db.cursor()
 
     if not semester():
         raise NoStudentException(student_id)
-    mysql_query = "SELECT classes FROM ec_students_" + semester_code(semester()) + " WHERE xh=%s"
+
+    if sem and sem in app.config['AVAILABLE_SEMESTERS']:
+        current_sem = sem
+    else:
+        current_sem = semester_code(semester())
+
+    mysql_query = "SELECT classes FROM ec_students_" + current_sem + " WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
     if not result:
@@ -94,7 +103,7 @@ def get_students_in_class(class_id):
     :param class_id:
     :return:
     """
-    from . import semester_code
+    from everyclass import semester_code
     from .exceptions import NoStudentException, NoClassException
     db = get_db()
     cursor = db.cursor()
@@ -158,7 +167,7 @@ def semester():
     当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
     进入此模块前必须保证 session 内有 stu_id
     """
-    from . import tuple_semester, string_semester
+    from everyclass import tuple_semester, string_semester
     my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
 
     # 如果 session 中包含学期信息

@@ -1,6 +1,6 @@
 import re
 
-from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash
+from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash, request, jsonify
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
@@ -10,6 +10,7 @@ from raven.contrib.flask import Sentry
 from .exceptions import NoClassException, NoStudentException
 from .cal import cal_blueprint
 from .query import query_blueprint
+from .api import api_v1 as api_blueprint
 from .config import load_config
 
 config = load_config()
@@ -29,6 +30,7 @@ def create_app():
     # register blueprints
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(query_blueprint)
+    app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
     # 结束时关闭数据库连接
     @app.teardown_appcontext
@@ -94,6 +96,14 @@ def create_app():
     # 404跳转回首页
     @app.errorhandler(404)
     def page_not_found(error):
+        # 404 errors are never handled on the blueprint level
+        # unless raised from a view func so actual 404 errors,
+        # i.e. "no route for it" defined, need to be handled
+        # here on the application level
+        if request.path.startswith('/api/'):
+            response = jsonify({'error': 'not found'})
+            response.status_code = 404
+            return response
         return redirect(url_for('main'))
 
     # 405跳转回首页
