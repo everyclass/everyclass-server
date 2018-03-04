@@ -4,12 +4,12 @@ from flask import Flask, g, render_template, send_from_directory, redirect, url_
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
-from markupsafe import escape
+
 from raven.contrib.flask import Sentry
 
-from .exceptions import NoClassException, NoStudentException
 from .cal import cal_blueprint
 from .query import query_blueprint
+from .views import main_blueprint as main_blueprint
 from .api import api_v1 as api_blueprint
 from .config import load_config
 
@@ -30,6 +30,7 @@ def create_app():
     # register blueprints
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(query_blueprint)
+    app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
     # 结束时关闭数据库连接
@@ -37,37 +38,6 @@ def create_app():
     def close_db(error):
         if hasattr(g, 'mysql_db'):
             g.mysql_db.close()
-
-    # 首页
-    @app.route('/')
-    def main():
-        return render_template('index.html')
-
-    # 帮助
-    @app.route('/faq')
-    def faq():
-        return render_template('faq.html')
-
-    # 关于
-    @app.route('/about')
-    def about():
-        return render_template('about.html')
-
-    # 帮助
-    @app.route('/guide')
-    def guide():
-        return render_template('guide.html')
-
-    # 测试
-    @app.route('/testing')
-    def testing():
-        return render_template('testing.html')
-
-    @app.route('/<student_id>-<semester>.ics')
-    def get_ics(student_id, semester):
-        return send_from_directory("ics", student_id + "-" + semester + ".ics",
-                                   as_attachment=True,
-                                   mimetype='text/calendar')
 
     # Minify html response to decrease site traffic using htmlmin
     @app.after_request
@@ -92,34 +62,6 @@ def create_app():
             else:
                 return app.config['STATIC_MANIFEST'][filename]
         return filename
-
-    # 404跳转回首页
-    @app.errorhandler(404)
-    def page_not_found(error):
-        # 404 errors are never handled on the blueprint level
-        # unless raised from a view func so actual 404 errors,
-        # i.e. "no route for it" defined, need to be handled
-        # here on the application level
-        if request.path.startswith('/api/'):
-            response = jsonify({'error': 'not found'})
-            response.status_code = 404
-            return response
-        return redirect(url_for('main'))
-
-    # 405跳转回首页
-    @app.errorhandler(405)
-    def method_not_allowed(error):
-        return redirect(url_for('main'))
-
-    @app.errorhandler(NoStudentException)
-    def invalid_usage(error):
-        flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s' % escape(error))
-        return redirect(url_for('main'))
-
-    @app.errorhandler(NoClassException)
-    def invalid_usage(error):
-        flash('没有这门课程哦')
-        return redirect(url_for('main'))
 
     @app.errorhandler(500)
     def internal_server_error(error):

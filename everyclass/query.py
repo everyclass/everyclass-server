@@ -154,7 +154,7 @@ def get_classmates():
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):
-        return redirect(url_for('main'))
+        return redirect(url_for('main.main'))
 
     # 默认不显示学号，加入 show_id 参数显示
     if request.values.get('show_id') and request.values.get('show_id') == 'true':
@@ -184,4 +184,4 @@ def no_student_handle(stu_identifier):
     """
     from flask import escape, redirect, url_for
     flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s。如果你输入正确且处于正常入学状态，请联系我们更新数据。' % escape(stu_identifier))
-    return redirect(url_for('main'))
+    return redirect(url_for('main.main'))

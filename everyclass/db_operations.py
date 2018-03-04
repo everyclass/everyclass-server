@@ -47,7 +47,7 @@ def get_my_available_semesters(student_id):
     return my_available_semesters, student_name
 
 
-def get_classes_for_student(student_id, sem):
+def get_classes_for_student(student_id, sem=None):
     """
     获得一个学生的全部课程。
     若学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
