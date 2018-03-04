@@ -1,3 +1,6 @@
+"""
+Contains database operations.
+"""
 import json
 
 import mysql.connector
@@ -45,9 +48,14 @@ def get_my_available_semesters(student_id):
 
 
 def get_classes_for_student(student_id):
-    """获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception"""
+    """
+    获得一个学生的全部课程。
+    若学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
+    否则引出 NoStudentException
+    """
     from . import semester_code
     from .exceptions import NoStudentException
+
     db = get_db()
     cursor = db.cursor()
 
@@ -146,24 +154,32 @@ def get_privacy_settings(student_id):
 
 def semester():
     """
-    # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
-# 进入此模块前必须保证 session 内有 stu_id
-    :return:
+    获取当前学期
+    当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
+    进入此模块前必须保证 session 内有 stu_id
     """
     from . import tuple_semester, string_semester
     my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
 
-    # 如果 session 中包含学期信息且对本人有效则进入，否则选择对本人有效的最后一个学期
+    # 如果 session 中包含学期信息
     if session.get('semester', None):
+        # session 中学期有效则进入
         if string_semester(session['semester']) in my_available_semesters:
             return session['semester']
+
+        # session 中学期无效
         else:
+            # 返回本人最新的有效学期，如果没有一个学期则返回 None
             if my_available_semesters:
                 return tuple_semester(my_available_semesters[-1])
             return
+
+    # 如果没有 session，选择对本人有效的最后一个学期
     else:
         if my_available_semesters:
             return tuple_semester(my_available_semesters[-1])
+
+        # 如果本人没有一个有效学期则返回 None
         else:
             return
 
