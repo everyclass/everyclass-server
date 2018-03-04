@@ -14,7 +14,7 @@ def query():
     from everyclass import string_semester
     from everyclass import tuple_semester
     from everyclass import is_chinese_char
-    from everyclass import NoStudentException
+    from .exceptions import NoStudentException
     from .db_operations import faculty_lookup
     from .db_operations import class_lookup
     from .db_operations import semester, get_db, get_classes_for_student, \

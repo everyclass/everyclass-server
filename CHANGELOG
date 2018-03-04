@@ -1,9 +1,13 @@
-v0.7.8 on Mar. 2th, 2018
+v0.7.9 on Mar. 4th, 2018
+================================
+- move exceptions to individual `exceptions.py`
+
+v0.7.8 on Mar. 2nd, 2018
 ================================
 - delete feedback link
 - special effect adjust parameter
 
-v0.7.6 on Mar. 2th, 2018
+v0.7.6 on Mar. 2nd, 2018
 ================================
 - add js support in gulpfile
 - fix gulpfile

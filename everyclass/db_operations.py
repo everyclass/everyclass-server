@@ -5,20 +5,21 @@ from flask import current_app as app
 from flask import session, g
 
 
-# 初始化数据库连接
 def connect_db():
+    """初始化数据库连接"""
     conn = mysql.connector.connect(**app.config['MYSQL_CONFIG'])
     return conn
 
 
-# 获得数据库连接
 def get_db():
+    """获得数据库连接"""
     if not hasattr(g, 'mysql_db'):
         g.mysql_db = connect_db()
     return g.mysql_db
 
 
 def check_if_stu_exist(student_id):
+    """检查学生是否存在"""
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
@@ -31,8 +32,8 @@ def check_if_stu_exist(student_id):
         return False
 
 
-# 查询某一学生的可用学期
 def get_my_available_semesters(student_id):
+    """查询某一学生的可用学期"""
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
@@ -43,9 +44,10 @@ def get_my_available_semesters(student_id):
     return my_available_semesters, student_name
 
 
-# 获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception
 def get_classes_for_student(student_id):
-    from . import NoStudentException, semester_code
+    """获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception"""
+    from . import semester_code
+    from .exceptions import NoStudentException
     db = get_db()
     cursor = db.cursor()
 
@@ -77,9 +79,15 @@ def get_classes_for_student(student_id):
         return student_classes
 
 
-# 获得一门课程的全部学生，若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），否则引出 exception
 def get_students_in_class(class_id):
-    from . import NoClassException, NoStudentException, semester_code
+    """
+    获得一门课程的全部学生，若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），
+    否则引出 exception
+    :param class_id:
+    :return:
+    """
+    from . import semester_code
+    from .exceptions import NoStudentException, NoClassException
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + semester_code(semester()) + \
@@ -113,8 +121,12 @@ def get_students_in_class(class_id):
         return class_name, class_day, class_time, class_teacher, students_info
 
 
-# 获得隐私设定
 def get_privacy_settings(student_id):
+    """
+    获得隐私设定
+    :param student_id:
+    :return:
+    """
     db = get_db()
     cursor = db.cursor()
 
@@ -132,9 +144,12 @@ def get_privacy_settings(student_id):
         return json.loads(result[0][0])
 
 
-# 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
-# 进入此模块前必须保证 session 内有 stu_id
 def semester():
+    """
+    # 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
+# 进入此模块前必须保证 session 内有 stu_id
+    :return:
+    """
     from . import tuple_semester, string_semester
     my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
 
@@ -153,8 +168,12 @@ def semester():
             return
 
 
-# 查询学生所在班级
 def class_lookup(student_id):
+    """
+    查询学生所在班级
+    :param student_id: 学号
+    :return: 班级字符串
+    """
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
@@ -166,8 +185,11 @@ def class_lookup(student_id):
         return "未知"
 
 
-# 查询学生所在院系
 def faculty_lookup(student_id):
+    """查询学生所在院系
+    :param student_id: 学号
+    :return: 院系字符串
+    """
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"

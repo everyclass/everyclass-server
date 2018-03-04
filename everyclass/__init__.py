@@ -7,19 +7,12 @@ from termcolor import cprint
 from markupsafe import escape
 from raven.contrib.flask import Sentry
 
+from .exceptions import NoClassException, NoStudentException
 from .cal import cal_blueprint
 from .query import query_blueprint
 from .config import load_config
 
 config = load_config()
-
-
-class NoClassException(ValueError):
-    pass
-
-
-class NoStudentException(ValueError):
-    pass
 
 
 def create_app():
