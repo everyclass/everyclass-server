@@ -8,17 +8,20 @@ query_blueprint = Blueprint('query', __name__)
 
 @query_blueprint.route('/query', methods=['GET', 'POST'])
 def query():
-    """查询本人课表视图函数"""
+    """
+    查询本人课表视图函数
+    正常情况应该是 post 方法，但是也兼容 get 防止意外情况，提高用户体验
+    """
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
-    from everyclass import string_semester
-    from everyclass import tuple_semester
-    from everyclass import is_chinese_char
+
+    from . import string_semester
+    from . import tuple_semester
+    from . import is_chinese_char
     from .exceptions import NoStudentException
-    from .db_operations import faculty_lookup
-    from .db_operations import class_lookup
-    from .db_operations import semester, get_db, get_classes_for_student, \
-        get_my_available_semesters, check_if_stu_exist, get_privacy_settings
+    from .db_operations import faculty_lookup, class_lookup, get_classes_for_student
+    from .db_operations import semester, get_db
+    from .db_operations import get_my_available_semesters, check_if_stu_exist, get_privacy_settings
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -145,8 +148,8 @@ def query():
 def get_classmates():
     """同学名单查询视图函数"""
     from flask import request, render_template, session, redirect, url_for
-    from everyclass import get_time_chinese
-    from everyclass import get_day_chinese
+
+    from . import get_time_chinese, get_day_chinese
     from .db_operations import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
