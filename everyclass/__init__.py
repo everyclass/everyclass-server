@@ -1,6 +1,6 @@
 import re
 
-from flask import Flask, g, render_template
+from flask import Flask, g, render_template, send_from_directory
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
@@ -38,6 +38,12 @@ def create_app():
     def close_db(error):
         if hasattr(g, 'mysql_db'):
             g.mysql_db.close()
+
+    @app.route('/<student_id>-<semester>.ics')
+    def get_ics(student_id, semester):
+        return send_from_directory("ics", student_id + "-" + semester + ".ics",
+                                   as_attachment=True,
+                                   mimetype='text/calendar')
 
     # Minify html response to decrease site traffic using htmlmin
     @app.after_request

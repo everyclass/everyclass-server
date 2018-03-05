@@ -36,11 +36,7 @@ def testing():
     return render_template('testing.html')
 
 
-@main_blueprint.route('/<student_id>-<semester>.ics')
-def get_ics(student_id, semester):
-    return send_from_directory("ics", student_id + "-" + semester + ".ics",
-                               as_attachment=True,
-                               mimetype='text/calendar')
+
 
 
 # 404跳转回首页

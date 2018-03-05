@@ -18,8 +18,8 @@
             </p>
             <p class="p1"><span class="s1"><b>该功能支持哪些设备？<br></b></span>iCalendar(WebCal)
                 是通用的日历交换格式，但安卓系统并没有对此的支持。若您使用安卓系统，请复制 <a
-                        href="{{ url_for('get_ics', student_id=student_id,semester=semester,_external=True, _scheme='https') }}"
-                        onclick="_czc.push(['_trackEvent', '日历导出页', '安卓链接']);">{{ url_for('get_ics', student_id=student_id,semester=semester,_external=True, _scheme='https') }}</a>，然后使用滴答清单、Google Calendar 等支持导入日历的 App 导入。使用方法请看下方链接。
+                        href="{{ url_for('get_ics', student_id=student_id,semester=semester,_external=True) }}"
+                        onclick="_czc.push(['_trackEvent', '日历导出页', '安卓链接']);">{{ url_for('get_ics', student_id=student_id,semester=semester,_external=True) }}</a>，然后使用滴答清单、Google Calendar 等支持导入日历的 App 导入。使用方法请看下方链接。
                 <br>如果你希望课表在所有<b>苹果设备</b>上自动同步，需要通过 Mac 端的日历 App 来设置（iPhone/iPad 只能订阅日历到当前设备）。
             </p>
             <p class="p1"><span class="s1"><b>课表更新后如何更新日历？<br></b></span>
