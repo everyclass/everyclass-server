@@ -15,13 +15,12 @@ def query():
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
 
-    from . import string_semester
-    from . import tuple_semester
     from . import is_chinese_char
-    from .exceptions import NoStudentException
+    from .exceptions import NoStudentException, IllegalSemesterException
     from .db_operations import faculty_lookup, class_lookup, get_classes_for_student
-    from .db_operations import semester, get_db
-    from .db_operations import get_my_available_semesters, check_if_stu_exist, get_privacy_settings
+    from .db_operations import get_db
+    from .model import Semester
+    from .db_operations import get_my_semesters, check_if_stu_exist, get_privacy_settings
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -70,24 +69,38 @@ def query():
     elif session.get('stu_id', None):
         student_id = session['stu_id']
 
-    # 既没有 id 参数也没有 session，返回主页
+    # 既没有 id 参数也没有 session，无法知道需要查询谁的课表，返回主页
     else:
         return redirect(url_for('main'))
 
     # 查询学生本人的可用学期
-    my_available_semesters, student_name = get_my_available_semesters(student_id)
+    my_available_semesters, student_name = get_my_semesters(student_id)
 
-    # 如参数中包含学期，判断有效性后写入 session。
-    # session 中的学期保证是准确的。后续的semester()函数需要用到session。
-    if request.values.get('semester') and request.values.get('semester') in my_available_semesters:
-        session['semester'] = tuple_semester(request.values.get('semester'))
-        if app.config['DEBUG']:
-            print('Session semester:' + str(session['semester']))
+    # 如URL参数中包含学期，判断有效性后更新 session
+    if request.values.get('semester'):
+        try:
+            sem = Semester(request.values.get('semester'))
+            if sem in my_available_semesters:
+                session['semester'] = sem.to_tuple()
+                if app.config['DEBUG']:
+                    print('[query.query] updated session semester to', Semester(session['semester']).to_str())
+
+        # 用户指定的学期格式不合法
+        except IllegalSemesterException:
+            if app.config['DEBUG']:
+                print('[query.query] IllegalSemesterException handled.' + Semester(session['semester']).to_str())
+            session['semester'] = my_available_semesters[-1].to_tuple()
 
     cursor.close()  # 关闭数据库连接
 
+    # 如果 session 中无学期或学期无效，回落到本人可用最新学期
+    # session 中学期使用 tuple 保存，因为 Semester 对象无法被序列化
+    semester = session.get('semester', None)
+    if not semester or Semester(semester) not in my_available_semesters:
+        session['semester'] = my_available_semesters[-1].to_tuple()
+
     try:
-        student_classes = get_classes_for_student(student_id)
+        student_classes = get_classes_for_student(student_id=student_id, sem=Semester(session['semester']))
     except NoStudentException:
         return no_student_handle(student_id)
     else:
@@ -111,8 +124,9 @@ def query():
         # available_semesters 为当前学生所能选择的学期，是一个list。
         # 当中每一项又是一个包含两项的list，第一项为学期string，第二项为True/False表示是否为当前学期。
         available_semesters = []
+
         for each_semester in my_available_semesters:
-            if string_semester(semester()) == each_semester:
+            if session['semester'] == each_semester:
                 available_semesters.append([each_semester, True])
             else:
                 available_semesters.append([each_semester, False])
@@ -154,7 +168,7 @@ def get_classmates():
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):
-        return redirect(url_for('main'))
+        return redirect(url_for('main.main'))
 
     # 默认不显示学号，加入 show_id 参数显示
     if request.values.get('show_id') and request.values.get('show_id') == 'true':
@@ -184,4 +198,4 @@ def no_student_handle(stu_identifier):
     """
     from flask import escape, redirect, url_for
     flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s。如果你输入正确且处于正常入学状态，请联系我们更新数据。' % escape(stu_identifier))
-    return redirect(url_for('main'))
+    return redirect(url_for('main.main'))

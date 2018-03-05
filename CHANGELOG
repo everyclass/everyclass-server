@@ -1,3 +1,8 @@
+v0.8.0 on Mar. 5th, 2018
+================================
+- add api support(without authentication at the moment)
+- use Semester object as the first step of ORM
+
 v0.7.9 on Mar. 4th, 2018
 ================================
 - move exceptions to individual `exceptions.py`
