@@ -36,9 +36,6 @@ def testing():
     return render_template('testing.html')
 
 
-
-
-
 # 404跳转回首页
 @main_blueprint.app_errorhandler(404)
 def page_not_found(error):

@@ -1,3 +1,5 @@
+import re
+
 from flask import session
 
 from .db_operations import get_my_semesters
@@ -10,7 +12,7 @@ class Semester(object):
         构造函数，接收一个 tuple (2016,2017,2) 或者学期字符串"2016-2017-2"
         """
         # Semester("2016-2017-2")
-        if isinstance(para, str):
+        if isinstance(para, str) and re.match(r'\d{4}-\d{4}-\d',para):
             self.year1 = int(para[0:4])
             self.year2 = int(para[5:9])
             self.sem = int(para[10])

@@ -10,9 +10,9 @@ def get_semesters(student_id):
 
     :param student_id: 学号
     """
-    from db_operations import get_my_semesters
+    from ..db_operations import get_my_semesters
     semesters, student_name = get_my_semesters(student_id)
-    response = jsonify({'name': student_name, 'semesters': semesters})
+    response = jsonify({'name': student_name, 'semesters': [s.to_str() for s in semesters]})
     return response
 
 
@@ -24,20 +24,24 @@ def get_courses(student_id, semester):
     :param student_id: 学号
     :param semester: 学期
     """
-    from db_operations import get_classes_for_student
+    import json
+    from ..db_operations import get_classes_for_student
+    from ..model import Semester
+    from ..exceptions import IllegalSemesterException, NoStudentException
     try:
-        courses = get_classes_for_student(student_id, semester)
-        print(courses)
+        courses = get_classes_for_student(student_id, Semester(semester))
         courses_to_return = {}
         for k, v in courses.items():
             if str(k[0]) not in courses_to_return:
                 courses_to_return[str(k[0])] = {}
             courses_to_return[str(k[0])][str(k[1])] = v
-        import json
-
         return json.dumps({'courses': courses_to_return})
-    except FileExistsError:
-        response = jsonify({'error': 'exception'})
+    except IllegalSemesterException:
+        response = jsonify({'error': 'wrong semester'})
+        response.status_code = 400
+        return response
+    except NoStudentException:
+        response = jsonify({'error': 'no such student'})
         response.status_code = 400
         return response
 

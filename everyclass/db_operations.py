@@ -59,15 +59,15 @@ def get_my_semesters(student_id):
 
 def get_classes_for_student(student_id, sem):
     """
-    获得一个学生的全部课程。
-    若学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
+    获得一个学生在指定学期的全部课程。
+
+    若学生存在于当前学期则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
     否则引出 NoStudentException
 
     :param student_id: 学号
-    :param sem: semester code
+    :param sem: 学期，Semester 对象
     """
-    from .model import Semester
-    from everyclass.exceptions import NoStudentException, IllegalSemesterException
+    from .exceptions import NoStudentException, IllegalSemesterException
 
     db = get_db()
     cursor = db.cursor()
