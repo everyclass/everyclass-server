@@ -54,22 +54,22 @@ def page_not_found(error):
         response = jsonify({'error': 'not found'})
         response.status_code = 404
         return response
-    return redirect(url_for('main'))
+    return redirect(url_for('main.main'))
 
 
 # 405跳转回首页
 @main_blueprint.app_errorhandler(405)
 def method_not_allowed(error):
-    return redirect(url_for('main'))
+    return redirect(url_for('main.main'))
 
 
 @main_blueprint.app_errorhandler(NoStudentException)
 def invalid_usage(error):
     flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s' % escape(error))
-    return redirect(url_for('main'))
+    return redirect(url_for('main.main'))
 
 
 @main_blueprint.app_errorhandler(NoClassException)
 def invalid_usage(error):
     flash('没有这门课程哦')
-    return redirect(url_for('main'))
+    return redirect(url_for('main.main'))

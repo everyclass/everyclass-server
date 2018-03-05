@@ -1,6 +1,6 @@
 import re
 
-from flask import Flask, g, render_template, send_from_directory, redirect, url_for, flash, request, jsonify
+from flask import Flask, g, render_template
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
@@ -128,20 +128,6 @@ def get_time(digit):
         return (21, 00), (22, 40)
 
 
-def semester_code(xq):
-    """
-    获取用于数据表命名的学期，输入(2016,2017,2)，输出16_17_2
-
-    :param xq: tuple (2016,2017,2)
-    :return: str 16_17_2
-    """
-    if xq == '':
-        return semester_code(config.DEFAULT_SEMESTER)
-    else:
-        if xq in config.AVAILABLE_SEMESTERS:
-            return str(xq[0])[2:4] + "_" + str(xq[1])[2:4] + "_" + str(xq[2])
-
-
 def is_chinese_char(uchar):
     """
     Check if a char is a Chinese character. It's used to check whether a string is a name.
@@ -177,33 +163,3 @@ def print_formatted_info(info, show_debug_tip=False, info_about="DEBUG"):
             print(each_info)
     if show_debug_tip:
         cprint("----" + info_about + " ENDS----", "blue", attrs=['bold'])
-
-
-def tuple_semester(xq):
-    """
-    Convert a string like "2016-2017-2" to a tuple like [2016,2017,2].
-    `xq` may come from a form posted by user, so we NEED to check if is valid.
-
-    :param xq: str"2016-2017-2"
-    :return: [2016,2017,2]
-    """
-
-    if re.match(r'\d{4}-\d{4}-\d', xq):
-        splitted = re.split(r'-', xq)
-        return int(splitted[0]), int(splitted[1]), int(splitted[2])
-    else:
-        return config.DEFAULT_SEMESTER
-
-
-def string_semester(xq, simplify=False):
-    """
-    因为to_string的参数一定来自程序内部，所以不检查有效性
-
-    :param xq: tuple or list, like [2016,2017,2]
-    :param simplify: True if you want short str
-    :return: str like '16-17-2' if simplify==True, '2016-2017-2' is simplify==False
-    """
-    if not simplify:
-        return str(xq[0]) + '-' + str(xq[1]) + '-' + str(xq[2])
-    else:
-        return str(xq[0])[2:4] + '-' + str(xq[1])[2:4] + '-' + str(xq[2])

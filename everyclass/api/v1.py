@@ -10,8 +10,8 @@ def get_semesters(student_id):
 
     :param student_id: 学号
     """
-    from db_operations import get_my_available_semesters
-    semesters, student_name = get_my_available_semesters(student_id)
+    from db_operations import get_my_semesters
+    semesters, student_name = get_my_semesters(student_id)
     response = jsonify({'name': student_name, 'semesters': semesters})
     return response
 

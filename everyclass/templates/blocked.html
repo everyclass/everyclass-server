@@ -5,14 +5,7 @@
         <h1 class="hero-header">{{ name[0] }}的课表</h1>
         <h4 class="text-muted">{{ name[1] }} {{ name[2] }}{{ name[3] }}班
         </h4>
-        <form id="semester-choose-form" action="/query" method="post">
-            <select id="semester" name="semester">
-                {% for each_semester in available_semesters %}
-                    <option value="{{ each_semester[0] }}"
-                            {% if each_semester[1]==True %}selected{% endif %}>{{ each_semester[0] }}</option>
-                {% endfor %}
-            </select>
-        </form>
+
 
 
         {% if no_import_to_calender==False %}

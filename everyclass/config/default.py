@@ -1,6 +1,9 @@
 import os
 import json
+
 import git
+
+from ..model import Semester
 
 
 class Config(object):

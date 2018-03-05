@@ -5,7 +5,7 @@ import json
 
 import mysql.connector
 from flask import current_app as app
-from flask import session, g
+from flask import g
 
 
 def connect_db():
@@ -35,19 +35,29 @@ def check_if_stu_exist(student_id):
         return False
 
 
-def get_my_available_semesters(student_id):
-    """查询某一学生的可用学期"""
+def get_my_semesters(student_id):
+    """
+    查询某一学生的可用学期
+    ORM中应该做到 Student 类里
+    """
+    from .model import Semester
     db = get_db()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
-    my_available_semesters = json.loads(result[0][0])
+    sems = json.loads(result[0][0])
     student_name = result[0][1]
-    return my_available_semesters, student_name
+
+    semesters = []
+    for each_sem in sems:
+        semesters.append(Semester(each_sem))
+
+    # print('[db_operations.get_my_semesters] semesters=', semesters)
+    return semesters, student_name
 
 
-def get_classes_for_student(student_id, sem=None):
+def get_classes_for_student(student_id, sem):
     """
     获得一个学生的全部课程。
     若学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
@@ -56,44 +66,40 @@ def get_classes_for_student(student_id, sem=None):
     :param student_id: 学号
     :param sem: semester code
     """
-    from everyclass import semester_code
-    from everyclass.exceptions import NoStudentException
+    from .model import Semester
+    from everyclass.exceptions import NoStudentException, IllegalSemesterException
 
     db = get_db()
     cursor = db.cursor()
 
-    if not semester():
-        raise NoStudentException(student_id)
+    # 初步合法性检验
+    if sem.to_tuple() not in app.config['AVAILABLE_SEMESTERS']:
+        raise IllegalSemesterException('No such semester for the student')
 
-    if sem and sem in app.config['AVAILABLE_SEMESTERS']:
-        current_sem = sem
-    else:
-        current_sem = semester_code(semester())
-
-    mysql_query = "SELECT classes FROM ec_students_" + current_sem + " WHERE xh=%s"
+    mysql_query = "SELECT classes FROM ec_students_" + sem.to_db_code() + " WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
     if not result:
         cursor.close()
         raise NoStudentException(student_id)
     else:
-        student_classes_list = json.loads(result[0][0])
-        student_classes = dict()
-        for classes in student_classes_list:
+        courses_list = json.loads(result[0][0])
+        courses = dict()
+        for classes in courses_list:
             mysql_query = "SELECT clsname,day,time,teacher,duration,week,location,id FROM ec_classes_" + \
-                          semester_code(semester()) + " WHERE id=%s"
+                          sem.to_db_code() + " WHERE id=%s"
             cursor.execute(mysql_query, (classes,))
             result = cursor.fetchall()
-            if (result[0][1], result[0][2]) not in student_classes:
-                student_classes[(result[0][1], result[0][2])] = list()
-            student_classes[(result[0][1], result[0][2])].append(dict(name=result[0][0],
-                                                                      teacher=result[0][3],
-                                                                      duration=result[0][4],
-                                                                      week=result[0][5],
-                                                                      location=result[0][6],
-                                                                      id=result[0][7]))
+            if (result[0][1], result[0][2]) not in courses:
+                courses[(result[0][1], result[0][2])] = list()
+            courses[(result[0][1], result[0][2])].append(dict(name=result[0][0],
+                                                              teacher=result[0][3],
+                                                              duration=result[0][4],
+                                                              week=result[0][5],
+                                                              location=result[0][6],
+                                                              id=result[0][7]))
         cursor.close()
-        return student_classes
+        return courses
 
 
 def get_students_in_class(class_id):
@@ -103,11 +109,11 @@ def get_students_in_class(class_id):
     :param class_id:
     :return:
     """
-    from everyclass import semester_code
+    from .model import Semester
     from .exceptions import NoStudentException, NoClassException
     db = get_db()
     cursor = db.cursor()
-    mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + semester_code(semester()) + \
+    mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + Semester.get().to_db_code() + \
                   " WHERE id=%s"
     cursor.execute(mysql_query, (class_id,))
     result = cursor.fetchall()
@@ -159,38 +165,6 @@ def get_privacy_settings(student_id):
             return []
         cursor.close()
         return json.loads(result[0][0])
-
-
-def semester():
-    """
-    获取当前学期
-    当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
-    进入此模块前必须保证 session 内有 stu_id
-    """
-    from everyclass import tuple_semester, string_semester
-    my_available_semesters = get_my_available_semesters(session.get('stu_id'))[0]
-
-    # 如果 session 中包含学期信息
-    if session.get('semester', None):
-        # session 中学期有效则进入
-        if string_semester(session['semester']) in my_available_semesters:
-            return session['semester']
-
-        # session 中学期无效
-        else:
-            # 返回本人最新的有效学期，如果没有一个学期则返回 None
-            if my_available_semesters:
-                return tuple_semester(my_available_semesters[-1])
-            return
-
-    # 如果没有 session，选择对本人有效的最后一个学期
-    else:
-        if my_available_semesters:
-            return tuple_semester(my_available_semesters[-1])
-
-        # 如果本人没有一个有效学期则返回 None
-        else:
-            return
 
 
 def class_lookup(student_id):
