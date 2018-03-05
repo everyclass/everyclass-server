@@ -66,21 +66,27 @@ class Semester(object):
         当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
         """
         from .exceptions import IllegalSemesterException
+        from .config import load_config
+        config=load_config()
 
         my_available_semesters = get_my_semesters(session.get('stu_id'))[0]
-        print('[model.Semester.get()] my_available_semesters:', my_available_semesters)
+        if config.DEBUG:
+            print('[model.Semester.get()] my_available_semesters:', my_available_semesters)
 
         # 如果 session 中包含学期信息且有效
         if session.get('semester', None) and session.get('semester', None) in my_available_semesters:
-            print('[model.Semester.get()]have valid session')
-            return session['semester']
+            if config.DEBUG:
+                print('[model.Semester.get()]have valid session')
+            return Semester(session['semester'])
 
         # 如果没有 session或session无效
         else:
-            print('[model.Semester.get()] no session or invalid session')
+            if config.DEBUG:
+                print('[model.Semester.get()] no session or invalid session')
             # 选择对本人有效的最后一个学期
             if my_available_semesters:
-                print('[model.Semester.get()] choose last available semester')
+                if config.DEBUG:
+                    print('[model.Semester.get()] choose last available semester')
                 return my_available_semesters[-1]
 
             # 如果本人没有一个有效学期,则引出IllegalSemesterException
