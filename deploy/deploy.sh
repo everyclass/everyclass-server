@@ -13,6 +13,7 @@ if [ $TRAVIS_BRANCH = "master" ] ; then
 
 ssh travis@admirable.one <<EOF
 cd /home/pyweb/EveryClass-server
+git reset --hard
 git pull
 touch reload
 EOF
@@ -21,6 +22,7 @@ elif [ $TRAVIS_BRANCH = "develop" ] ; then
 
 ssh travis@stage.admirable.one <<EOF
 cd /var/EveryClass-server
+git reset --hard
 git pull
 touch reload
 EOF
