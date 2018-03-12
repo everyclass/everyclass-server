@@ -1,3 +1,7 @@
+v0.8.1 on Mar. 5th, 2018
+================================
+- fix some errors in v0.8.0, including test case
+
 v0.8.0 on Mar. 5th, 2018
 ================================
 - add api support(without authentication at the moment)
