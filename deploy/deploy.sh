@@ -2,19 +2,28 @@
 set -xe
 
 eval "$(ssh-agent -s)"
-chmod 600 /tmp/deploy_rsa
-ssh-add /tmp/deploy_rsa
+chmod 600 /tmp/deploy_key
+chmod 600 /tmp/stage_key
+ssh-add /tmp/deploy_key
+ssh-add /tmp/stage_key
 
 
 
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
-    ssh travis@admirable.one <<EOF
+ssh travis@admirable.one <<EOF
 cd /home/pyweb/EveryClass-server
 git pull
 touch reload
 EOF
 
+elif [ $TRAVIS_BRANCH = "develop" ] ; then
+
+ssh travis@stage.admirable.one <<EOF
+cd /var/EveryClass-server
+git pull
+touch reload
+EOF
 
 else
 

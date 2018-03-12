@@ -24,7 +24,7 @@ class Config(object):
     try:
         GIT_BRANCH_NAME = _repo.active_branch.name
     except TypeError:
-        print('Type error when getting branch name. Skip this error if this is a CI process.')
+        GIT_BRANCH_NAME = 'None'
     GIT_DESCRIBE = _repo.git.describe()
 
     # Sentry
