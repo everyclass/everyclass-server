@@ -28,15 +28,13 @@ class BasicFunctionTestCase(unittest.TestCase):
         self.assertTrue(config)
 
     def test_string_semester(self):
-        from everyclass import string_semester
-        self.assertTrue(string_semester([2016, 2017, 2], simplify=False) == '2016-2017-2')
-        self.assertTrue(string_semester([2016, 2017, 2], simplify=True) == '16-17-2')
+        from everyclass.model import Semester
+        self.assertTrue(Semester((2016, 2017, 2)).to_str(simplify=False) == '2016-2017-2')
+        self.assertTrue(Semester((2016, 2017, 2)).to_str(simplify=True) == '16-17-2')
 
     def test_tuple_semester(self):
-        from everyclass import tuple_semester
-        from everyclass.config import load_config
-        self.assertTrue(tuple_semester('2016-2017-2') == (2016, 2017, 2))
-        self.assertTrue(tuple_semester('123') == load_config().DEFAULT_SEMESTER)
+        from everyclass.model import Semester
+        self.assertTrue(Semester('2016-2017-2').to_tuple() == (2016, 2017, 2))
 
     def test_is_chinese_char(self):
         from everyclass import is_chinese_char
@@ -51,10 +49,8 @@ class BasicFunctionTestCase(unittest.TestCase):
         self.assertTrue(get_time(6) == ((21, 00), (22, 40)))
 
     def test_semester_code(self):
-        from everyclass import semester_code
-        from everyclass.config import load_config
-        self.assertTrue(semester_code('') == semester_code(load_config().DEFAULT_SEMESTER))
-        self.assertTrue(semester_code((2016, 2017, 2)) == "16_17_2")
+        from everyclass.model import Semester
+        self.assertTrue(Semester((2016, 2017, 2)).to_db_code() == "16_17_2")
 
     def test_get_time_chinese(self):
         from everyclass import get_time_chinese

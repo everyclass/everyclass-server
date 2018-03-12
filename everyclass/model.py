@@ -12,7 +12,7 @@ class Semester(object):
         构造函数，接收一个 tuple (2016,2017,2) 或者学期字符串"2016-2017-2"
         """
         # Semester("2016-2017-2")
-        if isinstance(para, str) and re.match(r'\d{4}-\d{4}-\d',para):
+        if isinstance(para, str) and re.match(r'\d{4}-\d{4}-\d', para):
             self.year1 = int(para[0:4])
             self.year2 = int(para[5:9])
             self.sem = int(para[10])
@@ -69,7 +69,7 @@ class Semester(object):
         """
         from .exceptions import IllegalSemesterException
         from .config import load_config
-        config=load_config()
+        config = load_config()
 
         my_available_semesters = get_my_semesters(session.get('stu_id'))[0]
         if config.DEBUG:
