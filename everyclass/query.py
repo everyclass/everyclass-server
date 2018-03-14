@@ -23,8 +23,6 @@ def query():
     from .db_operations import get_my_semesters, check_if_stu_exist, get_privacy_settings
     from . import access_log
 
-    access_log('q_stu', 0)
-
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
@@ -75,6 +73,9 @@ def query():
     # 既没有 id 参数也没有 session，无法知道需要查询谁的课表，返回主页
     else:
         return redirect(url_for('main'))
+
+    # Commit to access log
+    access_log('q_stu', student_id)
 
     # 查询学生本人的可用学期
     my_available_semesters, student_name = get_my_semesters(student_id)

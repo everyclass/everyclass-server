@@ -1,3 +1,5 @@
+import functools
+
 from flask import jsonify, request, abort
 from flask import current_app as app
 
@@ -7,6 +9,8 @@ from . import api_v1
 def auth_required(func):
     """decorator for view functions that requires apikey authentication"""
 
+    # 必须使用 functools.wraps 装饰器，否则 flask 会报错（函数同名（auth_required）导致一个 endpoint 于多个 url 注册）
+    @functools.wraps(func)
     def wrapper(*args, **kw):
         # check if api is valid
         if request.authorization \
@@ -19,8 +23,8 @@ def auth_required(func):
     return wrapper
 
 
-@auth_required
 @api_v1.route('/students/<student_id>')
+@auth_required
 def get_semesters(student_id):
     """
     提供学号，返回一个学生可用的学期。
@@ -28,15 +32,21 @@ def get_semesters(student_id):
     :param student_id: 学号
     """
     from ..db_operations import get_my_semesters
+    from .. import access_log
+    # todo: handle if student doesn't exist
     semesters, student_name = get_my_semesters(student_id)
+
+    # commit to access log
+    access_log('a_stu', student_id)
+
     response = jsonify({'name': student_name,
                         'semesters': [s.to_str() for s in semesters]
                         })
     return response
 
 
-@auth_required
 @api_v1.route('/students/<student_id>/semesters/<semester>/courses')
+@auth_required
 def get_courses(student_id, semester):
     """
     提供学号与学期，返回学生当前学期的课表。
