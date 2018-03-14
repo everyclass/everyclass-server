@@ -58,8 +58,14 @@ def get_courses(student_id, semester):
     from ..db_operations import get_classes_for_student
     from ..model import Semester
     from ..exceptions import IllegalSemesterException, NoStudentException
+    from .. import access_log
     try:
         courses = get_classes_for_student(student_id, Semester(semester))
+        # TODO: handle if semester does not exist
+
+        # write to log
+        access_log('a_course', student_id, {'semester': semester})
+
         courses_to_return = {}
         for k, v in courses.items():
             if str(k[0]) not in courses_to_return:

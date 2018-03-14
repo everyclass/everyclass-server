@@ -192,7 +192,7 @@ def print_formatted_info(info, show_debug_tip=False, info_about="DEBUG"):
 
 
 @celery.task
-def access_log(op_type, stu_id):
+def access_log(op_type, stu_id, other=None):
     """异步记录访问日志到 MongoDB 数据库，调用时使用 access_log.apply_async(args=[])
 
     :param op_type: 操作类型，for example:`q_stu`
@@ -213,7 +213,11 @@ def access_log(op_type, stu_id):
     # todo
     mongo_client = MongoClient(current_app.config['MONGODB_HOST'], current_app.config['MONGODB_PORT'])
     log = mongo_client.everyclass_log.log
-    log.insert({'type': op_type,
-                'ts': int(time.time()),
-                'stu_id': stu_id,
-                })
+    item = {'type': op_type,
+            'ts': int(time.time()),
+            'stu_id': stu_id,
+            }
+    if other:
+        for k, v in other.items():
+            item[k] = v
+    log.insert(item)
