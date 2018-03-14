@@ -21,6 +21,9 @@ def query():
     from .db_operations import get_db
     from .model import Semester
     from .db_operations import get_my_semesters, check_if_stu_exist, get_privacy_settings
+    from . import access_log
+
+    access_log('q_stu', 0)
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:

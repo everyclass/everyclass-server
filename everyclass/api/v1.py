@@ -5,7 +5,7 @@ from . import api_v1
 
 
 def auth_required(func):
-    """decorator for auth_required functions"""
+    """decorator for view functions that requires apikey authentication"""
 
     def wrapper(*args, **kw):
         # check if api is valid
@@ -19,8 +19,8 @@ def auth_required(func):
     return wrapper
 
 
-@api_v1.route('/students/<student_id>')
 @auth_required
+@api_v1.route('/students/<student_id>')
 def get_semesters(student_id):
     """
     提供学号，返回一个学生可用的学期。
@@ -35,6 +35,7 @@ def get_semesters(student_id):
     return response
 
 
+@auth_required
 @api_v1.route('/students/<student_id>/semesters/<semester>/courses')
 def get_courses(student_id, semester):
     """
