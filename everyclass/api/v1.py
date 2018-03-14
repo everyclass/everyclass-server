@@ -1,9 +1,26 @@
-from flask import jsonify
+from flask import jsonify, request, abort
+from flask import current_app as app
 
 from . import api_v1
 
 
-@api_v1.route('/students/<student_id>/semesters')
+def api_required(func):
+    """decorator for api_required functions"""
+
+    def wrapper(*args, **kw):
+        # check if api is valid
+        if request.authorization \
+                and {'user': request.authorization.username,
+                     'apikey': request.authorization.password} in app.config['API_CLIENTS']:
+            return func(*args, **kw)
+        else:
+            return abort(403)
+
+    return wrapper
+
+
+@api_v1.route('/students/<student_id>')
+@api_required
 def get_semesters(student_id):
     """
     提供学号，返回一个学生可用的学期。
@@ -12,7 +29,9 @@ def get_semesters(student_id):
     """
     from ..db_operations import get_my_semesters
     semesters, student_name = get_my_semesters(student_id)
-    response = jsonify({'name': student_name, 'semesters': [s.to_str() for s in semesters]})
+    response = jsonify({'name': student_name,
+                        'semesters': [s.to_str() for s in semesters]
+                        })
     return response
 
 
@@ -47,7 +66,7 @@ def get_courses(student_id, semester):
 
 
 @api_v1.errorhandler(403)
-def error_handler_403():
+def error_handler_403(error):
     """handle resource not found error"""
     response = jsonify({'error': 'forbidden'})
     response.status_code = 403
@@ -55,7 +74,7 @@ def error_handler_403():
 
 
 @api_v1.errorhandler(500)
-def error_handler_500():
+def error_handler_500(error):
     """handle 500 error"""
     response = jsonify({'error': 'server internal error'})
     response.status_code = 500

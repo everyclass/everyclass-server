@@ -70,3 +70,6 @@ class Config(object):
         'database': 'everyclass',
         'raise_on_warnings': True,
     }
+
+    # API
+    API_CLIENTS = []
