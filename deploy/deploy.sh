@@ -13,6 +13,7 @@ if [ $TRAVIS_BRANCH = "master" ] ; then
 
 ssh travis@admirable.one <<EOF
 cd /var/EveryClass-server
+pip install -r requirements.txt
 git reset --hard
 git pull
 touch reload
@@ -22,6 +23,7 @@ elif [ $TRAVIS_BRANCH = "develop" ] ; then
 
 ssh travis@stage.admirable.one <<EOF
 cd /var/EveryClass-server
+pip install -r requirements.txt
 git reset --hard
 git pull
 touch reload

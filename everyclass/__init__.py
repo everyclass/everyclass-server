@@ -25,7 +25,7 @@ def create_app():
 
     # load config
     app.config.from_object(config)
-    cprint('App created. Running under [{}] config'.format(app.config['CONFIG_NAME']), color='blue')
+    cprint('App created. Running under `{}` config'.format(app.config['CONFIG_NAME']), color='blue')
 
     # CDN
     CDN(app)
