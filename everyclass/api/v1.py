@@ -4,8 +4,8 @@ from flask import current_app as app
 from . import api_v1
 
 
-def api_required(func):
-    """decorator for api_required functions"""
+def auth_required(func):
+    """decorator for auth_required functions"""
 
     def wrapper(*args, **kw):
         # check if api is valid
@@ -20,7 +20,7 @@ def api_required(func):
 
 
 @api_v1.route('/students/<student_id>')
-@api_required
+@auth_required
 def get_semesters(student_id):
     """
     提供学号，返回一个学生可用的学期。
