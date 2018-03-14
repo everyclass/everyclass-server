@@ -37,14 +37,14 @@ class BasicFunctionTestCase(unittest.TestCase):
         self.assertTrue(Semester('2016-2017-2').to_tuple() == (2016, 2017, 2))
 
     def test_is_chinese_char(self):
-        from everyclass import is_chinese_char
+        from tools import is_chinese_char
         self.assertTrue(is_chinese_char('我'))
         self.assertTrue(is_chinese_char('测'))
         self.assertFalse(is_chinese_char('1'))
         self.assertFalse(is_chinese_char('A'))
 
     def test_get_time(self):
-        from everyclass import get_time
+        from tools import get_time
         self.assertTrue(get_time(1) == ((8, 00), (9, 40)))
         self.assertTrue(get_time(6) == ((21, 00), (22, 40)))
 
@@ -53,12 +53,12 @@ class BasicFunctionTestCase(unittest.TestCase):
         self.assertTrue(Semester((2016, 2017, 2)).to_db_code() == "16_17_2")
 
     def test_get_time_chinese(self):
-        from everyclass import get_time_chinese
+        from tools import get_time_chinese
         for i in range(1, 7):
             self.assertTrue(get_time_chinese(i) == '第{}-{}节'.format(i * 2 - 1, i * 2))
 
     def test_get_day_chinese(self):
-        from everyclass import get_day_chinese
+        from tools import get_day_chinese
         result = [(1, '一'), (2, '二'), (3, '三'), (4, '四'), (5, '五'), (6, '六'), (7, '日')]
         for test, ans in result:
             self.assertTrue(get_day_chinese(test) == '周' + ans)

@@ -7,7 +7,7 @@ import re
 from icalendar import Calendar, Event, Alarm
 from datetime import datetime, timedelta
 from everyclass.config import load_config
-from everyclass import get_time
+from .tools import get_time
 
 
 def generate(student_id, student_name, student_classes, semester_string, semester):

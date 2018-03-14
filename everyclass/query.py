@@ -15,7 +15,7 @@ def query():
     from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
 
-    from . import is_chinese_char
+    from .tools import is_chinese_char
     from .exceptions import NoStudentException, IllegalSemesterException
     from .db_operations import faculty_lookup, class_lookup, get_classes_for_student
     from .db_operations import get_db
@@ -167,7 +167,7 @@ def get_classmates():
     """同学名单查询视图函数"""
     from flask import request, render_template, session, redirect, url_for
 
-    from . import get_time_chinese, get_day_chinese
+    from .tools import get_time_chinese, get_day_chinese
     from .db_operations import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
