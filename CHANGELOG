@@ -1,6 +1,7 @@
-v0.8.3 on Mar. 17th, 2018
+v0.8.5 on Mar. 17th, 2018
 ================================
 - use celery for aync access log
+- fix bugs in test cases
 
 v0.8.2 on Mar. 12th, 2018
 ================================
