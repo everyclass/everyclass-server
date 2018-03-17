@@ -1,3 +1,7 @@
+v0.8.3 on Mar. 17th, 2018
+================================
+- use celery for aync access log
+
 v0.8.2 on Mar. 12th, 2018
 ================================
 - require apikey for some api
