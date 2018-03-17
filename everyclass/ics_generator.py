@@ -4,9 +4,11 @@ https://tools.ietf.org/html/rfc2445
 """
 import pytz
 import re
-from icalendar import Calendar, Event, Alarm
 from datetime import datetime, timedelta
-from everyclass.config import load_config
+
+from icalendar import Calendar, Event, Alarm
+
+from .config import load_config
 from .tools import get_time
 
 

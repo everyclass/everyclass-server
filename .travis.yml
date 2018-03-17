@@ -7,7 +7,6 @@ addons:
   - stage.admirable.one
 python:
 - '3.6'
-- nightly
 before_install:
 - openssl aes-256-cbc -K $encrypted_0180fa854b5b_key -iv $encrypted_0180fa854b5b_iv -in deploy/ssh_key.enc -out /tmp/deploy_key -d
 - openssl aes-256-cbc -K $encrypted_1287f26e886e_key -iv $encrypted_1287f26e886e_iv -in deploy/stage_key.enc -out /tmp/stage_key -d
