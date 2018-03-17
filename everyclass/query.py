@@ -75,7 +75,7 @@ def query():
         return redirect(url_for('main'))
 
     # Commit to access log
-    access_log('q_stu', student_id)
+    access_log.delay('q_stu', student_id)
 
     # 查询学生本人的可用学期
     my_available_semesters, student_name = get_my_semesters(student_id)

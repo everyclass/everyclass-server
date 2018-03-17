@@ -8,7 +8,7 @@ var gulp = require('gulp'),
     pump = require('pump');
 
 
-//CSS
+//CSS task sets
 //files are uglified and saved to `dist` then should be copied to `static` for local development
 gulp.task('css', ['cssCompress', 'cssCopyToSrc']);
 
@@ -22,13 +22,14 @@ gulp.task('cssCompress', function () {
         .pipe(gulp.dest('./everyclass'));            //Save rev-manifest.json for flask app
 });
 
+//this is for local dev. Looking for better solution.
 gulp.task('cssCopyToSrc', ['cssCompress'], function () {
     gulp.src('./dist/css/*-*-*.css')
         .pipe(gulp.dest('./everyclass/static/css'));
 });
 
 
-//JS
+//JS task sets
 gulp.task('js', ['jsMinify', 'jsCopyToSrc']);
 
 //use original js from src, uglify and save to `dist`
@@ -50,7 +51,8 @@ gulp.task('jsCopyToSrc', ['jsMinify'], function () {
 });
 
 
-//Task Sets
+//Main Task Sets
+//run `gulp` to process both css and js
 gulp.task('default', ['css', 'js']);
 
 

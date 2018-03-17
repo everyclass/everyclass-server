@@ -37,7 +37,7 @@ def get_semesters(student_id):
     semesters, student_name = get_my_semesters(student_id)
 
     # commit to access log
-    access_log('a_stu', student_id)
+    access_log.delay('a_stu', student_id)
 
     response = jsonify({'name': student_name,
                         'semesters': [s.to_str() for s in semesters]
@@ -64,7 +64,7 @@ def get_courses(student_id, semester):
         # TODO: handle if semester does not exist
 
         # write to log
-        access_log('a_course', student_id, {'semester': semester})
+        access_log.delay('a_course', student_id, {'semester': semester})
 
         courses_to_return = {}
         for k, v in courses.items():

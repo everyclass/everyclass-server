@@ -12,4 +12,4 @@ brew services run mongodb
 
 #run celery
 echo 'Starting Celery...'
-celery worker -A celery_worker.celery
+celery worker -A celery_worker.celery --loglevel=INFO

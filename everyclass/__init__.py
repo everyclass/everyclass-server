@@ -58,7 +58,7 @@ def create_app():
     @app.route('/<student_id>-<semester>.ics')
     def get_ics(student_id, semester):
         """serve ics file"""
-        # TODO: if file not exist, try to generate one.
+        # TODO: if file not exist, try to generate one.(implement after ORM and database adjustment)
         return send_from_directory("ics", student_id + "-" + semester + ".ics",
                                    as_attachment=True,
                                    mimetype='text/calendar')
@@ -120,7 +120,6 @@ def access_log(op_type, stu_id, other=None):
     ts: timestamp
     stu_id: student id
     """
-    # todo
     mongo_client = MongoClient(current_app.config['MONGODB_HOST'], current_app.config['MONGODB_PORT'])
     log = mongo_client.everyclass_log.log
     item = {'type': op_type,
