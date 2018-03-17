@@ -72,7 +72,7 @@ def query():
 
     # 既没有 id 参数也没有 session，无法知道需要查询谁的课表，返回主页
     else:
-        return redirect(url_for('main'))
+        return redirect(url_for('main.main'))
 
     # Commit to access log
     access_log.delay('q_stu', student_id)

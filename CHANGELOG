@@ -1,3 +1,7 @@
+v0.8.6 on Mar. 17th, 2018
+================================
+- fix wrong blueprint
+
 v0.8.5 on Mar. 17th, 2018
 ================================
 - use celery for aync access log
