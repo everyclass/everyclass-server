@@ -86,8 +86,8 @@ def get_classes_for_student(student_id, sem):
         courses_list = json.loads(result[0][0])
         courses = dict()
         for classes in courses_list:
-            mysql_query = "SELECT clsname,day,time,teacher,duration,week,location,id FROM ec_classes_" + \
-                          sem.to_db_code() + " WHERE id=%s"
+            mysql_query = "SELECT clsname,day,time,teacher,duration,week,location,id FROM {} WHERE id=%s" \
+                .format("ec_classes_" + sem.to_db_code())
             cursor.execute(mysql_query, (classes,))
             result = cursor.fetchall()
             if (result[0][1], result[0][2]) not in courses:
@@ -113,8 +113,8 @@ def get_students_in_class(class_id):
     from .exceptions import NoStudentException, NoClassException
     db = get_db()
     cursor = db.cursor()
-    mysql_query = "SELECT students,clsname,day,time,teacher FROM ec_classes_" + Semester.get().to_db_code() + \
-                  " WHERE id=%s"
+    mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \
+        .format('ec_classes_' + Semester.get().to_db_code())
     cursor.execute(mysql_query, (class_id,))
     result = cursor.fetchall()
     if not result:
