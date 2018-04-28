@@ -11,7 +11,7 @@ ssh-add /tmp/stage_key
 
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
-ssh travis@everyclass.admirable.one <<EOF
+ssh travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
 pip install -r requirements.txt
 git reset --hard
