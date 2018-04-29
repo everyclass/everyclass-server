@@ -11,7 +11,7 @@ ssh-add /tmp/stage_key
 
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
-ssh travis@every.admirable.one <<EOF
+ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
 pip install -r requirements.txt
 git reset --hard
@@ -21,7 +21,7 @@ EOF
 
 elif [ $TRAVIS_BRANCH = "develop" ] ; then
 
-ssh travis@stage.admirable.one <<EOF
+ssh -o StrictHostKeyChecking=no travis@stage.admirable.one <<EOF
 cd /var/EveryClass-server
 pip install -r requirements.txt
 git reset --hard
