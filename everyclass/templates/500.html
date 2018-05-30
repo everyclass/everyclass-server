@@ -1,21 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>emmm...看起来遇到了一些问题</title>
-</head>
-<body>
-服务器遇到了一个内部错误，这似乎并不常见。请填写表格反馈问题，我们看到后将及时解决。
-<!-- Sentry JS SDK 2.1.+ required -->
-<script src="https://cdn.ravenjs.com/2.3.0/raven.min.js"></script>
+{% extends "layout.html" %}
+{% block title %}看起来遇到了一些问题 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">服务器遇到了一个内部错误，这似乎并不常见。请填写表格反馈问题，我们看到后将及时解决。</h1>
+    </div>
+    <!-- Sentry JS SDK 2.1.+ required -->
+    <script src="https://cdn.ravenjs.com/2.3.0/raven.min.js"></script>
 
-{% if event_id %}
-  <script>
-  Raven.showReportDialog({
-    eventId: '{{ event_id }}',
-    dsn: '{{ public_dsn }}'
-  });
-  </script>
-{% endif %}
-</body>
-</html>
+    {% if event_id %}
+        <script>
+            Raven.showReportDialog({
+                eventId: '{{ event_id }}',
+                dsn: '{{ public_dsn }}'
+            });
+        </script>
+    {% endif %}
+
+{% endblock %}
