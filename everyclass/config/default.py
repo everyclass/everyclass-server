@@ -59,6 +59,9 @@ class Config(object):
         (2017, 2018, 2): {
             'start': (2018, 2, 26),
         },
+        (2018, 2019, 1): {
+            'start': (2018, 9, 3)
+        }
     }
 
     # Database config
