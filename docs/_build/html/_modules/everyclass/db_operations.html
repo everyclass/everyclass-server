@@ -1,0 +1,264 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>everyclass.db_operations &#8212; EveryClass-server 0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for everyclass.db_operations</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">mysql.connector</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">current_app</span> <span class="k">as</span> <span class="n">app</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">session</span><span class="p">,</span> <span class="n">g</span>
+
+
+<span class="c1"># 初始化数据库连接</span>
+<div class="viewcode-block" id="connect_db"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.connect_db">[docs]</a><span class="k">def</span> <span class="nf">connect_db</span><span class="p">():</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="o">**</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;MYSQL_CONFIG&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">conn</span></div>
+
+
+<span class="c1"># 获得数据库连接</span>
+<div class="viewcode-block" id="get_db"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.get_db">[docs]</a><span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;mysql_db&#39;</span><span class="p">):</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">mysql_db</span> <span class="o">=</span> <span class="n">connect_db</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">mysql_db</span></div>
+
+
+<div class="viewcode-block" id="check_if_stu_exist"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.check_if_stu_exist">[docs]</a><span class="k">def</span> <span class="nf">check_if_stu_exist</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT semesters,name FROM ec_students WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<span class="c1"># 查询某一学生的可用学期</span>
+<div class="viewcode-block" id="get_my_available_semesters"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.get_my_available_semesters">[docs]</a><span class="k">def</span> <span class="nf">get_my_available_semesters</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT semesters,name FROM ec_students WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">my_available_semesters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">student_name</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">my_available_semesters</span><span class="p">,</span> <span class="n">student_name</span></div>
+
+
+<span class="c1"># 获得一个学生的全部课程，学生存在则返回姓名、课程 dict（键值为 day、time 组成的 tuple），否则引出 exception</span>
+<div class="viewcode-block" id="get_classes_for_student"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.get_classes_for_student">[docs]</a><span class="k">def</span> <span class="nf">get_classes_for_student</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">NoStudentException</span><span class="p">,</span> <span class="n">semester_code</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">semester</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">NoStudentException</span><span class="p">(</span><span class="n">student_id</span><span class="p">)</span>
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT classes FROM ec_students_&quot;</span> <span class="o">+</span> <span class="n">semester_code</span><span class="p">(</span><span class="n">semester</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot; WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">NoStudentException</span><span class="p">(</span><span class="n">student_id</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">student_classes_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">student_classes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">classes</span> <span class="ow">in</span> <span class="n">student_classes_list</span><span class="p">:</span>
+            <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT clsname,day,time,teacher,duration,week,location,id FROM ec_classes_&quot;</span> <span class="o">+</span> \
+                          <span class="n">semester_code</span><span class="p">(</span><span class="n">semester</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot; WHERE id=</span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">classes</span><span class="p">,))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">student_classes</span><span class="p">:</span>
+                <span class="n">student_classes</span><span class="p">[(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="n">student_classes</span><span class="p">[(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                                                      <span class="n">teacher</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span>
+                                                                      <span class="n">duration</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">],</span>
+                                                                      <span class="n">week</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">5</span><span class="p">],</span>
+                                                                      <span class="n">location</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">6</span><span class="p">],</span>
+                                                                      <span class="nb">id</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]))</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">student_classes</span></div>
+
+
+<span class="c1"># 获得一门课程的全部学生，若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），否则引出 exception</span>
+<div class="viewcode-block" id="get_students_in_class"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.get_students_in_class">[docs]</a><span class="k">def</span> <span class="nf">get_students_in_class</span><span class="p">(</span><span class="n">class_id</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">NoClassException</span><span class="p">,</span> <span class="n">NoStudentException</span><span class="p">,</span> <span class="n">semester_code</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT students,clsname,day,time,teacher FROM ec_classes_&quot;</span> <span class="o">+</span> <span class="n">semester_code</span><span class="p">(</span><span class="n">semester</span><span class="p">())</span> <span class="o">+</span> \
+                  <span class="s2">&quot; WHERE id=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">class_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">NoClassException</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">students</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">students_info</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">class_day</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">class_time</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">class_teacher</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">students</span><span class="p">:</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">NoStudentException</span>
+        <span class="k">for</span> <span class="n">each_student</span> <span class="ow">in</span> <span class="n">students</span><span class="p">:</span>
+            <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT name FROM ec_students WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">each_student</span><span class="p">,))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="c1"># 信息包含姓名、学号、学院、专业、班级</span>
+                <span class="n">students_info</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">each_student</span><span class="p">,</span>
+                                      <span class="n">faculty_lookup</span><span class="p">(</span><span class="n">each_student</span><span class="p">),</span>
+                                      <span class="n">class_lookup</span><span class="p">(</span><span class="n">each_student</span><span class="p">)])</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">class_day</span><span class="p">,</span> <span class="n">class_time</span><span class="p">,</span> <span class="n">class_teacher</span><span class="p">,</span> <span class="n">students_info</span></div>
+
+
+<span class="c1"># 获得隐私设定</span>
+<div class="viewcode-block" id="get_privacy_settings"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.get_privacy_settings">[docs]</a><span class="k">def</span> <span class="nf">get_privacy_settings</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT privacy FROM ec_students WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+        <span class="c1"># No such student</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1"># No privacy settings</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<span class="c1"># 获取当前学期，当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。</span>
+<span class="c1"># 进入此模块前必须保证 session 内有 stu_id</span>
+<div class="viewcode-block" id="semester"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.semester">[docs]</a><span class="k">def</span> <span class="nf">semester</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">tuple_semester</span><span class="p">,</span> <span class="n">string_semester</span>
+    <span class="n">my_available_semesters</span> <span class="o">=</span> <span class="n">get_my_available_semesters</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stu_id&#39;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># 如果 session 中包含学期信息且对本人有效则进入，否则选择对本人有效的最后一个学期</span>
+    <span class="k">if</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;semester&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">string_semester</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s1">&#39;semester&#39;</span><span class="p">])</span> <span class="ow">in</span> <span class="n">my_available_semesters</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">session</span><span class="p">[</span><span class="s1">&#39;semester&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">my_available_semesters</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">tuple_semester</span><span class="p">(</span><span class="n">my_available_semesters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">my_available_semesters</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tuple_semester</span><span class="p">(</span><span class="n">my_available_semesters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span></div>
+
+
+<span class="c1"># 查询学生所在班级</span>
+<div class="viewcode-block" id="class_lookup"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.class_lookup">[docs]</a><span class="k">def</span> <span class="nf">class_lookup</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT class_name FROM ec_students WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;未知&quot;</span></div>
+
+
+<span class="c1"># 查询学生所在院系</span>
+<div class="viewcode-block" id="faculty_lookup"><a class="viewcode-back" href="../../everyclass.html#everyclass.db_operations.faculty_lookup">[docs]</a><span class="k">def</span> <span class="nf">faculty_lookup</span><span class="p">(</span><span class="n">student_id</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">mysql_query</span> <span class="o">=</span> <span class="s2">&quot;SELECT faculty FROM ec_students WHERE xh=</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">mysql_query</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;未知&quot;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../everyclass.html">everyclass</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Frederic Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,143 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>everyclass.config.default &#8212; EveryClass-server 0.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for everyclass.config.default</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">json</span>
+
+
+<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../everyclass.config.html#everyclass.config.default.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># Basic config</span>
+    <span class="n">CONFIG_NAME</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+    <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s1">&#39;development_key&#39;</span>
+    <span class="c1"># SERVER_NAME = &#39;localhost&#39;</span>
+
+    <span class="c1"># CDN settings</span>
+    <span class="n">CDN_DOMAIN</span> <span class="o">=</span> <span class="s1">&#39;cdn.domain.com&#39;</span>
+    <span class="n">CDN_ENDPOINTS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">]</span>
+    <span class="n">CDN_TIMESTAMP</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Sentry</span>
+    <span class="n">SENTRY_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Maintenance</span>
+    <span class="n">MAINTENANCE_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;maintenance&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">MAINTENANCE_FILE</span><span class="p">):</span>
+        <span class="n">MAINTENANCE</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">MAINTENANCE</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># HTML minify</span>
+    <span class="n">HTML_MINIFY</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Static file settings</span>
+    <span class="n">STATIC_VERSIONED</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;../rev-manifest.json&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">static_manifest_file</span><span class="p">:</span>
+        <span class="n">STATIC_MANIFEST</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">static_manifest_file</span><span class="p">)</span>
+
+    <span class="c1"># Semester settings</span>
+    <span class="n">DATA_LAST_UPDATE_TIME</span> <span class="o">=</span> <span class="s1">&#39;Nov. 13, 2017&#39;</span>  <span class="c1"># 数据最后更新日期，在页面下方展示</span>
+    <span class="n">DEFAULT_SEMESTER</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">2018</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">AVAILABLE_SEMESTERS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">2017</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span> <span class="p">{</span>
+            <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+        <span class="p">},</span>
+        <span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">2018</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">{</span>
+            <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Database config</span>
+    <span class="n">MYSQL_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;database_user&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;database_password&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="s1">&#39;6666&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;database&#39;</span><span class="p">:</span> <span class="s1">&#39;everyclass&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;raise_on_warnings&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">}</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../everyclass.html">everyclass</a><ul>
+  <li><a href="../config.html">everyclass.config</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Frederic Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
