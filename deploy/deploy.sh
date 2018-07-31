@@ -13,7 +13,9 @@ if [ $TRAVIS_BRANCH = "master" ] ; then
 
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
-pip install -r requirements.txt
+pip install pipenv
+pipenv clean
+pipenv install
 git reset --hard
 git pull
 touch reload
@@ -23,7 +25,9 @@ elif [ $TRAVIS_BRANCH = "develop" ] ; then
 
 ssh -o StrictHostKeyChecking=no travis@stage.admirable.one <<EOF
 cd /var/EveryClass-server
-pip install -r requirements.txt
+pip install pipenv
+pipenv clean
+pipenv install
 git reset --hard
 git pull
 touch reload

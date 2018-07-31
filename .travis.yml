@@ -12,7 +12,8 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_1287f26e886e_key -iv $encrypted_1287f26e886e_iv -in deploy/stage_key.enc -out /tmp/stage_key -d
 - chmod +x deploy/deploy.sh
 install:
-- pip install -r requirements/dev.txt
+- pip install pipenv
+- pipenv install --dev
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 - echo $PYTHONPATH
