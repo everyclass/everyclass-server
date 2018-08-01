@@ -1,22 +1,19 @@
-FROM alpine:3.7
+FROM python:3.6.6-alpine3.8
 MAINTAINER Frederic Chan "frederic.t.chan@gmail.com"
 ENV REFRESHED_AT 20180801
 ENV MODE PRODUCTION
 ENV PYTHONPATH /var/everyclass-server
 
-WORKDIR /var/everyclass-server
+WORKDIR ${PYTHONPATH}
 
-RUN apk add --no-cache \
-    python3 \
-    uwsgi \
-    uwsgi-python3 \
-    git \
-    && python3 -m ensurepip \
-    && rm -r /usr/lib/python*/ensurepip
+ADD Pipfile Pipfile
+ADD Pipfile.lock Pipfile.lock
 
-#RUN pip3 install pipenv \
-#    && pipenv install \
-#    && rm -r /root/.cache
+RUN apk add --no-cache git uwsgi uwsgi-python3
+
+RUN pip install pipenv \
+    && pipenv sync \
+    && rm -r /root/.cache
 
 # expose HTTP port
 EXPOSE 80
