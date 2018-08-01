@@ -70,13 +70,13 @@ function local_start(){
         fi
     }
 
+    # MySQL
+
     # Redis
     start_container ${REDIS_CONTAINER_NAME}
     add_to_network ${REDIS_CONTAINER_NAME}
 
     # Celery
-
-    # MySQL
 
     # EveryClass
     start_container ${EC_CONTAINER_NAME}

@@ -27,4 +27,4 @@ EXPOSE 80
 #  need threads, remember to enable them with enable-threads. Running uWSGI in multithreading mode (with the threads
 # options) will automatically enable threading support. This “strange” default behaviour is for performance reasons,
 # no shame in that.
-CMD ["uwsgi", "--ini", "/var/everyclass-server/uwsgi.ini", "--enable-threads"]
+CMD ["uwsgi", "--ini", "/var/everyclass-server/deploy/uwsgi.ini", "--enable-threads"]
