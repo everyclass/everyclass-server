@@ -2,14 +2,15 @@ FROM python:3.6.6-alpine3.8
 MAINTAINER Frederic Chan "frederic.t.chan@gmail.com"
 ENV REFRESHED_AT 20180801
 ENV MODE PRODUCTION
-ENV PYTHONPATH /var/everyclass-server
+ENV PIPENV_VENV_IN_PROJECT 1
 
-WORKDIR ${PYTHONPATH}
+WORKDIR /var/everyclass-server
 
-ADD Pipfile Pipfile
-ADD Pipfile.lock Pipfile.lock
+# 安装 uWSGI 本体和 Python 插件（语言相关的插件不在发行版的包管理器中）
+RUN apk add --no-cache uwsgi uwsgi-python3
 
-RUN apk add --no-cache git uwsgi uwsgi-python3
+# 经测试，如果把本目录在运行时挂载，会导致找不到 build 时生成的虚拟环境，于是只能在这里先把代码加到镜像里
+ADD . /var/everyclass-server
 
 RUN pip install pipenv \
     && pipenv sync \
