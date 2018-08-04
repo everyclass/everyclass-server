@@ -20,6 +20,7 @@ celery = "*"
 pymongo = "*"
 redis = "*"
 blinker = "*"
+elastic-apm = {version = "*", extras = ["flask"]}
 
 [dev-packages]
 coverage = "==4.4.2"

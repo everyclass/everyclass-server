@@ -1,6 +1,7 @@
 v0.8.14
 ================================
 - change requirement.txt to Pipfile
+- add Elastic APM
 
 v0.8.13 on July 2rd, 2018
 ================================
