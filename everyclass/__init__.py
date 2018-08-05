@@ -7,6 +7,7 @@ from termcolor import cprint
 from celery import Celery
 from pymongo import MongoClient
 from raven.contrib.flask import Sentry
+from elasticapm.contrib.flask import ElasticAPM
 
 from .config import load_config
 
@@ -32,6 +33,9 @@ def create_app():
 
     # Sentry
     sentry = Sentry(app)
+
+    # Elastic APM
+    apm = ElasticAPM(app)
 
     # celery
     celery.conf.update(app.config)
