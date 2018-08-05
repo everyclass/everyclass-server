@@ -1,4 +1,5 @@
 import time
+import logging
 
 from flask import Flask, g, render_template, send_from_directory, current_app
 from flask_cdn import CDN
@@ -8,8 +9,10 @@ from celery import Celery
 from pymongo import MongoClient
 from raven.contrib.flask import Sentry
 from elasticapm.contrib.flask import ElasticAPM
+from elasticapm.handlers.logging import LoggingHandler
 
 from .config import load_config
+from .utils import monkey_patch
 
 config = load_config()
 
@@ -19,6 +22,13 @@ config = load_config()
 # It has to be treated carefully, in this way.
 celery = Celery(__name__,
                 broker=config.CELERY_BROKER_URL)
+
+apm = ElasticAPM()
+
+# Monkey Patch
+# Must apply to method in CLASS, not method of a OBJECT.
+# Otherwise a object's BoundMethod will turn into a normal function and lost it's `__func__` and `__self__`
+ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
 
 def create_app():
@@ -35,7 +45,15 @@ def create_app():
     sentry = Sentry(app)
 
     # Elastic APM
-    apm = ElasticAPM(app)
+    apm.init_app(app,
+                 service_name=app.config['ELASTIC_APM']['SERVICE_NAME'],
+                 secret_token=app.config['ELASTIC_APM']['SECRET_TOKEN'],
+                 server_url=app.config['ELASTIC_APM']['SERVER_URL'])
+
+    # logging
+    handler = LoggingHandler(client=apm.client)
+    handler.setLevel(logging.WARN)
+    app.logger.addHandler(handler)
 
     # celery
     celery.conf.update(app.config)

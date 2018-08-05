@@ -2,7 +2,7 @@
 日历相关函数
 """
 from flask import Blueprint
-from flask import request, session, redirect, url_for, render_template, flash
+from flask import request, session, redirect, url_for, render_template, flash, current_app
 
 cal_blueprint = Blueprint('cal', __name__)
 
@@ -17,7 +17,6 @@ def cal_page():
     from .db_operations import get_classes_for_student, get_my_semesters, check_if_stu_exist
     from .model import Semester
     from . import ics_generator
-    from . import access_log
 
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
@@ -28,8 +27,8 @@ def cal_page():
 
     # 如果 session 中有 stu_id 就生成 ics 并返回页面，没有就跳转回首页
     if session.get('stu_id', None):
-        # async access log
-        access_log.delay(op_type='q_export', stu_id=session['stu_id'])
+        # apm logging
+        # current_app.logger.info({'msg': 'generate_ics_file', 'stu_id': session['stu_id']})
 
         # 获得学生姓名和他的合法学期
         my_available_semesters, student_name = get_my_semesters(session['stu_id'])

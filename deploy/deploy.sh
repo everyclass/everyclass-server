@@ -11,11 +11,11 @@ ssh-add /tmp/stage_key
 
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
+# pip install pipenv
+#pipenv clean
+#pipenv install
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
-pip install pipenv
-pipenv clean
-pipenv install
 git reset --hard
 git pull
 touch reload
