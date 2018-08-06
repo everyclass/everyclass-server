@@ -76,10 +76,12 @@ def query():
 
     # url 中没有 id 参数但 session 中有
     elif session.get('stu_id', None):
+        request.elastic_context['ec_query_method'] = 'by_session'
         student_id = session['stu_id']
 
     # 既没有 id 参数也没有 session，无法知道需要查询谁的课表，返回主页
     else:
+        request.elastic_context['ec_query_method'] = 'exception'
         return redirect(url_for('main.main'))
 
     # 查询学生本人的可用学期
