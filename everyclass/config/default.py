@@ -3,7 +3,7 @@ import json
 
 import git
 
-from ..model import Semester
+from everyclass.model import Semester
 
 
 class Config(object):

@@ -2,8 +2,8 @@ import re
 
 from flask import session
 
-from .db_operations import get_my_semesters
-from .exceptions import IllegalSemesterException
+from everyclass.db_operations import get_my_semesters
+from everyclass.exceptions import IllegalSemesterException
 
 
 class Semester(object):
@@ -67,8 +67,8 @@ class Semester(object):
         获取当前学期。进入此模块前必须保证 session 内有 stu_id。
         当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
         """
-        from .exceptions import IllegalSemesterException
-        from .config import load_config
+        from everyclass.exceptions import IllegalSemesterException
+        from everyclass.config import load_config
         config = load_config()
 
         my_available_semesters = get_my_semesters(session.get('stu_id'))[0]

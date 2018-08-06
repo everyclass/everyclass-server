@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, send_from_directory, request, jsonify, redirect, url_for, flash
 from markupsafe import escape
 
-from .exceptions import NoClassException, NoStudentException
+from everyclass.exceptions import NoClassException, NoStudentException
 
 main_blueprint = Blueprint('main', __name__)
 

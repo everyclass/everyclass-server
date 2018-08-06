@@ -11,8 +11,8 @@ from raven.contrib.flask import Sentry
 from elasticapm.contrib.flask import ElasticAPM
 from elasticapm.handlers.logging import LoggingHandler
 
-from .config import load_config
-from .utils import monkey_patch
+from everyclass.config import load_config
+from everyclass.utils import monkey_patch
 
 config = load_config()
 
@@ -59,16 +59,16 @@ def create_app():
     celery.conf.update(app.config)
 
     # register blueprints
-    from .cal import cal_blueprint
+    from everyclass.cal import cal_blueprint
     app.register_blueprint(cal_blueprint)
 
-    from .query import query_blueprint
+    from everyclass.query import query_blueprint
     app.register_blueprint(query_blueprint)
 
-    from .views import main_blueprint as main_blueprint
+    from everyclass.views import main_blueprint as main_blueprint
     app.register_blueprint(main_blueprint)
 
-    from .api import api_v1 as api_blueprint
+    from everyclass.api import api_v1 as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
     @app.teardown_appcontext

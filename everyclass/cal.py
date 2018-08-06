@@ -14,9 +14,9 @@ def cal_page():
 
     :return: render_template('ics.html')
     """
-    from .db_operations import get_classes_for_student, get_my_semesters, check_if_stu_exist
-    from .model import Semester
-    from . import ics_generator
+    from everyclass.db_operations import get_classes_for_student, get_my_semesters, check_if_stu_exist
+    from everyclass.model import Semester
+    from everyclass import ics_generator
 
     # 如果请求中包含 id 就写入 session
     if request.values.get('id'):
