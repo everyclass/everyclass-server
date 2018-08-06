@@ -27,9 +27,6 @@ def cal_page():
 
     # 如果 session 中有 stu_id 就生成 ics 并返回页面，没有就跳转回首页
     if session.get('stu_id', None):
-        # apm logging
-        # current_app.logger.info({'msg': 'generate_ics_file', 'stu_id': session['stu_id']})
-
         # 获得学生姓名和他的合法学期
         my_available_semesters, student_name = get_my_semesters(session['stu_id'])
         semester = Semester.get()

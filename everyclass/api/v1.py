@@ -32,12 +32,12 @@ def get_semesters(student_id):
     :param student_id: 学号
     """
     from everyclass.db_operations import get_my_semesters
-    from everyclass import access_log
+
     # todo: handle if student doesn't exist
     semesters, student_name = get_my_semesters(student_id)
 
-    # commit to access log
-    access_log.delay('a_stu', student_id)
+    # Elastic apm 业务 context
+    request.elastic_context = {'stu_id': student_id}
 
     response = jsonify({'name': student_name,
                         'semesters': [s.to_str() for s in semesters]
@@ -58,13 +58,13 @@ def get_courses(student_id, semester):
     from everyclass.db_operations import get_classes_for_student
     from everyclass.model import Semester
     from everyclass.exceptions import IllegalSemesterException, NoStudentException
-    from everyclass import access_log
+
     try:
         courses = get_classes_for_student(student_id, Semester(semester))
         # TODO: handle if semester does not exist
 
-        # write to log
-        access_log.delay('a_course', student_id, {'semester': semester})
+        request.elastic_context = {'stu_id': student_id,
+                                   'semester': semester}
 
         courses_to_return = {}
         for k, v in courses.items():
