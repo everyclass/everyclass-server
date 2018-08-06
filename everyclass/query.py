@@ -38,7 +38,7 @@ def query():
         # 首末均为中文,判断为人名
         if is_chinese_char(id_or_name[0:1]) and is_chinese_char(id_or_name[-1:]):
             # 使用人名查询打点
-            request.elastic_context['search'] = 'by_name'
+            request.elastic_context['ec.query.method'] = 'by_name'
 
             mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
             cursor.execute(mysql_query, (id_or_name,))
@@ -57,15 +57,18 @@ def query():
                 student_id = result[0][1]
             else:
                 # 查无此人
+                request.elastic_context['ec.query.not_found'] = True
                 return no_student_handle(id_or_name)
 
         # id 不为中文，则为学号
         else:
-            request.elastic_context['search'] = 'by_id'
+            # 学号查询打点
+            request.elastic_context['ec.query.method'] = 'by_id'
             student_id = request.values.get('id')
 
             # 判断学号是否有效
             if not check_if_stu_exist(student_id):
+                request.elastic_context['ec.query.not_found'] = True
                 return no_student_handle(student_id)
 
         # 写入 session 的学号一定有效
