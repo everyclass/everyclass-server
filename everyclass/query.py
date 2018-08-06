@@ -21,7 +21,8 @@ def query():
     from everyclass.db_operations import get_db
     from everyclass.model import Semester
     from everyclass.db_operations import get_my_semesters, check_if_stu_exist, get_privacy_settings
-    from everyclass import access_log
+
+    request.elastic_context = dict()
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -36,6 +37,9 @@ def query():
 
         # 首末均为中文,判断为人名
         if is_chinese_char(id_or_name[0:1]) and is_chinese_char(id_or_name[-1:]):
+            # 使用人名查询打点
+            request.elastic_context['search'] = 'by_name'
+
             mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
             cursor.execute(mysql_query, (id_or_name,))
             result = cursor.fetchall()
@@ -57,6 +61,7 @@ def query():
 
         # id 不为中文，则为学号
         else:
+            request.elastic_context['search'] = 'by_id'
             student_id = request.values.get('id')
 
             # 判断学号是否有效
@@ -73,9 +78,6 @@ def query():
     # 既没有 id 参数也没有 session，无法知道需要查询谁的课表，返回主页
     else:
         return redirect(url_for('main.main'))
-
-    # Commit to access log
-    access_log.delay('q_stu', student_id)
 
     # 查询学生本人的可用学期
     my_available_semesters, student_name = get_my_semesters(student_id)

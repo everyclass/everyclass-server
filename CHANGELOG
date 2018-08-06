@@ -1,3 +1,7 @@
+v0.8.15
+================================
+- change relative import to absolute import
+
 v0.8.14
 ================================
 - change requirement.txt to Pipfile
