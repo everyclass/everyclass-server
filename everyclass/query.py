@@ -22,7 +22,7 @@ def query():
     from everyclass.model import Semester
     from everyclass.db_operations import get_my_semesters, check_if_stu_exist, get_privacy_settings
 
-    request.elastic_context = dict()
+    request.elastic_tag = dict()
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -38,7 +38,7 @@ def query():
         # 首末均为中文,判断为人名
         if is_chinese_char(id_or_name[0:1]) and is_chinese_char(id_or_name[-1:]):
             # 使用人名查询打点
-            request.elastic_context['ec_query_method'] = 'by_name'
+            request.elastic_tag['ec_query_method'] = 'by_name'
 
             mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
             cursor.execute(mysql_query, (id_or_name,))
@@ -57,18 +57,18 @@ def query():
                 student_id = result[0][1]
             else:
                 # 查无此人
-                request.elastic_context['ec_query_not_found'] = True
+                request.elastic_tag['ec_query_not_found'] = True
                 return no_student_handle(id_or_name)
 
         # id 不为中文，则为学号
         else:
             # 学号查询打点
-            request.elastic_context['ec_query_method'] = 'by_id'
+            request.elastic_tag['ec_query_method'] = 'by_id'
             student_id = request.values.get('id')
 
             # 判断学号是否有效
             if not check_if_stu_exist(student_id):
-                request.elastic_context['ec_query_not_found'] = True
+                request.elastic_tag['ec_query_not_found'] = True
                 return no_student_handle(student_id)
 
         # 写入 session 的学号一定有效
@@ -76,12 +76,12 @@ def query():
 
     # url 中没有 id 参数但 session 中有
     elif session.get('stu_id', None):
-        request.elastic_context['ec_query_method'] = 'by_session'
+        request.elastic_tag['ec_query_method'] = 'by_session'
         student_id = session['stu_id']
 
     # 既没有 id 参数也没有 session，无法知道需要查询谁的课表，返回主页
     else:
-        request.elastic_context['ec_query_method'] = 'exception'
+        request.elastic_tag['ec_query_method'] = 'exception'
         return redirect(url_for('main.main'))
 
     # 查询学生本人的可用学期

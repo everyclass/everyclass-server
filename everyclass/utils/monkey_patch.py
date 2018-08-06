@@ -16,6 +16,9 @@ class ElasticAPM:
                 # 业务 context
                 if hasattr(request, 'elastic_context'):
                     elasticapm.set_custom_context(request.elastic_context)
+                # 业务 tag
+                if hasattr(request, 'elastic_tag'):
+                    elasticapm.tag(**request.elastic_tag)
 
             # execute the original `request_finished` function
             original_func(self, app, response)
