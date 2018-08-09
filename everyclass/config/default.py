@@ -19,11 +19,16 @@ class Config(object):
     # Git hash
     _repo = git.Repo(search_parent_directories=True)
     GIT_HASH = _repo.head.object.hexsha
+
     try:
         GIT_BRANCH_NAME = _repo.active_branch.name
     except TypeError:
         GIT_BRANCH_NAME = 'None'
-    GIT_DESCRIBE = _repo.git.describe()
+
+    _describe_raw = _repo.git.describe().split("-")
+    GIT_DESCRIBE = _describe_raw[0]
+    if len(_describe_raw) > 1:
+        GIT_DESCRIBE += "." + _describe_raw[1]
 
     # Sentry
     SENTRY_CONFIG = {
