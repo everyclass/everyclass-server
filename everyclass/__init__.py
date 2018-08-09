@@ -63,10 +63,10 @@ def create_app():
             session['user_id'] = cursor.fetchone()[0]
             cursor.close()
 
-    @app.teardown_request
+    @app.teardown_appcontext
     def close_db(error):
         """结束时关闭数据库连接"""
-        if hasattr(g, 'mysql_db'):
+        if hasattr(g, 'mysql_db') and g.mysql_db:
             g.mysql_db.close()
 
     @app.after_request
