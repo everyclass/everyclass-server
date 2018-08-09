@@ -74,6 +74,8 @@ class Config(object):
         'host': '127.0.0.1',
         'port': '6666',
         'database': 'everyclass',
+        'use_unicode': True,
+        'charset': 'utf-8'
     }
 
     MONGODB_HOST = 'localhost'
