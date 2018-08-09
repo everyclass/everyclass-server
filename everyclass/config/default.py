@@ -69,7 +69,6 @@ class Config(object):
         'host': '127.0.0.1',
         'port': '6666',
         'database': 'everyclass',
-        'raise_on_warnings': True,
     }
 
     MONGODB_HOST = 'localhost'
