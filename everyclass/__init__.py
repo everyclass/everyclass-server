@@ -35,7 +35,7 @@ def create_app():
     apm = ElasticAPM(app)
 
     # 初始化数据库
-    if os.getenv('Move', None) != "CI":
+    if os.getenv('MODE', None) != "CI":
         init_db(app)
 
     # logging
