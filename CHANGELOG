@@ -1,6 +1,7 @@
-v0.8.16
+v0.8.17
 ================================
 - change relative import to absolute import
+- add user unique id and do some structural refactoring
 
 v0.8.14
 ================================
