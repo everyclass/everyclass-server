@@ -2,7 +2,7 @@ import re
 
 from flask import session
 
-from everyclass.db_operations import get_my_semesters
+from everyclass.db.dao import get_my_semesters
 from everyclass.exceptions import IllegalSemesterException
 
 

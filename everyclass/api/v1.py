@@ -32,7 +32,7 @@ def get_semesters(student_id):
 
     :param student_id: 学号
     """
-    from everyclass.db_operations import get_my_semesters
+    from db.dao import get_my_semesters
 
     # todo: handle if student doesn't exist
     semesters, student_name = get_my_semesters(student_id)
@@ -56,8 +56,8 @@ def get_courses(student_id, semester):
     :param semester: 学期
     """
     import json
-    from everyclass.db_operations import get_classes_for_student
-    from everyclass.model import Semester
+    from everyclass.db.dao import get_classes_for_student
+    from everyclass.db.model import Semester
     from everyclass.exceptions import IllegalSemesterException, NoStudentException
 
     try:

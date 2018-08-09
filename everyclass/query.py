@@ -18,9 +18,14 @@ def query():
 
     from everyclass.tools import is_chinese_char
     from everyclass.exceptions import NoStudentException, IllegalSemesterException
-    from everyclass.db_operations import get_conn, faculty_lookup, class_lookup, get_classes_for_student
-    from everyclass.model import Semester
-    from everyclass.db_operations import get_my_semesters, check_if_stu_exist, get_privacy_settings
+    from everyclass.db.mysql import get_conn
+    from everyclass.db.dao import faculty_lookup
+    from everyclass.db.dao import class_lookup
+    from everyclass.db.dao import get_classes_for_student
+    from everyclass.db.model import Semester
+    from everyclass.db.dao import get_privacy_settings
+    from everyclass.db.dao import get_my_semesters
+    from everyclass.db.dao import check_if_stu_exist
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -173,7 +178,7 @@ def get_classmates():
     from flask import request, render_template, session, redirect, url_for
 
     from everyclass.tools import get_time_chinese, get_day_chinese
-    from everyclass.db_operations import get_students_in_class
+    from db.dao import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):

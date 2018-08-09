@@ -3,8 +3,6 @@ import json
 
 import git
 
-from everyclass.model import Semester
-
 
 class Config(object):
     # Basic config

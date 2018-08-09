@@ -1,6 +1,6 @@
 import logging
 
-from flask import Flask, g, render_template, send_from_directory, session
+from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
@@ -10,7 +10,7 @@ from elasticapm.handlers.logging import LoggingHandler
 
 from everyclass.config import load_config
 from everyclass.utils import monkey_patch
-from everyclass.db_operations import init_db
+from everyclass.db.mysql import init_db
 
 config = load_config()
 
@@ -58,9 +58,10 @@ def create_app():
             # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
             conn = db_operations.get_conn()
             cursor = conn.cursor()
-            cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a'); ")
+            cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
             cursor.execute("SELECT LAST_INSERT_ID();")
-            session['user_id'] = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            session['user_id'] = result[0]
             cursor.close()
 
     @app.teardown_appcontext

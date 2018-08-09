@@ -10,8 +10,10 @@ cal_blueprint = Blueprint('cal', __name__)
 @cal_blueprint.route('/calendar')
 def cal_page():
     """课表导出页面视图函数"""
-    from everyclass.db_operations import get_classes_for_student, get_my_semesters, check_if_stu_exist
-    from everyclass.model import Semester
+    from everyclass.db.dao import get_classes_for_student
+    from everyclass.db.dao import get_my_semesters
+    from everyclass.db.dao import check_if_stu_exist
+    from everyclass.db.model import Semester
     from everyclass import ics_generator
 
     # 如果请求中包含 id 就写入 session
