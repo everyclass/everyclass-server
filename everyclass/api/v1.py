@@ -2,6 +2,7 @@ import functools
 
 from flask import jsonify, request, abort
 from flask import current_app as app
+import elasticapm
 
 from everyclass.api import api_v1
 
@@ -37,7 +38,7 @@ def get_semesters(student_id):
     semesters, student_name = get_my_semesters(student_id)
 
     # Elastic apm 业务 context
-    request.elastic_context = {'stu_id': student_id}
+    elasticapm.set_custom_context(stu_id=student_id)
 
     response = jsonify({'name': student_name,
                         'semesters': [s.to_str() for s in semesters]
@@ -63,8 +64,7 @@ def get_courses(student_id, semester):
         courses = get_classes_for_student(student_id, Semester(semester))
         # TODO: handle if semester does not exist
 
-        request.elastic_context = {'stu_id': student_id,
-                                   'semester': semester}
+        elasticapm.set_custom_context(stu_id=student_id, semester=semester)
 
         courses_to_return = {}
         for k, v in courses.items():

@@ -1,34 +1,16 @@
-import time
 import logging
 
 from flask import Flask, g, render_template, send_from_directory, current_app
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
-from celery import Celery
-from pymongo import MongoClient
 from raven.contrib.flask import Sentry
 from elasticapm.contrib.flask import ElasticAPM
 from elasticapm.handlers.logging import LoggingHandler
 
 from everyclass.config import load_config
-from everyclass.utils import monkey_patch
 
 config = load_config()
-
-# Celery
-# The fact that it provides the decorator means that it has to be created as a global variable, and
-# that implies that the Flask application instance is not going to be around when it is created.
-# It has to be treated carefully, in this way.
-celery = Celery(__name__,
-                broker=config.CELERY_BROKER_URL)
-
-apm = ElasticAPM()
-
-# Monkey Patch
-# Must apply to method in CLASS, not method of a OBJECT.
-# Otherwise a object's BoundMethod will turn into a normal function and lost it's `__func__` and `__self__`
-ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
 
 def create_app():
@@ -45,18 +27,12 @@ def create_app():
     sentry = Sentry(app)
 
     # Elastic APM
-    apm.init_app(app,
-                 service_name=app.config['ELASTIC_APM']['SERVICE_NAME'],
-                 secret_token=app.config['ELASTIC_APM']['SECRET_TOKEN'],
-                 server_url=app.config['ELASTIC_APM']['SERVER_URL'])
+    apm = ElasticAPM(app)
 
     # logging
     handler = LoggingHandler(client=apm.client)
     handler.setLevel(logging.WARN)
     app.logger.addHandler(handler)
-
-    # celery
-    celery.conf.update(app.config)
 
     # register blueprints
     from everyclass.cal import cal_blueprint
@@ -121,34 +97,3 @@ def create_app():
                                public_dsn=sentry.client.get_public_dsn('https'))
 
     return app
-
-
-@celery.task
-def access_log(op_type, stu_id, other=None):
-    """异步记录访问日志到 MongoDB 数据库，调用时使用 access_log.apply_async(args=[])
-
-    :param op_type: 操作类型，for example:`q_stu`
-    :param stu_id: 学号
-    :return: None
-
-    日志格式：
-    type:
-        prefix:
-            `q_` means query traffics from front-end
-            `a_` means query traffics from API
-        suffix:
-            `stu` means querying one's course schedule
-            `export` means accessing the page of exporting
-    ts: timestamp
-    stu_id: student id
-    """
-    mongo_client = MongoClient(current_app.config['MONGODB_HOST'], current_app.config['MONGODB_PORT'])
-    log = mongo_client.everyclass_log.log
-    item = {'type': op_type,
-            'ts': int(time.time()),
-            'stu_id': stu_id,
-            }
-    if other:
-        for k, v in other.items():
-            item[k] = v
-    log.insert(item)
