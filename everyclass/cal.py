@@ -2,18 +2,14 @@
 日历相关函数
 """
 from flask import Blueprint
-from flask import request, session, redirect, url_for, render_template, flash, current_app
+from flask import request, session, redirect, url_for, render_template, flash
 
 cal_blueprint = Blueprint('cal', __name__)
 
 
 @cal_blueprint.route('/calendar')
 def cal_page():
-    """
-    View function of exporting ics file page.
-
-    :return: render_template('ics.html')
-    """
+    """课表导出页面视图函数"""
     from everyclass.db_operations import get_classes_for_student, get_my_semesters, check_if_stu_exist
     from everyclass.model import Semester
     from everyclass import ics_generator

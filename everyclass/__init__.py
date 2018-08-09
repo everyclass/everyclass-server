@@ -56,10 +56,13 @@ def create_app():
         """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
         if not session.get('user_id', None):
             # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
-            # todo
-            pass
+            conn = db_operations.get_conn()
+            cursor = conn.cursor()
+            cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a'); SELECT LAST_INSERT_ID();")
+            session['user_id'] = cursor.fetchall()[0][0]
+            cursor.close()
 
-    @app.teardown_appcontext
+    @app.teardown_request
     def close_db(error):
         """结束时关闭数据库连接"""
         if hasattr(g, 'mysql_db'):
