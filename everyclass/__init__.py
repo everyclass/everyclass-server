@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
@@ -34,7 +35,8 @@ def create_app():
     apm = ElasticAPM(app)
 
     # 初始化数据库
-    init_db(app)
+    if os.getenv('Move', None) != "CI":
+        init_db(app)
 
     # logging
     handler = LoggingHandler(client=apm.client)

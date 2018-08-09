@@ -17,6 +17,7 @@ install:
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 - echo $PYTHONPATH
+- export MODE=CI
 script:
 - nosetests tests --with-coverage
 after_success:
