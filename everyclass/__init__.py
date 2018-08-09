@@ -58,7 +58,7 @@ def create_app():
             # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
             conn = db_operations.get_conn()
             cursor = conn.cursor()
-            cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a'); SELECT LAST_INSERT_ID();")
+            cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a'); SELECT LAST_INSERT_ID();", multi=True)
             session['user_id'] = cursor.fetchall()[0][0]
             cursor.close()
 
