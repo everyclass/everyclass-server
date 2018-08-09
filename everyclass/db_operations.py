@@ -18,7 +18,7 @@ def init_db(current_app):
 
 
 def get_conn():
-    """在连接池中获得连接"""
+    """获取每个线程的数据库连接，如当前线程 g 变量中没有 mysql_db，在连接池中获得连接并保存引用到当前线程"""
     if not hasattr(g, 'mysql_db'):
         g.mysql_db = app.mysql_pool.get_connection()
     return g.mysql_db
