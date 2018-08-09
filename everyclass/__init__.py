@@ -10,7 +10,7 @@ from elasticapm.handlers.logging import LoggingHandler
 
 from everyclass.config import load_config
 from everyclass.utils import monkey_patch
-from everyclass.db.mysql import init_db
+from everyclass.db.mysql import init_db, get_conn
 
 config = load_config()
 
@@ -56,7 +56,7 @@ def create_app():
         """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
         if not session.get('user_id', None):
             # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
-            conn = db_operations.get_conn()
+            conn = get_conn()
             cursor = conn.cursor()
             cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
             cursor.execute("SELECT LAST_INSERT_ID();")
