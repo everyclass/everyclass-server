@@ -5,8 +5,8 @@
     <div class="row">
         <div class="rte col-md-offset-2 col-md-8 col-sm-12 col-sm-offset-0">
             <h4 class="p1">你的 WebCal
-                日历交换文件地址为：https://everyclass.xyz{{ url_for('get_ics', student_id=student_id, semester=semester) }}<br>
-                <a href="webcal://everyclass.xyz{{ url_for('get_ics', student_id=student_id,semester=semester) }}"
+                日历交换文件地址为：https://everyclass.xyz{{ url_for('main.get_ics', student_id=student_id, semester=semester) }}<br>
+                <a href="webcal://everyclass.xyz{{ url_for('main.get_ics', student_id=student_id,semester=semester) }}"
                    onclick="_czc.push(['_trackEvent', '日历导出页', 'iOS链接']);">点击添加到日历</a>（iOS、Mac等）<br>
                 安卓系统请看下方解决方案<br><div id="wechat-notify" style="display: none; color: #c9a535;">如果你在使用微信等 App 内置浏览器，你需要选择用系统浏览器打开↗</div>
             </h4>
@@ -18,8 +18,8 @@
             </p>
             <p class="p1"><span class="s1"><b>该功能支持哪些设备？<br></b></span>iCalendar(WebCal)
                 是通用的日历交换格式，但安卓系统并没有对此的支持。若您使用安卓系统，请复制 <a
-                        href="{{ url_for('get_ics', student_id=student_id,semester=semester,_external=True) }}"
-                        onclick="_czc.push(['_trackEvent', '日历导出页', '安卓链接']);">{{ url_for('get_ics', student_id=student_id,semester=semester,_external=True) }}</a>，然后使用滴答清单、Google Calendar 等支持导入日历的 App 导入。使用方法请看下方链接。
+                        href="{{ url_for('main.get_ics', student_id=student_id,semester=semester,_external=True) }}"
+                        onclick="_czc.push(['_trackEvent', '日历导出页', '安卓链接']);">{{ url_for('main.get_ics', student_id=student_id,semester=semester,_external=True) }}</a>，然后使用滴答清单、Google Calendar 等支持导入日历的 App 导入。使用方法请看下方链接。
                 <br>如果你希望课表在所有<b>苹果设备</b>上自动同步，需要通过 Mac 端的日历 App 来设置（iPhone/iPad 只能订阅日历到当前设备）。
             </p>
             <p class="p1"><span class="s1"><b>课表更新后如何更新日历？<br></b></span>
