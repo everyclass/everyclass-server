@@ -1,29 +1,32 @@
 """
-Contains database operations.
+数据库有关操作
 """
 import json
+import logging
 
-import mysql.connector
+import mysql.connector.pooling
 from flask import current_app as app
 from flask import g
 
 
-def connect_db():
-    """初始化数据库连接"""
-    conn = mysql.connector.connect(**app.config['MYSQL_CONFIG'])
-    return conn
+def init_db(current_app):
+    """创建连接池"""
+    try:
+        current_app.mysql_pool = mysql.connector.pooling.MySQLConnectionPool(**current_app.config['MYSQL_CONFIG'])
+    except mysql.connector.errors.InterfaceError as e:
+        logging.critical(("Cannot connect to database, mysql.connector.errors.InterfaceError: {}".format(e)))
 
 
-def get_db():
-    """获得数据库连接"""
+def get_conn():
+    """在连接池中获得连接"""
     if not hasattr(g, 'mysql_db'):
-        g.mysql_db = connect_db()
+        g.mysql_db = app.mysql_pool.get_connection()
     return g.mysql_db
 
 
 def check_if_stu_exist(student_id):
     """检查指定学号的学生是否存在于ec_students表"""
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -41,7 +44,7 @@ def get_my_semesters(student_id):
     ORM中应该做到 Student 类里
     """
     from everyclass.model import Semester
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -69,7 +72,7 @@ def get_classes_for_student(student_id, sem):
     """
     from everyclass.exceptions import NoStudentException, IllegalSemesterException
 
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
 
     # 初步合法性检验
@@ -111,7 +114,7 @@ def get_students_in_class(class_id):
     """
     from everyclass.model import Semester
     from everyclass.exceptions import NoStudentException, NoClassException
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \
         .format('ec_classes_' + Semester.get().to_db_code())
@@ -150,7 +153,7 @@ def get_privacy_settings(student_id):
     :param student_id:
     :return:
     """
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
 
     mysql_query = "SELECT privacy FROM ec_students WHERE xh=%s"
@@ -173,7 +176,7 @@ def class_lookup(student_id):
     :param student_id: 学号
     :return: 班级字符串
     """
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -189,7 +192,7 @@ def faculty_lookup(student_id):
     :param student_id: 学号
     :return: 院系字符串
     """
-    db = get_db()
+    db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))

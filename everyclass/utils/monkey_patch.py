@@ -10,15 +10,13 @@ class ElasticAPM:
         @functools.wraps(original_func)
         def _patched(self, app, response):
             if not self.app.debug or self.client.config.debug:
-                # add user_id in context
-                elasticapm.set_user_context(user_id=request.cookies.get('UM_distinctid', None),
+                # 在 context 中记录 cookie 中的 user id
+                if session.get('user_id', None):
+                    user_id = session['user_id']
+                else:
+                    user_id = request.cookies.get('UM_distinctid', None)
+                elasticapm.set_user_context(user_id=user_id,
                                             username=session.get('stu_id', None))
-                # 业务 context
-                if hasattr(request, 'elastic_context'):
-                    elasticapm.set_custom_context(request.elastic_context)
-                # 业务 tag
-                if hasattr(request, 'elastic_tag'):
-                    elasticapm.tag(**request.elastic_tag)
 
             # execute the original `request_finished` function
             original_func(self, app, response)

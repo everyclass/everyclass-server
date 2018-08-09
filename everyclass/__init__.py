@@ -1,6 +1,6 @@
 import logging
 
-from flask import Flask, g, render_template, send_from_directory, current_app
+from flask import Flask, g, render_template, send_from_directory, session
 from flask_cdn import CDN
 from htmlmin import minify
 from termcolor import cprint
@@ -9,8 +9,12 @@ from elasticapm.contrib.flask import ElasticAPM
 from elasticapm.handlers.logging import LoggingHandler
 
 from everyclass.config import load_config
+from everyclass.utils import monkey_patch
+from everyclass.db_operations import init_db
 
 config = load_config()
+
+ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
 
 def create_app():
@@ -29,23 +33,31 @@ def create_app():
     # Elastic APM
     apm = ElasticAPM(app)
 
+    # 初始化数据库
+    init_db(app)
+
     # logging
     handler = LoggingHandler(client=apm.client)
     handler.setLevel(logging.WARN)
     app.logger.addHandler(handler)
 
-    # register blueprints
+    # 导入并注册 blueprints
     from everyclass.cal import cal_blueprint
-    app.register_blueprint(cal_blueprint)
-
     from everyclass.query import query_blueprint
-    app.register_blueprint(query_blueprint)
-
     from everyclass.views import main_blueprint as main_blueprint
-    app.register_blueprint(main_blueprint)
-
     from everyclass.api import api_v1 as api_blueprint
+    app.register_blueprint(cal_blueprint)
+    app.register_blueprint(query_blueprint)
+    app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api/v1')
+
+    @app.before_request
+    def set_user_id():
+        """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
+        if not session.get('user_id', None):
+            # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
+            # todo
+            pass
 
     @app.teardown_appcontext
     def close_db(error):
@@ -53,22 +65,11 @@ def create_app():
         if hasattr(g, 'mysql_db'):
             g.mysql_db.close()
 
-    @app.route('/<student_id>-<semester>.ics')
-    def get_ics(student_id, semester):
-        """serve ics file"""
-        # TODO: if file not exist, try to generate one.(implement after ORM and database adjustment)
-        return send_from_directory("ics", student_id + "-" + semester + ".ics",
-                                   as_attachment=True,
-                                   mimetype='text/calendar')
-
     @app.after_request
     def response_minify(response):
         """用 htmlmin 压缩 HTML，减轻带宽压力"""
         if app.config['HTML_MINIFY'] and response.content_type == u'text/html; charset=utf-8':
-            response.set_data(
-                minify(response.get_data(as_text=True))
-            )
-            return response
+            response.set_data(minify(response.get_data(as_text=True)))
         return response
 
     @app.template_filter('versioned')
