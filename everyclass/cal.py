@@ -20,7 +20,7 @@ def cal_page():
     if request.values.get('id'):
         if not check_if_stu_exist(request.values.get('id')):
             flash("你输入的学号不存在")
-            return redirect(url_for("main"))
+            return redirect(url_for("main.main"))
         session['stu_id'] = request.values.get('id')
 
     # 如果 session 中有 stu_id 就生成 ics 并返回页面，没有就跳转回首页

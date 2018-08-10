@@ -61,12 +61,10 @@ def create_app():
             conn = get_conn()
             cursor = conn.cursor()
             cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
-            cursor.execute("SELECT LAST_INSERT_ID();")
-            result = cursor.fetchone()
-            session['user_id'] = result[0]
+            session['user_id'] = cursor.lastrowid
             cursor.close()
 
-    @app.teardown_appcontext
+    @app.teardown_request
     def close_db(error):
         """结束时关闭数据库连接"""
         if hasattr(g, 'mysql_db') and g.mysql_db:
