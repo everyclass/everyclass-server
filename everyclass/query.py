@@ -178,7 +178,7 @@ def get_classmates():
     from flask import request, render_template, session, redirect, url_for
 
     from everyclass.tools import get_time_chinese, get_day_chinese
-    from db.dao import get_students_in_class
+    from everyclass.db.dao import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):
