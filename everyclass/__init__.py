@@ -23,7 +23,6 @@ def create_app() -> Flask:
 
     # load config
     app.config.from_object(config)
-    cprint('App created. Running under `{}` config'.format(app.config['CONFIG_NAME']), color='blue')
 
     # CDN
     CDN(app)
@@ -43,7 +42,7 @@ def create_app() -> Flask:
     # app.logger.warning('A warning occurred (%d apples)', 42)
     # app.logger.error('An error occurred')
     handler = LoggingHandler(client=apm.client)
-    handler.setLevel(logging.WARN)
+    handler.setLevel(logging.INFO)
     app.logger.addHandler(handler)
 
     # 导入并注册 blueprints
@@ -105,4 +104,5 @@ def create_app() -> Flask:
                                event_id=g.sentry_event_id,
                                public_dsn=sentry.client.get_public_dsn('https'))
 
+    app.logger.info('App created with `{}` config'.format(app.config['CONFIG_NAME']))
     return app
