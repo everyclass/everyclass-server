@@ -3,12 +3,12 @@
 """
 
 from flask import current_app as app
-from flask import g, app
+from flask import g
 
 from everyclass.db import pool
 
 
-def init_db(current_app: app):
+def init_db(current_app):
     """创建连接池"""
     current_app.mysql_pool = pool.ConnectionPool(**current_app.config['MYSQL_CONFIG'])
 
