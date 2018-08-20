@@ -5,7 +5,7 @@ from flask import current_app as app
 from everyclass.db.mysql import get_conn
 
 
-def check_if_stu_exist(student_id):
+def check_if_stu_exist(student_id: str) -> bool:
     """检查指定学号的学生是否存在于ec_students表"""
     db = get_conn()
     cursor = db.cursor()
@@ -19,7 +19,7 @@ def check_if_stu_exist(student_id):
         return False
 
 
-def get_my_semesters(student_id):
+def get_my_semesters(student_id: str) -> (list, str):
     """
     查询某一学生的可用学期
     ORM中应该做到 Student 类里

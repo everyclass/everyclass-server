@@ -23,7 +23,7 @@ class Connection(pymysql.connections.Connection):
         the __exit__() method additionally put the connection back to it's pool
     """
     _pool = None
-    _reusable_expection = (pymysql.err.ProgrammingError, pymysql.err.IntegrityError, pymysql.err.NotSupportedError)
+    _reusable_exception = (pymysql.err.ProgrammingError, pymysql.err.IntegrityError, pymysql.err.NotSupportedError)
 
     def __init__(self, *args, **kwargs):
         pymysql.connections.Connection.__init__(self, *args, **kwargs)
@@ -38,7 +38,7 @@ class Connection(pymysql.connections.Connection):
         """
         pymysql.connections.Connection.__exit__(self, exc, value, traceback)
         if self._pool:
-            if not exc or exc in self._reusable_expection:
+            if not exc or exc in self._reusable_exception:
                 '''reusable connection'''
                 self._pool.put_connection(self)
             else:

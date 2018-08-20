@@ -18,7 +18,7 @@ config = load_config()
 ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
 
-def create_app():
+def create_app() -> Flask:
     app = Flask(__name__, static_folder='static', static_url_path='')
 
     # load config
@@ -38,7 +38,10 @@ def create_app():
     if os.getenv('MODE', None) != "CI":
         init_db(app)
 
-    # logging
+    # Flask app 日志，用法：
+    # app.logger.debug('A value for debugging')
+    # app.logger.warning('A warning occurred (%d apples)', 42)
+    # app.logger.error('An error occurred')
     handler = LoggingHandler(client=apm.client)
     handler.setLevel(logging.WARN)
     app.logger.addHandler(handler)
