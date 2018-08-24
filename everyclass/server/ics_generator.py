@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 
 from icalendar import Calendar, Event, Alarm
 
-from everyclass.config import load_config
-from everyclass.tools import get_time
+from everyclass.server.config import load_config
+from everyclass.server.tools import get_time
 
 
 def generate(student_id, student_name, student_classes, semester_string, semester):

@@ -4,7 +4,7 @@ from flask import jsonify, request, abort
 from flask import current_app as app
 import elasticapm
 
-from everyclass.api import api_v1
+from everyclass.server.api import api_v1
 
 
 def auth_required(func):
@@ -32,7 +32,7 @@ def get_semesters(student_id):
 
     :param student_id: 学号
     """
-    from db.dao import get_my_semesters
+    from everyclass.server.db.dao import get_my_semesters
 
     # todo: handle if student doesn't exist
     semesters, student_name = get_my_semesters(student_id)
@@ -56,9 +56,9 @@ def get_courses(student_id, semester):
     :param semester: 学期
     """
     import json
-    from everyclass.db.dao import get_classes_for_student
-    from everyclass.db.model import Semester
-    from everyclass.exceptions import IllegalSemesterException, NoStudentException
+    from everyclass.server.db.dao import get_classes_for_student
+    from everyclass.server.db.model import Semester
+    from everyclass.server.exceptions import IllegalSemesterException, NoStudentException
 
     try:
         courses = get_classes_for_student(student_id, Semester(semester))

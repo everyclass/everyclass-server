@@ -4,14 +4,13 @@ import os
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
-from termcolor import cprint
 from raven.contrib.flask import Sentry
 from elasticapm.contrib.flask import ElasticAPM
 from elasticapm.handlers.logging import LoggingHandler
 
-from everyclass.config import load_config
-from everyclass.utils import monkey_patch
-from everyclass.db.mysql import init_db, get_conn
+from everyclass.server.config import load_config
+from everyclass.server.utils import monkey_patch
+from everyclass.server.db.mysql import init_db, get_conn
 
 config = load_config()
 
@@ -19,7 +18,10 @@ ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAP
 
 
 def create_app() -> Flask:
-    app = Flask(__name__, static_folder='static', static_url_path='')
+    app = Flask(__name__,
+                static_folder='../../frontend/dist',
+                static_url_path='',
+                template_folder="../../frontend/templates")
 
     # load config
     app.config.from_object(config)
@@ -46,10 +48,10 @@ def create_app() -> Flask:
     app.logger.addHandler(handler)
 
     # 导入并注册 blueprints
-    from everyclass.cal import cal_blueprint
-    from everyclass.query import query_blueprint
-    from everyclass.views import main_blueprint as main_blueprint
-    from everyclass.api import api_v1 as api_blueprint
+    from everyclass.server.cal import cal_blueprint
+    from everyclass.server.query import query_blueprint
+    from everyclass.server.views import main_blueprint as main_blueprint
+    from everyclass.server.api import api_v1 as api_blueprint
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(query_blueprint)
     app.register_blueprint(main_blueprint)

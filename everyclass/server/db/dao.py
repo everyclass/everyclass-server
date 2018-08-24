@@ -2,7 +2,7 @@ import json
 
 from flask import current_app as app
 
-from everyclass.db.mysql import get_conn
+from everyclass.server.db.mysql import get_conn
 
 
 def check_if_stu_exist(student_id: str) -> bool:
@@ -24,7 +24,7 @@ def get_my_semesters(student_id: str) -> (list, str):
     查询某一学生的可用学期
     ORM中应该做到 Student 类里
     """
-    from everyclass.db.model import Semester
+    from everyclass.server.db.model import Semester
     db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
@@ -51,7 +51,7 @@ def get_classes_for_student(student_id, sem):
     :param student_id: 学号
     :param sem: 学期，Semester 对象
     """
-    from everyclass.exceptions import NoStudentException, IllegalSemesterException
+    from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
 
     db = get_conn()
     cursor = db.cursor()
@@ -93,8 +93,8 @@ def get_students_in_class(class_id):
     :param class_id:
     :return:
     """
-    from everyclass.db.model import Semester
-    from everyclass.exceptions import NoStudentException, NoClassException
+    from everyclass.server.db.model import Semester
+    from everyclass.server.exceptions import NoStudentException, NoClassException
     db = get_conn()
     cursor = db.cursor()
     mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \

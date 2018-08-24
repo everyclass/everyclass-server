@@ -16,16 +16,16 @@ def query():
     from flask import current_app as app
     import elasticapm
 
-    from everyclass.tools import is_chinese_char
-    from everyclass.exceptions import NoStudentException, IllegalSemesterException
-    from everyclass.db.mysql import get_conn
-    from everyclass.db.dao import faculty_lookup
-    from everyclass.db.dao import class_lookup
-    from everyclass.db.dao import get_classes_for_student
-    from everyclass.db.model import Semester
-    from everyclass.db.dao import get_privacy_settings
-    from everyclass.db.dao import get_my_semesters
-    from everyclass.db.dao import check_if_stu_exist
+    from everyclass.server.tools import is_chinese_char
+    from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
+    from everyclass.server.db.mysql import get_conn
+    from everyclass.server.db.dao import faculty_lookup
+    from everyclass.server.db.dao import class_lookup
+    from everyclass.server.db.dao import get_classes_for_student
+    from everyclass.server.db.model import Semester
+    from everyclass.server.db.dao import get_privacy_settings
+    from everyclass.server.db.dao import get_my_semesters
+    from everyclass.server.db.dao import check_if_stu_exist
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -177,8 +177,8 @@ def get_classmates():
     """同学名单查询视图函数"""
     from flask import request, render_template, session, redirect, url_for
 
-    from everyclass.tools import get_time_chinese, get_day_chinese
-    from everyclass.db.dao import get_students_in_class
+    from everyclass.server.tools import get_time_chinese, get_day_chinese
+    from everyclass.server.db.dao import get_students_in_class
 
     # 如果 session stu_id 不存在则回到首页
     if not session.get('stu_id', None):

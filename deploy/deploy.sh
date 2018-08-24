@@ -1,4 +1,6 @@
 #!/bin/bash
+# Travis auto deploy script
+
 set -xe
 
 eval "$(ssh-agent -s)"

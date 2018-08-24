@@ -5,7 +5,7 @@
 from flask import current_app as app
 from flask import g
 
-from everyclass.db import pool
+from everyclass.server.db import pool
 
 
 def init_db(current_app):

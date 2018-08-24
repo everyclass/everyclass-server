@@ -46,8 +46,8 @@ class Config(object):
 
     # Static file settings
     STATIC_VERSIONED = True
-    with open(os.path.join(os.path.dirname(__file__), '../rev-manifest.json'), 'r') as static_manifest_file:
-        STATIC_MANIFEST = json.load(static_manifest_file)
+    with open(os.path.join(os.path.dirname(__file__), '../../../frontend/rev-manifest.json'), 'r') as static_manifest:
+        STATIC_MANIFEST = json.load(static_manifest)
 
     # Semester settings
     DATA_LAST_UPDATE_TIME = '2018 年 7 月 2 日'  # 数据最后更新日期，在页面下方展示

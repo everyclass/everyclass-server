@@ -1,2 +1,2 @@
 ignore:
-  - "everyclass/config"  # ignore folders and all its contents
+- "everyclass/server/config"  # ignore folders and all its contents

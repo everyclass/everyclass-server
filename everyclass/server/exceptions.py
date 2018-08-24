@@ -5,5 +5,6 @@ class NoClassException(ValueError):
 class NoStudentException(ValueError):
     pass
 
+
 class IllegalSemesterException(ValueError):
     pass

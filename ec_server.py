@@ -1,4 +1,4 @@
-from everyclass import create_app
+from everyclass.server import create_app
 
 app = create_app()
 
