@@ -1,16 +1,16 @@
 import logging
 import os
 
+from elasticapm.contrib.flask import ElasticAPM
+from elasticapm.handlers.logging import LoggingHandler
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
 from raven.contrib.flask import Sentry
-from elasticapm.contrib.flask import ElasticAPM
-from elasticapm.handlers.logging import LoggingHandler
 
 from everyclass.server.config import load_config
+from everyclass.server.db.mysql import get_conn, init_db
 from everyclass.server.utils import monkey_patch
-from everyclass.server.db.mysql import init_db, get_conn
 
 config = load_config()
 

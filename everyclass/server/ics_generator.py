@@ -2,11 +2,11 @@
 This is module to generate .ics file. Should follow RFC2445 standard.
 https://tools.ietf.org/html/rfc2445
 """
-import pytz
 import re
 from datetime import datetime, timedelta
 
-from icalendar import Calendar, Event, Alarm
+import pytz
+from icalendar import Alarm, Calendar, Event
 
 from everyclass.server.config import load_config
 from everyclass.server.tools import get_time

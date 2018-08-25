@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, send_from_directory, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, send_from_directory, url_for
 from markupsafe import escape
 
 from everyclass.server.exceptions import NoClassException, NoStudentException
@@ -40,7 +40,7 @@ def testing():
 def get_ics(student_id, semester):
     """serve ics file"""
     # TODO: if file not exist, try to generate one.(implement after ORM and database adjustment)
-    return send_from_directory("ics", student_id + "-" + semester + ".ics",
+    return send_from_directory("../../calendar_files", student_id + "-" + semester + ".ics",
                                as_attachment=True,
                                mimetype='text/calendar')
 

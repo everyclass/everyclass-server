@@ -23,8 +23,8 @@ __pycache__/
 # Compiled frontend
 /frontend/static/css/*-*-*.css
 
-# ics folder
-/everyclass/server/ics/*.ics
+# ics files folder
+/ics_files/*.ics
 
 # config
 **/config/development.py
