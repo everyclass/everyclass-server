@@ -1,3 +1,9 @@
+v0.8.19
+================================
+- 更改日历 ics 文件位置
+- server.calendar 单独成包
+- 修改 ics 文件目录
+
 v0.8.18
 ================================
 - 页脚版本号格式调整
@@ -8,8 +14,9 @@ v0.8.18
 
 v0.8.17
 ================================
-- change relative import to absolute import
-- add user unique id and do some structural refactoring
+- 相对导入改成绝对导入，增加可读性
+- 增加用户 unique id
+- 结构重构
 
 v0.8.14
 ================================
