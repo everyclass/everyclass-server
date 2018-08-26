@@ -9,7 +9,7 @@ cal_blueprint = Blueprint('cal', __name__)
 @cal_blueprint.route('/calendar')
 def cal_page():
     """课表导出页面视图函数"""
-    from everyclass.server import ics_generator
+    from everyclass.server.calendar import ics_generator
     from everyclass.server.db.dao import get_classes_for_student, get_my_semesters, check_if_stu_exist
     from everyclass.server.db.model import Semester
 
