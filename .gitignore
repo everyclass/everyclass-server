@@ -24,7 +24,7 @@ __pycache__/
 /frontend/static/css/*-*-*.css
 
 # ics files folder
-/ics_files/*.ics
+/calendar_files/*.ics
 
 # config
 **/config/development.py
