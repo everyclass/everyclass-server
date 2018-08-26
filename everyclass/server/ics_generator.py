@@ -67,7 +67,8 @@ def generate(student_id, student_name, student_classes, semester_string, semeste
 
     # Write file
     import os
-    with open(os.path.dirname(__file__) + '../../calendar_files/%s-%s.ics' % (student_id, semester_string), 'w') as f:
+    with open(os.path.join(os.path.dirname(__file__), '../../calendar_files/%s-%s.ics' % (student_id, semester_string)),
+              'w') as f:
         f.write(cal.to_ical().decode(encoding='utf-8'))
 
     return True
