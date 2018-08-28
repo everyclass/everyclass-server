@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "==0.12.1"
+flask = ">=0.12.3"
 flask-cdn = "==1.5.3"
 flask-script = "==2.0.5"
 flask-sqlalchemy = "==2.3.2"
@@ -21,6 +21,7 @@ redis = "*"
 blinker = "*"
 elastic-apm = {version = "*", extras = ["flask"]}
 pymysql = "*"
+logbook = "*"
 
 [dev-packages]
 coverage = "==4.4.2"
