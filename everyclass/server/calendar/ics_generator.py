@@ -60,10 +60,10 @@ def generate(student_id, student_name, student_classes, semester_string, semeste
                         until = __get_datetime(dur_ending_week, day, get_time(time)[1], semester) + timedelta(days=1)
                         # 参数：课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID
                         cal.add_component(
-                            __add_event(every_class['name'],
-                                        [dtstart, dtend, interval, until, each_duration, every_class['week']],
-                                        every_class['location'],
-                                        every_class['teacher'], student_id))
+                                __add_event(every_class['name'],
+                                            [dtstart, dtend, interval, until, each_duration, every_class['week']],
+                                            every_class['location'],
+                                            every_class['teacher'], student_id))
 
     # Write file
     import os
@@ -119,7 +119,7 @@ def __add_event(name, times, location, teacher, student_id):
     event.add('dtend', times[1])
     event.add('last-modified', datetime.now())
     event['uid'] = 'ec-CSU' + student_id + 't' + datetime.now().strftime('%y%m%d%H%M%S%f') + '@admirable.one'
-    event.add('rrule', {'freq': 'weekly', 'interval': times[2],
+    event.add('rrule', {'freq' : 'weekly', 'interval': times[2],
                         'until': times[3]})
     alarm = Alarm()
     alarm.add('action', 'none')

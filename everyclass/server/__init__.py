@@ -1,8 +1,8 @@
-import logging
 import os
 
+import logbook
 from elasticapm.contrib.flask import ElasticAPM
-from elasticapm.handlers.logging import LoggingHandler
+from elasticapm.handlers.logbook import LogbookHandler
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
@@ -13,6 +13,9 @@ from everyclass.server.db.mysql import get_conn, init_db
 from everyclass.server.utils import monkey_patch
 
 config = load_config()
+
+# logbook logger
+logger = logbook.Logger(__name__)
 
 ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
@@ -32,20 +35,19 @@ def create_app() -> Flask:
     # Sentry
     sentry = Sentry(app)
 
-    # Elastic APM
-    apm = ElasticAPM(app)
-
     # 初始化数据库
     if os.getenv('MODE', None) != "CI":
         init_db(app)
 
-    # Flask app 日志，用法：
-    # app.logger.debug('A value for debugging')
-    # app.logger.warning('A warning occurred (%d apples)', 42)
-    # app.logger.error('An error occurred')
-    handler = LoggingHandler(client=apm.client)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
+    # Elastic APM
+    apm = ElasticAPM(app)
+
+    # log handlers
+    elastic_handler = LogbookHandler(client=apm.client, bubble=True)
+    logger.handlers.append(elastic_handler)
+    # handler.push_application()
+    stderr_handler = logbook.StderrHandler(bubble=True)
+    logger.handlers.append(stderr_handler)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
@@ -106,5 +108,5 @@ def create_app() -> Flask:
                                event_id=g.sentry_event_id,
                                public_dsn=sentry.client.get_public_dsn('https'))
 
-    app.logger.info('App created with `{}` config'.format(app.config['CONFIG_NAME']))
+    logger.info('App created with `{}` config'.format(app.config['CONFIG_NAME']))
     return app
