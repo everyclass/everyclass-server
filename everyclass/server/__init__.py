@@ -108,5 +108,5 @@ def create_app() -> Flask:
                                event_id=g.sentry_event_id,
                                public_dsn=sentry.client.get_public_dsn('https'))
 
-    logger.info('App created with `{}` config'.format(app.config['CONFIG_NAME']))
+    logger.info('App created with `{}` config'.format(app.config['CONFIG_NAME']), exc_info=False)
     return app
