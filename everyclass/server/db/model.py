@@ -28,7 +28,7 @@ class Semester(object):
             raise IllegalSemesterException
 
     def __repr__(self):
-        return '[object Semester]: {}-{}-{}'.format(self.year1, self.year2, self.sem)
+        return '<Semester {}-{}-{}>'.format(self.year1, self.year2, self.sem)
 
     def __str__(self):
         return '{}-{}-{}'.format(self.year1, self.year2, self.sem)
