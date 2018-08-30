@@ -61,7 +61,7 @@ def query():
             else:
                 # 查无此人
                 elasticapm.tag(ec_query_not_found=True)
-                return no_student_handle(id_or_name)
+                return _no_student_handle(id_or_name)
 
         # id 不为中文，则为学号
         else:
@@ -72,7 +72,7 @@ def query():
             # 判断学号是否有效
             if not check_if_stu_exist(student_id):
                 elasticapm.tag(ec_query_not_found=True)
-                return no_student_handle(student_id)
+                return _no_student_handle(student_id)
 
         # 写入 session 的学号一定有效
         session['stu_id'] = student_id
@@ -116,7 +116,7 @@ def query():
     try:
         student_classes = get_classes_for_student(student_id=student_id, sem=Semester(session['semester']))
     except NoStudentException:
-        return no_student_handle(student_id)
+        return _no_student_handle(student_id)
     else:
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
         empty_weekend = True
@@ -203,7 +203,7 @@ def get_classmates():
                            show_id=show_id)
 
 
-def no_student_handle(stu_identifier):
+def _no_student_handle(stu_identifier):
     """
     flash a waring telling user that the identifier inputted is not found in database.
 
