@@ -25,9 +25,10 @@ def get_my_semesters(student_id: str) -> (list, str):
     ORM中应该做到 Student 类里
     """
     from everyclass.server.db.model import Semester
+
+    mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     db = get_conn()
     cursor = db.cursor()
-    mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
     sems = json.loads(result[0][0])
@@ -95,10 +96,11 @@ def get_students_in_class(class_id):
     """
     from everyclass.server.db.model import Semester
     from everyclass.server.exceptions import NoStudentException, NoClassException
-    db = get_conn()
-    cursor = db.cursor()
+
     mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \
         .format('ec_classes_' + Semester.get().to_db_code())
+    db = get_conn()
+    cursor = db.cursor()
     cursor.execute(mysql_query, (class_id,))
     result = cursor.fetchall()
     if not result:
