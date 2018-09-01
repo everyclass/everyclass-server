@@ -37,4 +37,4 @@ def cal_page():
                                semester=semester.to_str(simplify=True)
                                )
     else:
-        return redirect(url_for('main'))
+        return redirect(url_for('main.main'))
