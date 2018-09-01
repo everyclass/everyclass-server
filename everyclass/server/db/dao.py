@@ -2,6 +2,7 @@ import json
 
 from flask import current_app as app
 
+from everyclass.server import logger
 from everyclass.server.db.mysql import get_conn
 
 
@@ -31,6 +32,8 @@ def get_my_semesters(student_id: str) -> (list, str):
     cursor = db.cursor()
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
+    if not result:
+        logger.error("[db.dao.get_my_semesters] No result from db.", stack=True)
     sems = json.loads(result[0][0])
     student_name = result[0][1]
 

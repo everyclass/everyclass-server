@@ -2,20 +2,20 @@ import os
 
 import logbook
 from elasticapm.contrib.flask import ElasticAPM
-from elasticapm.handlers.logbook import LogbookHandler
+from elasticapm.handlers.logbook import LogbookHandler as ElasticHandler
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
 from raven.contrib.flask import Sentry
+from raven.handlers.logbook import SentryHandler
 
 from everyclass.server.config import load_config
 from everyclass.server.db.mysql import get_conn, init_db
 from everyclass.server.utils import monkey_patch
 
 config = load_config()
-
-# logbook logger
 logger = logbook.Logger(__name__)
+sentry = Sentry()
 
 ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
@@ -26,14 +26,14 @@ def create_app() -> Flask:
                 static_url_path='',
                 template_folder="../../frontend/templates")
 
-    # load config
+    # load app config
     app.config.from_object(config)
 
     # CDN
     CDN(app)
 
     # Sentry
-    sentry = Sentry(app)
+    sentry.init_app(app=app)
 
     # 初始化数据库
     if os.getenv('MODE', None) != "CI":
@@ -42,12 +42,37 @@ def create_app() -> Flask:
     # Elastic APM
     apm = ElasticAPM(app)
 
-    # log handlers
-    elastic_handler = LogbookHandler(client=apm.client, bubble=True)
-    logger.handlers.append(elastic_handler)
-    # handler.push_application()
+    # logbook handlers
+    # 规则如下：
+    # - 全部输出到 stdout（本地开发调试、服务器端文件日志）
+    # - Elastic APM 或者 LogStash（日志中心）
+    # - WARNING 以上级别的输出到 Sentry
+    #
+    # 日志等级：
+    # critical – for errors that lead to termination
+    # error – for errors that occur, but are handled
+    # warning – for exceptional circumstances that might not be errors
+    # notice – for non-error messages you usually want to see
+    # info – for messages you usually don’t want to see
+    # debug – for debug messages
+    #
+    # Elastic APM：
+    # log.info("Nothing to see here", stack=False)
+    # stack 默认是 True，设置为 False 将不会向 Elastic APM 发送 stack trace
+    # https://discuss.elastic.co/t/how-to-use-logbook-handler/146209/6
+    #
+    # Sentry：
+    # https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
+    # - stack 默认是 False，和 Elastic APM 的不一致，所以还是每次手动指定吧...
+    # - 默认事件类型是 `raven.events.Message`，设置 `exc_info` 为 `True` 将把事件类型升级为`raven.events.Exception`
     stderr_handler = logbook.StderrHandler(bubble=True)
     logger.handlers.append(stderr_handler)
+
+    elastic_handler = ElasticHandler(client=apm.client, bubble=True)
+    logger.handlers.append(elastic_handler)
+
+    sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+    logger.handlers.append(sentry_handler)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint

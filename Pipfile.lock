@@ -135,20 +135,20 @@
         },
         "elastic-apm": {
             "hashes": [
-                "sha256:0cf83e9cb5065983457b591fedf871feabd33647f00684a88ef0e12f52309156",
-                "sha256:0fc28ddfc3b34f81f715cdd12b8a2a2c1bddd3bb6c9e9348fc5bd14690ae44e6",
-                "sha256:1726616593b9d91fb6a04f1d4d439b40247ac3113e9e7a0b45fa65c018a22f8f",
-                "sha256:261aa6c559a166bf43154b331df7b81dd9fea836cbf4da638486566ca62bbb2d",
-                "sha256:36bb549d1bd0dcc4f05bf3119c3c5e1703c345f187f5910da7bcc9d9ac8d390f",
-                "sha256:824f24705daea4c983e06b2299f4d22cf50c17c914bfd0c2ecf407d8a6a19528",
-                "sha256:99f12208995b040d39d5077755cbd86b73c0ddfe0912423de38df2688c1ba50b",
-                "sha256:9cd0eb470c8a61422742a9bfdb26e90b440e09aec92dc5ac44ef99b03646af41",
-                "sha256:a99671e131dbce3c55621878a933a3678f3979d4dd9ae8a477af2eed5a33647d",
-                "sha256:b8fa80391f567d0a0fa7528f2a81b28110c6016ff7fe100b8bdaa653df00cad8",
-                "sha256:e30695b5918ac449a89d36e090befdfd6ad3033e362ed9b317fc5774ee6c3d38"
+                "sha256:19bcbedf0b6cae2a3fcdbfb5b2fffd83c2e3082d30e63a3d174037bf78ca097e",
+                "sha256:4ea1b4e5a273e5651ffae22fab4c3776d160422308154359ee0b18f9f25d9ece",
+                "sha256:5badd6e830df61f66b96b321c5fa339bca45aa6ff40e976c512da3c79116208f",
+                "sha256:727d9712a76410e62aa3b86ba26b92054b4d1906b7a9ff158851027ec44ec3c5",
+                "sha256:7eddbf3a5856aff023ff8f105693ff613b2a8ae6ec10e4d4ad621bf0a648e9e1",
+                "sha256:90b2ea78d6424b0314cf997368301baa56c2629e52a7b25481a95ec2c4e9e145",
+                "sha256:b1769a744b53099586d14695e0054bef16a51c78c7fa2e845909525c6436d581",
+                "sha256:c34e53fd23f2fe5dc5c9746a5db2ab3eeab2a071ba5ee8afca38cf124a2b8fb9",
+                "sha256:cb61f1f1118196abab1d88a2b2a51288e7559af7f584f9177a8aff3c56cacc65",
+                "sha256:d7502ee72e66aa0e1e791c78a3060d9b56e7cb1117b6dbba8ebd2d72e5dd087d",
+                "sha256:f61ab6d83f6959c5685b74bfb7f6cdf25c1d42598f6d6007243c997207e6e7c2"
             ],
             "index": "pypi",
-            "version": "==3.0.0"
+            "version": "==3.0.1"
         },
         "flask": {
             "hashes": [
