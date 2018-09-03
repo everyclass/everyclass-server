@@ -4,8 +4,8 @@
 ![python version](https://img.shields.io/badge/python-3.6-blue.svg)
 ![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
 [![Build Status](https://travis-ci.org/fr0der1c/EveryClass-server.svg?branch=develop)](https://travis-ci.org/fr0der1c/EveryClass-server)
-[![codecov](https://codecov.io/gh/fr0der1c/EveryClass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/fr0der1c/EveryClass-server)
-
+![works-on](https://img.shields.io/badge/works%20on-my%20computer-brightgreen.svg)
+[![code-coverage](https://codecov.io/gh/fr0der1c/EveryClass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/fr0der1c/EveryClass-server)
 
 This is the web server part of [EveryClass](https://github.com/fr0der1c/EveryClass) project.
 
