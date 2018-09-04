@@ -49,6 +49,8 @@ docker run -it --rm -d \
 
 
 ### Roll-upgrade
+LATEST_CONTAINER=`docker ps -q --filter name=everyclass -l`
+ALL_CONTAINERS=`docker ps -q --filter name=everyclass`
 
 # wait 30 seconds, replace nginx upstream with new container, and stop old container.
 counter=0
@@ -63,17 +65,10 @@ if [ ! "$(curl -k ${EVERYCLASS_URL} 2> /dev/null)" ]; then
 fi
 echo "EveryClass started."
 
-# replace Nginx upstream
-# todo: get current server from consul
-
-# todo: register new server to consul
-
-# todo: unregister servers from consul
-
+# register new server, and unregister servers from Consul
+docker exec ${LATEST_CONTAINER} /var/everyclass-server/.venv/bin/python /var/everyclass-server/deploy/consul.py
 
 # stop old containers (stop nothing if there are no old containers)
-LATEST_CONTAINER=`docker ps -q --filter name=everyclass -l`
-ALL_CONTAINERS=`docker ps -q --filter name=everyclass`
 for each in ${ALL_CONTAINERS[@]}
 do
     if [ "$each" != "$LATEST_CONTAINER" ]; then
