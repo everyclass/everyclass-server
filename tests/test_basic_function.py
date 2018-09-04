@@ -1,5 +1,7 @@
 import unittest
+
 from flask import current_app
+
 from everyclass.server import create_app
 
 
@@ -23,8 +25,8 @@ class BasicFunctionTestCase(unittest.TestCase):
     """basic function in everyclass/__init__.py"""
 
     def test_import_config(self):
-        from everyclass.server.config import load_config
-        config = load_config()
+        from everyclass.server.config import get_config
+        config = get_config()
         self.assertTrue(config)
 
     def test_string_semester(self):

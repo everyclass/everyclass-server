@@ -68,8 +68,8 @@ class Semester(object):
         当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
         """
         from everyclass.server.exceptions import IllegalSemesterException
-        from everyclass.server.config import load_config
-        config = load_config()
+        from everyclass.server.config import get_config
+        config = get_config()
 
         my_available_semesters = get_my_semesters(session.get('stu_id'))[0]
         if config.DEBUG:

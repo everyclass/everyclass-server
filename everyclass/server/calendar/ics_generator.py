@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import pytz
 from icalendar import Alarm, Calendar, Event
 
-from everyclass.server.config import load_config
+from everyclass.server.config import get_config
 from everyclass.server.tools import get_time
 
 
@@ -85,7 +85,7 @@ def __get_datetime(week, day, time, semester):
     :param semester: 学期
     :return: datetime类型的时间
     """
-    return datetime(*load_config().AVAILABLE_SEMESTERS.get(semester)['start'],
+    return datetime(*get_config().AVAILABLE_SEMESTERS.get(semester)['start'],
                     *time,
                     tzinfo=pytz.timezone("Asia/Shanghai")
                     ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))

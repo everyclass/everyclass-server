@@ -9,12 +9,11 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
-from everyclass.server.config import load_config
 from everyclass.server.db.mysql import get_conn, init_db
 from everyclass.server.utils import monkey_patch
 
-config = load_config()
 logger = logbook.Logger(__name__)
+
 sentry = Sentry()
 
 ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
@@ -27,7 +26,9 @@ def create_app() -> Flask:
                 template_folder="../../frontend/templates")
 
     # load app config
-    app.config.from_object(config)
+    from everyclass.server.config import get_config
+    _config = get_config()
+    app.config.from_object(_config)
 
     # CDN
     CDN(app)
