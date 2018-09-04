@@ -19,7 +19,6 @@ RUN pip3 install pipenv \
     && pipenv sync \
     && rm -r /root/.cache
 
-# expose HTTP port
-EXPOSE 80
+ENV UWSGI_HTTP_SOCKET ":9000"
 
 CMD ["uwsgi", "--ini", "/var/everyclass-server/deploy/uwsgi.ini"]
