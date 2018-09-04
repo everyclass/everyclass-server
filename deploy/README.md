@@ -12,7 +12,7 @@ docker build -t fr0der1c/everyclass-server .
 ```bash
 docker run -it --rm -d \
     --net=host \
-    --name "everyclass-`git describe`" \
+    --name "everyclass-`git describe --tags`" \
     -v "`pwd`/everyclass/config:/var/everyclass-server/config" \
     -v "`pwd`/calendar_files:/var/everyclass-server/calendar_files" \
     -e UWSGI_HTTP_SOCKET=":9000" \

@@ -14,18 +14,7 @@ ssh-add /tmp/stage_key
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
-cd /var/EveryClass-server && \
-    git reset --hard && \
-    git pull && \
-    docker build -t fr0der1c/everyclass-server . && \
-    docker run -it --rm -d \
-        --net=host \
-        --name "everyclass-`git describe`" \
-        -v "`pwd`/everyclass/config:/var/everyclass-server/config" \
-        -v "`pwd`/calendar_files:/var/everyclass-server/calendar_files" \
-        -e UWSGI_HTTP_SOCKET=":9000" \
-        fr0der1c/everyclass-server && \
-    wait 30s, replace nginx upstream with new container, and stop old container.
+bash deploy/upgrade.sh
 EOF
 
 elif [ $TRAVIS_BRANCH = "develop" ] ; then
