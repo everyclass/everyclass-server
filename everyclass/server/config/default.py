@@ -80,7 +80,7 @@ class Config(object):
         GIT_BRANCH_NAME = _git_repo.active_branch.name
     except TypeError:
         GIT_BRANCH_NAME = 'detached'
-    _describe_raw = _git_repo.git.describe().split("-")  # like `v0.8.0-1-g000000`
+    _describe_raw = _git_repo.git.describe(tags=True).split("-")  # like `v0.8.0-1-g000000`
     GIT_DESCRIBE = _describe_raw[0]  # actual tag name like `v0.8.0`
     if len(_describe_raw) > 1:
         GIT_DESCRIBE += "." + _describe_raw[1]  # tag 之后的 commit 计数，代表小版本
