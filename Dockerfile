@@ -22,10 +22,4 @@ RUN pip3 install pipenv \
 # expose HTTP port
 EXPOSE 80
 
-# Why "enable-threads":
-# https://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html
-# By default the Python plugin does not initialize the GIL. This means your app-generated threads will not run. If you
-#  need threads, remember to enable them with enable-threads. Running uWSGI in multithreading mode (with the threads
-# options) will automatically enable threading support. This “strange” default behaviour is for performance reasons,
-# no shame in that.
-CMD ["uwsgi", "--ini", "/var/everyclass-server/deploy/uwsgi.ini", "--enable-threads"]
+CMD ["uwsgi", "--ini", "/var/everyclass-server/deploy/uwsgi.ini"]
