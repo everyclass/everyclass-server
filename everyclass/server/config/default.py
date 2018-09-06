@@ -8,7 +8,6 @@ class Config(object):
     """
     Basic Configurations
     """
-    CONFIG_NAME = 'default'
     DEBUG = True
     SECRET_KEY = 'development_key'
     MYSQL_CONFIG = {
