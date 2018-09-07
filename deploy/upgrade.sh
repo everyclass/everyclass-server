@@ -44,7 +44,8 @@ docker run -it --rm -d \
     --name "everyclass-`git describe --tags`" \
     -v "`pwd`/everyclass/server/config:/var/everyclass-server/everyclass/server/config" \
     -v "`pwd`/calendar_files:/var/everyclass-server/calendar_files" \
-    -e UWSGI_HTTP_SOCKET=":`echo $EVERYCLASS_PORT`" \
+    -p `echo ${EVERYCLASS_PORT}`:`echo ${EVERYCLASS_PORT}` \
+    -e UWSGI_HTTP_SOCKET=":`echo ${EVERYCLASS_PORT}`" \
     fr0der1c/everyclass-server
 
 

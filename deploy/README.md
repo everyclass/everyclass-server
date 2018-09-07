@@ -15,6 +15,7 @@ docker run -it --rm -d \
     --name "everyclass-`git describe --tags`" \
     -v "`pwd`/everyclass/server/config:/var/everyclass-server/everyclass/server/config" \
     -v "`pwd`/calendar_files:/var/everyclass-server/calendar_files" \
+    -p 9000:9000 \
     -e UWSGI_HTTP_SOCKET=":9000" \
     fr0der1c/everyclass-server
 ```

@@ -14,6 +14,7 @@ ssh-add /tmp/stage_key
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
+chmod a+x deploy/upgrade.sh
 bash deploy/upgrade.sh
 EOF
 
