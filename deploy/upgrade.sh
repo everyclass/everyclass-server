@@ -12,8 +12,8 @@ set -e
 
 # generate a unused port
 function EPHEMERAL_PORT(){
-    PORT_L=32768;
-    PORT_U=60999;
+    PORT_L=10086;
+    PORT_U=12306;
     while true; do
         PORT_M=$[$PORT_L + ($RANDOM % $PORT_U)];
         (echo "" >/dev/tcp/127.0.0.1/${PORT_M}) >/dev/null 2>&1
