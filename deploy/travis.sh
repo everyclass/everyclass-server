@@ -15,6 +15,8 @@ if [ $TRAVIS_BRANCH = "master" ] ; then
 
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
+git reset --hard
+git pull
 chmod a+x deploy/upgrade.sh
 bash deploy/upgrade.sh
 EOF
