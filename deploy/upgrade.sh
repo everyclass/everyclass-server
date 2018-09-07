@@ -66,9 +66,6 @@ if [ ! "$(curl -k ${EVERYCLASS_URL} 2> /dev/null)" ]; then
 fi
 echo "EveryClass started."
 
-# register new server, and unregister servers from Consul
-docker exec ${LATEST_CONTAINER} /var/everyclass-server/.venv/bin/python /var/everyclass-server/deploy/consul.py
-
 # stop old containers (stop nothing if there are no old containers)
 for each in ${ALL_CONTAINERS[@]}
 do
