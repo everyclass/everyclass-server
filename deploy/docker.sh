@@ -7,16 +7,16 @@ EC_CONTAINER_NAME="adm_everyclass"
 # ./docker.sh local start
 function local_start(){
     # network
-    if [ -z `docker network ls -f name=everyclass_net -q` ]
+    if [ -z $(docker network ls -f name=everyclass_net -q) ]
     then
         echo "Network $NETWORK_NAME not found. I'll create one."
         docker network create ${NETWORK_NAME}
     fi
-    NETWORK_ID=`docker network inspect --format="{{.Id}}" ${NETWORK_NAME}`
+    NETWORK_ID=$(docker network inspect --format="{{.Id}}" ${NETWORK_NAME})
 
     function add_to_network(){
         # $1 container name
-        if [ -z `docker inspect --format='{{range .NetworkSettings.Networks}}{{println .NetworkID}}{{end}}' $1 | grep ${NETWORK_ID}` ]
+        if [ -z $(docker inspect --format='{{range .NetworkSettings.Networks}}{{println .NetworkID}}{{end}}' $1 | grep ${NETWORK_ID}) ]
         then
             echo "Container $1 not in network. Add to network."
             docker network connect ${NETWORK_NAME} $1 1> /dev/null
@@ -38,13 +38,13 @@ function local_start(){
           -e MODE=DEVELOPMENT \
           -p 8003:80 \
           --name ${EC_CONTAINER_NAME} \
-          -v "`pwd`/everyclass/config:/var/everyclass-server/config" \
+          -v "$(pwd)/everyclass/config:/var/everyclass-server/config" \
           fr0der1c/everyclass-server:0.2 1> /dev/null
     }
 
     function delete_if_exist(){
         # $1 container name
-        if [ ! -z `docker ps -a -f name=$1 -q` ]
+        if [ ! -z $(docker ps -a -f name=$1 -q) ]
         then
             echo "Container $1 exist. Delete it."
             docker rm --force $1 1> /dev/null
@@ -53,7 +53,7 @@ function local_start(){
 
     function start_container(){
         # $1 container name
-        if [ -z `docker ps -f name=$1 -q` ]
+        if [ -z $(docker ps -f name=$1 -q) ]
         then
             # container stopped or not exist
             delete_if_exist $1

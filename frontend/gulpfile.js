@@ -11,7 +11,7 @@ var gulp = require('gulp'),
 //CSS
 gulp.task('css', ['cssCompress']);
 gulp.task('cssCompress', function () {
-    gulp.src('./static/css/*-v1.css')
+    gulp.src("./static/css/*-v1.css")
     //.pipe(concat('style.min.css'))                 //Concat CSS files
         .pipe(minifyCss())                           //Compress
         .pipe(rev())                                 //Revision
@@ -22,7 +22,7 @@ gulp.task('cssCompress', function () {
 
 
 //JS
-gulp.task('js', ['jsMinify']);
+gulp.task("js", ["jsMinify"]);
 gulp.task('jsMinify', function (cb) {
     pump([
             gulp.src(['./static/js/*.js', '!./static/js/*.min.js', '!./static/js/*_min.js']),
@@ -44,7 +44,7 @@ gulp.task('copyOtherFilesToDist', function () {
 
 // 默认任务
 // 运行 `gulp` 命令压缩 CSS、JS，并生成完整的 dist 目录
-gulp.task('default', ['css', 'js', 'copyOtherFilesToDist']);
+gulp.task("default", ["css", "js", "copyOtherFilesToDist"]);
 
 
 //Watch tasks
@@ -64,6 +64,6 @@ gulp.task('rev', ['cssConcat'], function () {
         .pipe(gulp.dest('./build/'));   //- 替换后的文件输出的目录
 });
 
-gulp.task('hello', function () {
+gulp.task("hello", function () {
     gutil.log("Message:" + gutil.colors.green('Hello!'))
 });
