@@ -44,7 +44,7 @@ fi
 # run Docker image
 docker run -it --rm -d \
     --net=host \
-    --name "everyclass-`git describe --tags`" \
+    --name "everyclass-`git describe --tags`-`date "+%m%d-%H%M"`" \
     -v "`pwd`/everyclass/server/config:/var/everyclass-server/everyclass/server/config" \
     -v "`pwd`/calendar_files:/var/everyclass-server/calendar_files" \
     -p `echo ${EVERYCLASS_PORT}`:`echo ${EVERYCLASS_PORT}` \
