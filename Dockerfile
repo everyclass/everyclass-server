@@ -15,7 +15,8 @@ RUN apk add --no-cache git python3 uwsgi uwsgi-python3 \
 # 经测试，如果把本目录在运行时挂载，会导致找不到 build 时生成的虚拟环境，于是只能在这里先把代码加到镜像里
 ADD . /var/everyclass-server
 
-RUN pip3 install pipenv \
+RUN pip3 install --upgrade pip \
+    && pip3 install pipenv \
     && pipenv sync \
     && rm -r /root/.cache
 
