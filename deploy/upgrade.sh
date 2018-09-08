@@ -28,7 +28,7 @@ function EPHEMERAL_PORT(){
 
 EVERYCLASS_PORT=$(EPHEMERAL_PORT)
 EVERYCLASS_START_TIMEOUT=30
-EVERYCLASS_URL=http://localhost:`echo ${EVERYCLASS_PORT}`
+EVERYCLASS_URL=http://localhost:$(echo ${EVERYCLASS_PORT})
 
 
 ### Build and run image
@@ -45,17 +45,17 @@ fi
 # run Docker image
 docker run -it --rm -d \
     --net=host \
-    --name "everyclass-`git describe --tags`-`date "+%m%d-%H%M"`" \
-    -v "`pwd`/everyclass/server/config:/var/everyclass-server/everyclass/server/config" \
-    -v "`pwd`/calendar_files:/var/everyclass-server/calendar_files" \
-    -p `echo ${EVERYCLASS_PORT}`:`echo ${EVERYCLASS_PORT}` \
-    -e UWSGI_HTTP_SOCKET=":`echo ${EVERYCLASS_PORT}`" \
+    --name "everyclass-$(git describe --tags)-$(date "+%m%d-%H%M")" \
+    -v "$(pwd)/everyclass/server/config:/var/everyclass-server/everyclass/server/config" \
+    -v "$(pwd)/calendar_files:/var/everyclass-server/calendar_files" \
+    -p $(echo ${EVERYCLASS_PORT}):$(echo ${EVERYCLASS_PORT}) \
+    -e UWSGI_HTTP_SOCKET=":$(echo ${EVERYCLASS_PORT})" \
     fr0der1c/everyclass-server
 
 
 ### Roll-upgrade
-LATEST_CONTAINER=`docker ps -q --filter name=everyclass -l`
-ALL_CONTAINERS=`docker ps -q --filter name=everyclass`
+LATEST_CONTAINER=$(docker ps -q --filter name=everyclass -l)
+ALL_CONTAINERS=$(docker ps -q --filter name=everyclass)
 
 # wait 30 seconds, replace nginx upstream with new container, and stop old container.
 counter=0
