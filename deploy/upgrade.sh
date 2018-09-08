@@ -2,7 +2,7 @@
 # Upgrade script for EveryClass
 #
 # - Get latest source code
-# - Build Docker image
+# - Build Docker image (use `--no-build` option to skip building)
 # - Start new docker image, wait till it's up
 # - Register the new container to Consul
 # - Unregister old containers from Consul
