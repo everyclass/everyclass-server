@@ -36,7 +36,10 @@ EVERYCLASS_URL=http://localhost:`echo ${EVERYCLASS_PORT}`
 cd /var/EveryClass-server
 git reset --hard
 git pull
-docker build -t fr0der1c/everyclass-server .
+if [ "$1" != "--no-build" ]
+then
+    docker build -t fr0der1c/everyclass-server .
+fi
 
 # run Docker image
 docker run -it --rm -d \
