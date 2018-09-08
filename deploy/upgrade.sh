@@ -34,6 +34,8 @@ EVERYCLASS_URL=http://localhost:`echo ${EVERYCLASS_PORT}`
 
 # get latest source code and build Docker image
 cd /var/EveryClass-server
+git reset --hard
+git pull
 docker build -t fr0der1c/everyclass-server .
 
 # run Docker image
