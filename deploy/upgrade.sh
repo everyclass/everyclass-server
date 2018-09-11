@@ -59,7 +59,7 @@ ALL_CONTAINERS=$(docker ps -q --filter name=everyclass)
 
 # wait 30 seconds, replace nginx upstream with new container, and stop old container.
 counter=0
-while [ ! "$(curl -k ${EVERYCLASS_URL} 2> /dev/null)" -a ${counter} -lt EVERYCLASS_START_TIMEOUT  ]; do
+while [ ! "$(curl -k ${EVERYCLASS_URL} 2> /dev/null)" -a ${counter} -lt ${EVERYCLASS_START_TIMEOUT}  ]; do
     sleep 1
     ((counter++))
     echo "waiting for EveryClass to be up ($counter/$EVERYCLASS_START_TIMEOUT)"
