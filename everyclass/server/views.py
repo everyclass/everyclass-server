@@ -36,6 +36,12 @@ def testing():
     return render_template('testing.html')
 
 
+@main_blueprint.route('/donate')
+def donate():
+    """点击发送邮件后的捐助页面"""
+    return render_template('donate.html')
+
+
 @main_blueprint.route('/<student_id>-<semester>.ics')
 def get_ics(student_id, semester):
     """serve ics file"""
