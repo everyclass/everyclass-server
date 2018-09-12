@@ -14,17 +14,17 @@ from everyclass.server.tools import get_time
 
 def generate(student_id, student_name, student_classes, semester_string, semester):
     """
-    generate ics file and save it to folder
+    生成 ics 文件并保存到目录
 
-    :param student_id: the id of the student
-    :param student_name: the name of the student
+    :param student_id: 学号
+    :param student_name: 姓名
     :param student_classes: classes student are taking
-    :param semester_string: semester formatted in string to show in title
-    :param semester: semester currently exporting
+    :param semester_string: 学期字符串，显示在日历标题中，如 `17-18-1`
+    :param semester: 当前导出的学期，三元组
     :return: True
     """
 
-    # Create calender object
+    # 创建 calender 对象
     cal = Calendar()
     cal.add('prodid', '-//Admirable//EveryClass 1.0//EN')
     cal.add('version', '2.0')
@@ -32,7 +32,7 @@ def generate(student_id, student_name, student_classes, semester_string, semeste
     cal.add('method', 'PUBLISH')
     cal.add('X-WR-CALNAME', student_name + '的' + semester_string + '学期课表')
     cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
-    # Create events
+    # 创建 events
     for time in range(1, 7):
         for day in range(1, 8):
             if (day, time) in student_classes:
@@ -60,12 +60,13 @@ def generate(student_id, student_name, student_classes, semester_string, semeste
                         until = __get_datetime(dur_ending_week, day, get_time(time)[1], semester) + timedelta(days=1)
                         # 参数：课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID
                         cal.add_component(
-                                __add_event(every_class['name'],
-                                            [dtstart, dtend, interval, until, each_duration, every_class['week']],
-                                            every_class['location'],
-                                            every_class['teacher'], student_id))
+                                __add_event(name=every_class['name'],
+                                            times=[dtstart, dtend, interval, until, each_duration, every_class['week']],
+                                            location=every_class['location'],
+                                            teacher=every_class['teacher'],
+                                            student_id=student_id))
 
-    # Write file
+    # 写入文件
     import os
     with open(os.path.join(os.path.dirname(__file__),
                            '../../../calendar_files/%s-%s.ics' % (student_id, semester_string)),
@@ -83,7 +84,7 @@ def __get_datetime(week, day, time, semester):
     :param day: 星期
     :param time: 时间tuple（时,分）
     :param semester: 学期
-    :return: datetime类型的时间
+    :return: datetime 类型的时间
     """
     return datetime(*get_config().AVAILABLE_SEMESTERS.get(semester)['start'],
                     *time,
@@ -93,14 +94,14 @@ def __get_datetime(week, day, time, semester):
 
 def __add_event(name, times, location, teacher, student_id):
     """
-    Add an `Event` object to the `calendar` object.
+    把 `Event` 对象添加到 `calendar` 对象中
 
-    :param name: the name of the course
-    :param times: the start and end time
-    :param location: the location of the course
-    :param teacher: teacher of the course
-    :param student_id: student id
-    :return: the `Event` object
+    :param name: 课程名
+    :param times: 开始和结束时间
+    :param location: 课程地点
+    :param teacher: 任课教师
+    :param student_id: 学号
+    :return: `Event` 对象
     """
 
     event = Event()
@@ -112,7 +113,7 @@ def __add_event(name, times, location, teacher, student_id):
     description = times[4] + times[5]
     if teacher != 'None':
         description += '\n教师：' + teacher + '\n'
-    description += '由 EveryClass (https://every.admirable.one) 导入'
+    description += '由 EveryClass 每课 (https://every.admirable.one) 导入'
     event.add('summary', summary)
     event.add('description', description)
     event.add('dtstart', times[0])
