@@ -12,7 +12,7 @@ from everyclass.server.config import get_config
 from everyclass.server.tools import get_time
 
 
-def generate(student_id, student_name, student_classes, semester_string, semester):
+def generate(student_id: str, student_name: str, student_classes, semester_string: str, semester):
     """
     生成 ics 文件并保存到目录
 
@@ -76,6 +76,21 @@ def generate(student_id, student_name, student_classes, semester_string, semeste
     return True
 
 
+def batch_generate():
+    """
+    生成当前学期所有学生的 ics 文件
+
+    :return:
+    """
+    from everyclass.server import create_app
+    from everyclass.server.db.dao import get_all_students
+    with create_app(offline=True).app_context():
+        students = get_all_students()
+        print("Total {} students".format(len(students)))
+        for each in students:
+            print(each)
+
+
 def __get_datetime(week, day, time, semester):
     """
     输入周次，星期、时间tuple（时,分），输出datetime类型的时间
@@ -127,3 +142,7 @@ def __add_event(name, times, location, teacher, student_id):
     alarm.add('trigger', datetime(1980, 1, 1, 3, 5, 0))
     event.add_component(alarm)
     return event
+
+
+if __name__ == "__main__":
+    batch_generate()

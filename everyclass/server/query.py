@@ -18,7 +18,7 @@ def query():
 
     from everyclass.server.tools import is_chinese_char
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
-    from everyclass.server.db.mysql import get_conn
+    from everyclass.server.db.mysql import get_local_conn
     from everyclass.server.db.dao import faculty_lookup
     from everyclass.server.db.dao import class_lookup
     from everyclass.server.db.dao import get_classes_for_student
@@ -31,7 +31,7 @@ def query():
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
 
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
 
     # 如 URL 中有 id 参数，判断是姓名还是学号，然后赋学号给student_id

@@ -9,7 +9,7 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
-from everyclass.server.db.mysql import get_conn, init_db
+from everyclass.server.db.mysql import get_local_conn, init_pool
 from everyclass.server.utils import monkey_patch
 
 logger = logbook.Logger(__name__)
@@ -19,7 +19,10 @@ sentry = Sentry()
 ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
 
-def create_app() -> Flask:
+def create_app(offline=False) -> Flask:
+    """创建 flask app
+    @param offline: 如果设置为 `True`，则为离线模式。此模式下不会连接到 Sentry 和 ElasticAPM
+    """
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
                 static_url_path='',
@@ -32,16 +35,6 @@ def create_app() -> Flask:
 
     # CDN
     CDN(app)
-
-    # Sentry
-    sentry.init_app(app=app)
-
-    # 初始化数据库
-    if os.getenv('MODE', None) != "CI":
-        init_db(app)
-
-    # Elastic APM
-    apm = ElasticAPM(app)
 
     # logbook handlers
     # 规则如下：
@@ -69,11 +62,20 @@ def create_app() -> Flask:
     stderr_handler = logbook.StderrHandler(bubble=True)
     logger.handlers.append(stderr_handler)
 
-    elastic_handler = ElasticHandler(client=apm.client, bubble=True)
-    logger.handlers.append(elastic_handler)
+    if not offline:
+        # Sentry
+        sentry.init_app(app=app)
+        sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+        logger.handlers.append(sentry_handler)
 
-    sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
-    logger.handlers.append(sentry_handler)
+        # Elastic APM
+        apm = ElasticAPM(app)
+        elastic_handler = ElasticHandler(client=apm.client, bubble=True)
+        logger.handlers.append(elastic_handler)
+
+    # 初始化数据库
+    if os.getenv('MODE', None) != "CI":
+        init_pool(app)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
@@ -90,7 +92,7 @@ def create_app() -> Flask:
         """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
         if not session.get('user_id', None):
             # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
-            conn = get_conn()
+            conn = get_local_conn()
             cursor = conn.cursor()
             cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
             session['user_id'] = cursor.lastrowid

@@ -3,12 +3,12 @@ import json
 from flask import current_app as app
 
 from everyclass.server import logger
-from everyclass.server.db.mysql import get_conn
+from everyclass.server.db.mysql import get_local_conn
 
 
 def check_if_stu_exist(student_id: str) -> bool:
     """检查指定学号的学生是否存在于ec_students表"""
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -20,6 +20,17 @@ def check_if_stu_exist(student_id: str) -> bool:
         return False
 
 
+def get_all_students() -> list:
+    """获取全部学生"""
+    db = get_local_conn()
+    cursor = db.cursor()
+    mysql_query = "SELECT xh,name,semesters FROM ec_students"
+    cursor.execute(mysql_query)
+    result = cursor.fetchall()
+    cursor.close()
+    return result
+
+
 def get_my_semesters(student_id: str) -> (list, str):
     """
     查询某一学生的可用学期
@@ -28,7 +39,7 @@ def get_my_semesters(student_id: str) -> (list, str):
     from everyclass.server.db.model import Semester
 
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
@@ -57,7 +68,7 @@ def get_classes_for_student(student_id, sem):
     """
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
 
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
 
     # 初步合法性检验
@@ -102,7 +113,7 @@ def get_students_in_class(class_id):
 
     mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \
         .format('ec_classes_' + Semester.get().to_db_code())
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
     cursor.execute(mysql_query, (class_id,))
     result = cursor.fetchall()
@@ -139,7 +150,7 @@ def get_privacy_settings(student_id):
     :param student_id:
     :return:
     """
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
 
     mysql_query = "SELECT privacy FROM ec_students WHERE xh=%s"
@@ -162,7 +173,7 @@ def class_lookup(student_id):
     :param student_id: 学号
     :return: 班级字符串
     """
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
     mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -178,7 +189,7 @@ def faculty_lookup(student_id):
     :param student_id: 学号
     :return: 院系字符串
     """
-    db = get_conn()
+    db = get_local_conn()
     cursor = db.cursor()
     mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
