@@ -27,6 +27,8 @@ def get_all_students() -> list:
     mysql_query = "SELECT xh,name,semesters FROM ec_students"
     cursor.execute(mysql_query)
     result = cursor.fetchall()
+    if not result:
+        logger.error("[db.dao.get_all_students] No result from db.", stack=True)
     cursor.close()
     return result
 
@@ -64,7 +66,7 @@ def get_classes_for_student(student_id, sem):
     否则引出 NoStudentException
 
     :param student_id: 学号
-    :param sem: 学期，Semester 对象
+    :param sem: 学期，`Semester` 类型对象
     """
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
 

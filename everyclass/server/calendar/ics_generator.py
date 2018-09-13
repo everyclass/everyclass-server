@@ -83,12 +83,26 @@ def batch_generate():
     :return:
     """
     from everyclass.server import create_app
-    from everyclass.server.db.dao import get_all_students
+    from everyclass.server.db.dao import get_all_students, get_classes_for_student
+    from everyclass.server.db.model import Semester
+
+    config = get_config()
+    now_semester = Semester(config.DEFAULT_SEMESTER)
+    now_semester_str = str(now_semester)
+
     with create_app(offline=True).app_context():
         students = get_all_students()
         print("Total {} students".format(len(students)))
         for each in students:
-            print(each)
+            if now_semester_str in each[2]:
+                print("Generate .ics for [{}]{}...".format(each[0], each[1]))
+                student_classes = get_classes_for_student(each[0], now_semester)
+                generate(student_id=each[0],
+                         student_name=each[1],
+                         student_classes=student_classes,
+                         semester_string=now_semester.to_str(),
+                         semester=now_semester.to_tuple())
+        print("Done.")
 
 
 def __get_datetime(week, day, time, semester):
