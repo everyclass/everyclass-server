@@ -77,11 +77,7 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
 
 
 def batch_generate():
-    """
-    生成当前学期所有学生的 ics 文件
-
-    :return:
-    """
+    """生成当前学期所有学生的 ics 文件，每次更新当前学期数据后使用"""
     from everyclass.server import create_app
     from everyclass.server.db.dao import get_all_students, get_classes_for_student
     from everyclass.server.db.model import Semester
@@ -100,7 +96,7 @@ def batch_generate():
                 generate(student_id=each[0],
                          student_name=each[1],
                          student_classes=student_classes,
-                         semester_string=now_semester.to_str(),
+                         semester_string=now_semester.to_str(simplify=True),
                          semester=now_semester.to_tuple())
         print("Done.")
 
