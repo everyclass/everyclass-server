@@ -35,8 +35,13 @@ EVERYCLASS_URL=http://localhost:$(echo ${EVERYCLASS_PORT})
 
 # get latest source code and build Docker image
 cd /var/EveryClass-server
-git reset --hard
-git pull
+if [ "$1" != "--rollback" ]
+then
+    git reset --hard
+    git pull
+else
+    git reset --hard HEAD^1
+fi
 if [ "$1" != "--no-build" ]
 then
     docker build -t fr0der1c/everyclass-server .
