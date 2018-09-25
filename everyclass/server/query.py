@@ -3,6 +3,8 @@
 """
 from flask import Blueprint, flash
 
+from . import logger
+
 query_blueprint = Blueprint('query', __name__)
 
 
@@ -89,6 +91,12 @@ def query():
 
     # 查询学生本人的可用学期
     my_available_semesters, student_name = get_my_semesters(student_id)
+
+    # 如果没有学期，则直接返回
+    if not my_available_semesters:
+        logger.warning('Not any semester in ec_student', stack=True)
+        flash('数据库中没有找到你的学期信息哦，请将此消息通知给管理员')
+        return redirect(url_for('main.main'))
 
     # 如URL参数中包含学期，判断有效性后更新 session
     if request.values.get('semester'):
@@ -192,7 +200,7 @@ def get_classmates():
 
     # 获取选了这门课的学生信息
     class_name, class_day, class_time, class_teacher, students_info = get_students_in_class(
-        request.values.get('class_id', None))
+            request.values.get('class_id', None))
     return render_template('classmate.html',
                            class_name=class_name,
                            class_day=get_day_chinese(class_day),
