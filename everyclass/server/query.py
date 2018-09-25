@@ -95,8 +95,7 @@ def query():
     # 如果没有学期，则直接返回
     if not my_available_semesters:
         logger.warning('Not any semester in ec_student', stack=True)
-        flash('数据库中没有找到你的学期信息哦，请将此消息通知给管理员')
-        return redirect(url_for('main.main'))
+        return _no_student_handle()
 
     # 如URL参数中包含学期，判断有效性后更新 session
     if request.values.get('semester'):
@@ -211,7 +210,7 @@ def get_classmates():
                            show_id=show_id)
 
 
-def _no_student_handle(stu_identifier):
+def _no_student_handle(stu_identifier=None):
     """
     flash a waring telling user that the identifier inputted is not found in database.
 
@@ -219,5 +218,8 @@ def _no_student_handle(stu_identifier):
     :return: none
     """
     from flask import escape, redirect, url_for
-    flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s。如果你输入正确且处于正常入学状态，请联系我们更新数据。' % escape(stu_identifier))
+    if stu_identifier:
+        flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s。如果你输入正确且处于正常入学状态，请联系我们更新数据。' % escape(stu_identifier))
+    else:
+        flash('没有在数据库中找到你哦。如果你输入正确且处于正常入学状态，请联系我们更新数据。')
     return redirect(url_for('main.main'))
