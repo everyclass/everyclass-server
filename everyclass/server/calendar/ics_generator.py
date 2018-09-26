@@ -40,6 +40,10 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
                     # 每一节课
                     durations = re.split(r',', every_class['duration'])
                     for each_duration in durations:
+                        # 空区间 bug fix
+                        if not each_duration:
+                            continue
+
                         # 每一段上课周
                         if len(re.findall(r'\d{1,2}', each_duration)) == 1:  # 仅当周
                             dur_starting_week = dur_ending_week = re.findall(r'\d{1,2}', each_duration)[0]
