@@ -22,10 +22,11 @@
                     <div class="col-lg-6 col-xs-12">
                         <div class="panel-content">
                             <div class="panel-actions">
-                                <form class="form-inline pull-right" action="{{ url_for('query.query') }}" method="post" id="search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '桌面端']);">
+                                <form class="form-inline pull-right" action="{{ url_for('query.query') }}" method="get"
+                                      id="search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '桌面端']);">
                                     <input class="form-control input-lg panel-email-input" name="id"
                                            placeholder="学号或姓名" style="display: inline-block">
-                                    <input type="submit" value="开始" name="开始" class="btn btn-lg"
+                                    <input type="submit" value="开始" class="btn btn-lg"
                                            style="display: inline-block" id="search-button">
                                 </form>
                             </div>
