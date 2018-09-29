@@ -13,6 +13,7 @@ ssh-add /tmp/stage_key
 
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
+# checkout master first, otherwise `git describe will be wrong`
 git checkout master
 VERSION=$(git describe --tags)
 curl -sL https://sentry.io/get-cli/ | bash
