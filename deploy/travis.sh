@@ -17,17 +17,24 @@ if [ $TRAVIS_BRANCH = "master" ] ; then
 git checkout master
 VERSION=$(git describe --tags)
 curl -sL https://sentry.io/get-cli/ | bash
-export SENTRY_ORG=admirable
-export SENTRY_URL=https://sentry.admirable.pro/
+SENTRY_ORG=admirable
+SENTRY_URL=https://sentry.admirable.pro/
 sentry-cli releases new -p everyclass-server -p everyclass-server-staging --finalize "$VERSION"
 sentry-cli releases set-commits "$VERSION" --auto
+DEPLOY_START_TIME=$(date +%s)
 
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
+echo "Reset git repository..."
 git reset --hard
+echo "Pulling latest code..."
 git pull
 bash deploy/upgrade.sh
 EOF
+
+DEPLOY_END_TIME=$(date +%s)
+sentry-cli releases deploys ${VERSION} new -e production -t $((DEPLOY_END_TIME-DEPLOY_START_TIME))
+
 
 elif [ $TRAVIS_BRANCH = "develop" ] ; then
 
