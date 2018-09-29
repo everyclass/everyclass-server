@@ -7,36 +7,33 @@ addons:
   - stage.admirable.one
 python:
 - '3.6'
+
 before_install:
 - openssl aes-256-cbc -K $encrypted_0180fa854b5b_key -iv $encrypted_0180fa854b5b_iv -in deploy/ssh_key.enc -out /tmp/deploy_key -d
 - openssl aes-256-cbc -K $encrypted_1287f26e886e_key -iv $encrypted_1287f26e886e_iv -in deploy/stage_key.enc -out /tmp/stage_key -d
+
 install:
 - pip install pipenv
 - pipenv install --dev
+
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 - echo $PYTHONPATH
 - export MODE=CI
+
 script:
 - nosetests tests --with-coverage
+
 after_success:
 - codecov
-- VERSION=$(git describe --tags)
-- curl -sL https://sentry.io/get-cli/ | bash
-- sentry-cli releases new -p everyclass-server -p everyclass-server-staging --finalize "$VERSION"
-- sentry-cli releases set-commits "$VERSION" --auto
 - echo $(pwd)
+
 deploy:
 - provider: script
   script: bash deploy/travis.sh
   on:
-    branch: master
     python: '3.6'
-- provider: script
-  script: bash deploy/travis.sh
-  on:
-    branch: develop
-    python: '3.6'
+
 notifications:
   slack:
     rooms:

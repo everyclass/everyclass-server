@@ -13,6 +13,12 @@ ssh-add /tmp/stage_key
 
 if [ $TRAVIS_BRANCH = "master" ] ; then
 
+git checkout master
+VERSION=$(git describe --tags)
+curl -sL https://sentry.io/get-cli/ | bash
+sentry-cli releases new -p everyclass-server -p everyclass-server-staging --finalize "$VERSION"
+sentry-cli releases set-commits "$VERSION" --auto
+
 ssh -o StrictHostKeyChecking=no travis@every.admirable.one <<EOF
 cd /var/EveryClass-server
 git reset --hard
