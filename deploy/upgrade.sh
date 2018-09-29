@@ -38,7 +38,7 @@ APP_URL=http://localhost:$(echo ${APP_PORT})
 ### Build and run image
 
 # get latest source code and build Docker image
-cd `dirname $0` # cd to deploy/
+cd $(dirname $0) # cd to deploy/
 cd ../ # cd to project root (where Dockerfile exists)
 if [ "$1" != "--rollback" ]
 then

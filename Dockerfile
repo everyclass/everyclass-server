@@ -1,5 +1,5 @@
 FROM alpine:3.8
-MAINTAINER Frederic Chan "frederic.t.chan@gmail.com"
+LABEL maintainer="frederic.t.chan@gmail.com"
 ENV REFRESHED_AT 20180801
 ENV MODE PRODUCTION
 ENV PIPENV_VENV_IN_PROJECT 1
@@ -13,7 +13,7 @@ RUN apk add --no-cache git python3 uwsgi uwsgi-python3 \
     gcc musl-dev libffi-dev openssl-dev python3-dev
 
 # 经测试，如果把本目录在运行时挂载，会导致找不到 build 时生成的虚拟环境，于是只能在这里先把代码加到镜像里
-ADD . /var/everyclass-server
+COPY . /var/everyclass-server
 
 RUN pip3 install --upgrade pip \
     && pip3 install pipenv \
