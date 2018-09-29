@@ -1,6 +1,6 @@
 language: python
 dist: trusty
-sudo: false
+sudo: required
 addons:
   ssh_known_hosts:
   - admirable.one
