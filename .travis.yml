@@ -37,3 +37,9 @@ deploy:
   on:
     branch: develop
     python: '3.6'
+notifications:
+  slack:
+    rooms:
+    - secure: xsGLjigcoVbbQljrB91BZ5VnXchIr0oxEgvW5QiKnHUqMNLZYctD5Dl3eLis3U1nThPmspt0CbSuCag9QuFK+f36h8yBJtCAEVJvEYpt+BRTwWYiw9fBT8SgLmilVInwF1SH5u6Zr+KTRDR3QXOG7ZwpFUa6zZ3yYNbKGXyFGD0vLMnwgBqIdCEYmA4ryurvg6yngr6iTv9OctRqeGDWprlhyIrmP4lnn0SnGuks9zxW39AzX1234JM05ys4UwbMno0j5zlY+uECSYJkW/WV4UtSdJQeF6+2qcguveNswh1w+Otlts471hWRbPZfFHbCHJlnTM7x2HeG1IuLe8yhZHiwclxPtYPln5p4kTtgCON9gXNKpDSeXoAYJbPF2K5k9B/732GlKhilEqEnD06z281PezAZ8HmPaprFA4/fVFQQ9Yqvwk4SKNEh1SUfTBfYSMY0XZoXz/sZ898hJAV4GQ5ImEog1cZnFdD9kqJl1zIu+FSTtDY5PqfSUn+iFeEJbo6gBsPyKrdgNaN/1hvLnthudiSW+E1DNIF1nxZ/lA4dQdOp0tSCR3nj5XZMKgJgAyZAUD2mXGPZAJUamSnxHRzPFurD+54mqMcWFxLp3Y0lNuBdez5l9SjdH+ZagYpvdTZ1aeAEmVpvCgSrcb8voKmH4J2bFTHEQ1rdUQyD+tE=
+    on_success: always # you can also set to `change`
+    on_failure: always
