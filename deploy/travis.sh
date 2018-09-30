@@ -19,7 +19,7 @@ VERSION=$(git describe --tags)
 curl -sL https://sentry.io/get-cli/ | bash
 export SENTRY_ORG=admirable
 export SENTRY_URL=https://sentry.admirable.pro/
-sentry-cli releases new -p everyclass-server -p everyclass-server-staging --finalize "$VERSION"
+sentry-cli releases new -p everyclass-server --finalize "$VERSION"
 sentry-cli releases set-commits "$VERSION" --auto
 DEPLOY_START_TIME=$(date +%s)
 

@@ -20,6 +20,9 @@ class Config(object):
         'charset'    : 'utf8mb4'
     }
     SENTRY_CONFIG = {
+        'dsn'    : '',
+        'release': '',
+        'tags'   : {'environment': 'default'}
     }
     ELASTIC_APM = {
         'SERVICE_NAME': 'everyclass-server',
