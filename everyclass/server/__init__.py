@@ -32,6 +32,7 @@ def create_app(offline=False) -> Flask:
     from everyclass.server.config import get_config
     _config = get_config()
     app.config.from_object(_config)
+    print(app.config)
 
     # CDN
     CDN(app)
