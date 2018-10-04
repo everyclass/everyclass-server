@@ -1,3 +1,4 @@
+import copy
 import os
 
 import logbook
@@ -32,10 +33,6 @@ def create_app(offline=False) -> Flask:
     from everyclass.server.config import get_config
     _config = get_config()
     app.config.from_object(_config)
-    print(app.config)
-
-    # CDN
-    CDN(app)
 
     # logbook handlers
     # 规则如下：
@@ -73,6 +70,9 @@ def create_app(offline=False) -> Flask:
         apm = ElasticAPM(app)
         elastic_handler = ElasticHandler(client=apm.client, bubble=True)
         logger.handlers.append(elastic_handler)
+
+    # CDN
+    CDN(app)
 
     # 初始化数据库
     if os.getenv('MODE', None) != "CI":
@@ -137,5 +137,25 @@ def create_app(offline=False) -> Flask:
                                event_id=g.sentry_event_id,
                                public_dsn=sentry.client.get_public_dsn('https'))
 
-    logger.info('App created with `{}` config'.format(app.config['CONFIG_NAME']), stack=False)
+    logger.info('App created with `{0}` config'.format(app.config['CONFIG_NAME']), stack=False)
+
+    # 输出配置内容
+    logger.info('Below are configurations:')
+    logger.info('================================================================')
+    for key, value in app.config.items():
+        if key not in ('SECRET_KEY',):
+            value = copy.copy(value)
+
+            # 敏感内容抹去
+            if key == 'SENTRY_CONFIG':
+                value.pop('dsn')
+            if key == 'MYSQL_CONFIG':
+                value.pop('user')
+                value.pop('password')
+            if key == 'ELASTIC_APM':
+                value.pop('SECRET_TOKEN')
+
+            logger.info('{}: {}'.format(key, value))
+    logger.info('================================================================')
+
     return app
