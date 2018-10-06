@@ -43,7 +43,8 @@ def cal_page():
 @cal_blueprint.route('/<student_id>-<semester>.ics')
 def get_ics(student_id, semester):
     """serve ics file"""
-    # TODO: if file not exist, try to generate one.(implement after ORM and database adjustment)
+    # TODO: generate ics here and return it to user, instead of generating .ics files in other places.
+    # See requirement #25. @shuxinpei
     return send_from_directory("../../calendar_files", student_id + "-" + semester + ".ics",
                                as_attachment=True,
                                mimetype='text/calendar')
