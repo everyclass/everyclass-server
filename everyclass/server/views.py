@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, send_from_directory, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from markupsafe import escape
 
 from everyclass.server.exceptions import NoClassException, NoStudentException
@@ -42,18 +42,9 @@ def donate():
     return render_template('donate.html')
 
 
-@main_blueprint.route('/<student_id>-<semester>.ics')
-def get_ics(student_id, semester):
-    """serve ics file"""
-    # TODO: if file not exist, try to generate one.(implement after ORM and database adjustment)
-    return send_from_directory("../../calendar_files", student_id + "-" + semester + ".ics",
-                               as_attachment=True,
-                               mimetype='text/calendar')
-
-
-# 404跳转回首页
 @main_blueprint.app_errorhandler(404)
 def page_not_found(error):
+    # 404跳转回首页
     # 404 errors are never handled on the blueprint level
     # unless raised from a view func so actual 404 errors,
     # i.e. "no route for it" defined, need to be handled

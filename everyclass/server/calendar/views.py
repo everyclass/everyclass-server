@@ -1,7 +1,7 @@
 """
 日历相关函数
 """
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, send_from_directory, session, url_for
 
 cal_blueprint = Blueprint('cal', __name__)
 
@@ -38,3 +38,12 @@ def cal_page():
                                )
     else:
         return redirect(url_for('main.main'))
+
+
+@cal_blueprint.route('/<student_id>-<semester>.ics')
+def get_ics(student_id, semester):
+    """serve ics file"""
+    # TODO: if file not exist, try to generate one.(implement after ORM and database adjustment)
+    return send_from_directory("../../calendar_files", student_id + "-" + semester + ".ics",
+                               as_attachment=True,
+                               mimetype='text/calendar')
