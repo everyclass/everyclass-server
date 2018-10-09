@@ -68,7 +68,9 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
                                             times=[dtstart, dtend, interval, until, each_duration, every_class['week']],
                                             location=every_class['location'],
                                             teacher=every_class['teacher'],
-                                            student_id=student_id))
+                                            student_id=student_id,
+                                            day=day,
+                                            time=time))
 
     # 写入文件
     import os
@@ -121,7 +123,7 @@ def __get_datetime(week, day, time, semester):
                     ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
 
-def __add_event(name, times, location, teacher, student_id):
+def __add_event(name, times, location, teacher, student_id, day, time):
     """
     把 `Event` 对象添加到 `calendar` 对象中
 
@@ -148,7 +150,7 @@ def __add_event(name, times, location, teacher, student_id):
     event.add('dtstart', times[0])
     event.add('dtend', times[1])
     event.add('last-modified', datetime.now())
-    event['uid'] = 'ec-CSU' + student_id + 't' + datetime.now().strftime('%y%m%d%H%M%S%f') + '@admirable.one'
+    event['uid'] = student_id + '-' + str(day) + '-' + str(time) + '@everyclass.xyz'
     event.add('rrule', {'freq' : 'weekly', 'interval': times[2],
                         'until': times[3]})
     alarm = Alarm()
