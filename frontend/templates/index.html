@@ -41,7 +41,8 @@
     <div class="col-xs-10 col-xs-offset-1 visible-xs">
         <div class="panel-content">
             <div class="panel-actions">
-                <form class="form-inline centre" action="{{ url_for('query.query') }}" method="post" id="mobile-search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '手机端']);">
+                <form class="form-inline centre" action="{{ url_for('query.query') }}" method="get"
+                      id="mobile-search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '手机端']);">
                     <div class="input-group">
                         <input type="text" name="id" class="form-control" placeholder="学号或姓名">
                         <span class="input-group-btn">
