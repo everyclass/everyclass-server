@@ -26,7 +26,7 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
 
     # 创建 calender 对象
     cal = Calendar()
-    cal.add('prodid', '-//Admirable//EveryClass 1.0//EN')
+    cal.add('prodid', '-//Admirable//EveryClass//EN')
     cal.add('version', '2.0')
     cal.add('calscale', 'GREGORIAN')
     cal.add('method', 'PUBLISH')

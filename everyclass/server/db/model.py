@@ -17,6 +17,12 @@ class Semester(object):
             self.year2 = int(para[5:9])
             self.sem = int(para[10])
 
+        # Semester("16-17-2")
+        elif isinstance(para, str) and re.match(r'\d{2}-\d{2}-\d', para):
+            self.year1 = int(para[0:2]) + 2000
+            self.year2 = int(para[3:5]) + 2000
+            self.sem = int(para[6])
+
         # Semester((2016,2017,2))
         elif isinstance(para, tuple):
             self.year1 = int(para[0])
