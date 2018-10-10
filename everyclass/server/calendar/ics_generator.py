@@ -2,6 +2,7 @@
 This is module to generate .ics file. Should follow RFC2445 standard.
 https://tools.ietf.org/html/rfc2445
 """
+import hashlib
 import re
 from datetime import datetime, timedelta
 
@@ -150,7 +151,8 @@ def __add_event(name, times, location, teacher, student_id, day, time):
     event.add('dtstart', times[0])
     event.add('dtend', times[1])
     event.add('last-modified', datetime.now())
-    event['uid'] = student_id + '-' + str(day) + '-' + str(time) + '@everyclass.xyz'
+    event['uid'] = hashlib.md5((student_id + '-' + str(day) + '-' + str(time) + '-' + name).encode('utf-8')
+                               ).hexdigest() + '@everyclass.xyz'
     event.add('rrule', {'freq' : 'weekly', 'interval': times[2],
                         'until': times[3]})
     alarm = Alarm()
