@@ -158,7 +158,7 @@ def __add_event(name, times, location, teacher, student_id, day, time):
     description = times[4] + times[5]
     if teacher != 'None':
         description += '\n教师：' + teacher + '\n'
-    description += '由 EveryClass 每课 (https://every.admirable.one) 导入'
+    description += '由 EveryClass 每课 (https://everyclass.xyz) 导入'
     event.add('summary', summary)
     event.add('description', description)
     event.add('dtstart', times[0])
