@@ -7,7 +7,7 @@ import re
 from datetime import datetime, timedelta
 
 import pytz
-from icalendar import Alarm, Calendar, Event
+from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.server.config import get_config
 from everyclass.server.tools import get_time
@@ -33,6 +33,19 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
     cal.add('method', 'PUBLISH')
     cal.add('X-WR-CALNAME', student_name + '的' + semester_string + '学期课表')
     cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
+
+    # 时区
+    tzc = Timezone()
+    tzc.add('tzid', 'Asia/Shanghai')
+    tzc.add('x-lic-location', 'Asia/Shanghai')
+    tzs = TimezoneStandard()
+    tzs.add('tzname', 'CST')
+    tzs.add('dtstart', datetime(1970, 1, 1, 0, 0, 0))
+    tzs.add('TZOFFSETFROM', timedelta(hours=8))
+    tzs.add('TZOFFSETTO', timedelta(hours=8))
+    tzc.add_component(tzs)
+    cal.add_component(tzc)
+
     # 创建 events
     for time in range(1, 7):
         for day in range(1, 8):
