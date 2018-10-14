@@ -164,8 +164,10 @@ def __add_event(name, times, location, teacher, student_id, day, time):
     event.add('dtstart', times[0])
     event.add('dtend', times[1])
     event.add('last-modified', datetime.now())
-    event['uid'] = hashlib.md5((student_id + '-' + str(day) + '-' + str(time) + '-' + name).encode('utf-8')
-                               ).hexdigest() + '@everyclass.xyz'
+
+    # day、time、课程名、老师、周次、地点所有元素才能组成一组超码，因此用它们字符串拼接得到的 MD5 作为唯一识别码
+    event_sk = str(day) + '-' + str(time) + '-' + name + '-' + teacher + '-' + times[4] + times[5] + '-' + location
+    event['uid'] = hashlib.md5(event_sk.encode('utf-8')).hexdigest() + '@everyclass.xyz'
     event.add('rrule', {'freq' : 'weekly', 'interval': times[2],
                         'until': times[3]})
     alarm = Alarm()
