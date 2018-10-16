@@ -38,6 +38,12 @@ deploy:
   script: bash deploy/travis.sh
   on:
     python: '3.6'
+    branch: master
+- provider: script
+  script: bash deploy/travis.sh
+  on:
+    python: '3.6'
+    branch: develop
 
 notifications:
   slack:
