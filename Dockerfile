@@ -2,6 +2,7 @@ FROM alpine:3.8
 LABEL maintainer="frederic.t.chan@gmail.com"
 ENV REFRESHED_AT 20180801
 ENV MODE PRODUCTION
+ENV FLASK_ENV production
 ENV PIPENV_VENV_IN_PROJECT 1
 ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" LC_CTYPE="en_US.UTF-8"
 
