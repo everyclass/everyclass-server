@@ -40,12 +40,11 @@ elif [ $TRAVIS_BRANCH = "develop" ] ; then
 
 ssh -o StrictHostKeyChecking=no travis@stage.admirable.one <<EOF
 cd /var/EveryClass-server
-pip install pipenv
-pipenv clean
-pipenv install
+echo "Reset git repository..."
 git reset --hard
+echo "Pulling latest code..."
 git pull
-touch reload
+bash deploy/upgrade.sh
 EOF
 
 else
