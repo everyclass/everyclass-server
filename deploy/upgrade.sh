@@ -14,6 +14,20 @@ set -e
 APP_DOCKER_REPO="fr0der1c/everyclass-server"
 APP_CONTAINER_BASENAME="everyclass"
 
+# Argument checking and parsing using getopt
+ARGS=`getopt --long rollback,no-build,develop -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "${ARGS}"
+while true ; do
+        case "$1" in
+                --rollback) ARGS_ROLLBACK=1 ; shift ;;
+                --no-build) ARGS_NO_BUILD=1 ; shift ;;
+                --develop) ARGS_DEVELOP=1 ; shift ;;
+                --) shift ; break ;;
+                *) echo "unexpected argument!" ; exit 1 ;;
+        esac
+done
+
 # generate a unused port
 function EPHEMERAL_PORT(){
     PORT_L=10086;
@@ -40,14 +54,14 @@ APP_URL=http://localhost:$(echo ${APP_PORT})
 # get latest source code and build Docker image
 cd $(dirname $0) # cd to deploy/
 cd ../ # cd to project root (where Dockerfile exists)
-if [ "$1" != "--rollback" ]
+if [ -n ${ARGS_ROLLBACK} ]
 then
     git reset --hard
     git pull
 else
     git reset --hard HEAD^1
 fi
-if [ "$1" != "--no-build" ]
+if [ -n ${ARGS_NO_BUILD} ]
 then
     docker build -t ${APP_DOCKER_REPO} .
 fi
@@ -60,6 +74,7 @@ docker run -it --rm -d \
     -v "$(pwd)/calendar_files:/var/everyclass-server/calendar_files" \
     -p $(echo ${APP_PORT}):${APP_PORT} \
     -e UWSGI_HTTP_SOCKET=":${APP_PORT}" \
+    $(if [ -n ${ARGS_DEVELOP} ]; then echo "-e MODE=STAGING"; fi) \
     ${APP_DOCKER_REPO}
 
 
