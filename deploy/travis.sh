@@ -44,7 +44,7 @@ echo "Reset git repository..."
 git reset --hard
 echo "Pulling latest code..."
 git pull
-bash deploy/upgrade.sh
+bash deploy/upgrade.sh --develop
 EOF
 
 else
