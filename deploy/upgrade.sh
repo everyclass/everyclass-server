@@ -14,18 +14,33 @@ set -e
 APP_DOCKER_REPO="fr0der1c/everyclass-server"
 APP_CONTAINER_BASENAME="everyclass"
 
-# Argument checking and parsing using getopt
-ARGS=`getopt --long rollback,no-build,develop -- "$@"`
-if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
-eval set -- "${ARGS}"
-while true ; do
-        case "$1" in
-                --rollback) ARGS_ROLLBACK=1 ; shift ;;
-                --no-build) ARGS_NO_BUILD=1 ; shift ;;
-                --develop) ARGS_DEVELOP=1 ; shift ;;
-                --) shift ; break ;;
-                *) echo "unexpected argument!" ; exit 1 ;;
-        esac
+# Argument checking and parsing
+while [ $# -gt 0 ]; do
+    case $1 in
+        --rollback)
+            echo "Argument: --rollback recognized"
+            ARGS_ROLLBACK=1
+            shift
+            ;;
+        --no-build)
+            echo "Argument: --no-build recognized"
+            ARGS_NO_BUILD=1
+            shift
+            ;;
+        --develop)
+            echo "Argument: --develop recognized"
+            ARGS_DEVELOP=1
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Internal Error: option processing error: $1" 1>&2
+            exit 1
+            ;;
+    esac
 done
 
 # generate a unused port
