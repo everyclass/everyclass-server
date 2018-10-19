@@ -17,9 +17,9 @@ sentry-cli releases new -p everyclass-server --finalize "$VERSION"
 sentry-cli releases set-commits "$VERSION" --auto
 
 # build Docker image and upload to hub
-docker login --username ${DOCKER_USERNAME} ccr.ccs.tencentyun.com --password ${DOCKER_PASSWORD}
+echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USERNAME} ccr.ccs.tencentyun.com --password-stdin
 IMAGE_ADDRESS=ccr.ccs.tencentyun.com/everyclass/everyclass-server:${VERSION}
-docker build -t ${IMAGE_ADDRESS}
+docker build -t ${IMAGE_ADDRESS} .
 docker push ${IMAGE_ADDRESS}
 
 else
