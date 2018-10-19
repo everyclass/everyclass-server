@@ -11,10 +11,10 @@ ssh-add /tmp/stage_key
 
 
 
-if [ $TRAVIS_BRANCH = "master" ] ; then
+if [ $TRAVIS_BRANCH = "release" ] ; then
 
-# checkout master first, otherwise `git describe will be wrong`
-git checkout master
+# checkout release first, otherwise `git describe` will be wrong
+git checkout release
 VERSION=$(git describe --tags)
 curl -sL https://sentry.io/get-cli/ | bash
 export SENTRY_ORG=admirable
@@ -34,18 +34,6 @@ EOF
 
 DEPLOY_END_TIME=$(date +%s)
 sentry-cli releases deploys ${VERSION} new -e production -t $((DEPLOY_END_TIME-DEPLOY_START_TIME))
-
-
-elif [ $TRAVIS_BRANCH = "develop" ] ; then
-
-ssh -o StrictHostKeyChecking=no travis@stage.admirable.one <<EOF
-cd /var/EveryClass-server
-echo "Reset git repository..."
-git reset --hard
-echo "Pulling latest code..."
-git pull
-bash deploy/upgrade.sh --develop
-EOF
 
 else
 

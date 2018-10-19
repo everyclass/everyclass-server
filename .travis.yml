@@ -11,7 +11,7 @@ python:
 env:
   global:
   - secure: "NN53FLsPD7CvoiKxzWHjIY9PpILk67Xi0Y3cPCrZQLJr8nDCk8kdgj/L/PlAoH2/hCAW/xhmBz0XA10zEmeXdVYPpfGR1tIWdrRpakNNNvoaQSaMd3ILfU+g8oL0oYLFGHlIGYvlqf6XtJ6ZthGIiquxNkKGHKLV+4xWs980Xws/t6XZdkO/9A4fPt5uiNSj7GW3ofn540Cyqrud/dROWDhcwtTXcnbzscLHW+0++EUA4z9bBFwyeoDxtmC/nnI2bJxUY49yJ6+4cpVAZcsDrEWyGA7oTUPHi78NrffS8/GdsoXb75TtQczGXquNXTzCuf75QLTZyj4BIi3GI18sakHvjfswDv2JPLnXEW/OtIWcpym/uWSYkQucwmrZ4c0F9Fp70qMc+FQyBMqdoYSpXkKD/Ou7MDci0PGD4s8tOhkwBT1sLvKBqpsq8YQ0Tgt80Z871wbihiLYFQkdbBBzFLPiua8Gdw41WKcFRYIbial4rnau2Mk2dlXUHGJLZTtqvKva1Yf4SI+zNE0L2Ac97dZ/b1MFYq0A6cOz764lupHxrHsagSVX86f+tC55d/OZWz9/K3RQBqksS4LoDMMu/4a4dZJg786YE9JlWpk9wCZkj28PhiCmWe9kEmE9tHOJDSXNbiI3GGDuUn5itRSxpuTp/45BCxZwS68Hx54j1aA="
-  - FLASK_ENV: development
+  - FLASK_ENV=development
 
 
 before_install:
@@ -39,12 +39,7 @@ deploy:
   script: bash deploy/travis.sh
   on:
     python: '3.6'
-    branch: master
-- provider: script
-  script: bash deploy/travis.sh
-  on:
-    python: '3.6'
-    branch: develop
+    branch: release
 
 notifications:
   slack:
