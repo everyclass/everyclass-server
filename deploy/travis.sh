@@ -22,6 +22,8 @@ IMAGE_ADDRESS=ccr.ccs.tencentyun.com/everyclass/everyclass-server:${VERSION}
 docker build -t ${IMAGE_ADDRESS} .
 docker push ${IMAGE_ADDRESS}
 
+sentry-cli releases deploys ${VERSION} new -e staging
+
 else
 
      echo "No deploy script for branch '$TRAVIS_BRANCH'. Skip deploying."
