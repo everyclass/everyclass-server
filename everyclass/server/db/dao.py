@@ -42,7 +42,11 @@ def get_students_by_name(name: str) -> list:
 
 
 def get_all_students() -> list:
-    """获取全部学生"""
+    """
+    获取全部学生的学号、姓名、学期信息
+
+    :return: 列表，每一项为（姓名，学号，学期）
+    """
     db = get_local_conn()
     cursor = db.cursor()
     mysql_query = "SELECT xh,name,semesters FROM ec_students"
@@ -57,7 +61,9 @@ def get_all_students() -> list:
 def get_my_semesters(student_id: str) -> (list, str):
     """
     查询某一学生的可用学期
-    ORM中应该做到 Student 类里
+
+    :param student_id: 学生学号
+    :return: 学期列表，学生姓名
     """
     from everyclass.server.db.model import Semester
 
@@ -170,8 +176,9 @@ def get_students_in_class(class_id):
 def get_privacy_settings(student_id):
     """
     获得隐私设定
-    :param student_id:
-    :return:
+
+    :param student_id: 学生学号
+    :return: 隐私要求列表
     """
     db = get_local_conn()
     cursor = db.cursor()
@@ -193,8 +200,9 @@ def get_privacy_settings(student_id):
 def class_lookup(student_id):
     """
     查询学生所在班级
-    :param student_id: 学号
-    :return: 班级字符串
+
+    :param student_id: 学生学号
+    :return: 字符串，学生所在的行政班级名称
     """
     db = get_local_conn()
     cursor = db.cursor()
@@ -208,9 +216,11 @@ def class_lookup(student_id):
 
 
 def faculty_lookup(student_id):
-    """查询学生所在院系
-    :param student_id: 学号
-    :return: 院系字符串
+    """
+    查询学生所在院系
+
+    :param student_id: 学生学号
+    :return: 字符串，学生所在的院系
     """
     db = get_local_conn()
     cursor = db.cursor()
