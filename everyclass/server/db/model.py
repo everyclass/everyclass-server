@@ -2,7 +2,6 @@ import re
 
 from flask import session
 
-from everyclass.server.db.dao import get_my_semesters
 from everyclass.server.exceptions import IllegalSemesterException
 
 
@@ -73,6 +72,7 @@ class Semester(object):
         获取当前学期。进入此模块前必须保证 session 内有 stu_id。
         当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
         """
+        from everyclass.server.db.dao import get_my_semesters
         from everyclass.server.exceptions import IllegalSemesterException
         from everyclass.server.config import get_config
         config = get_config()

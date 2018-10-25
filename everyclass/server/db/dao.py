@@ -3,6 +3,7 @@ import json
 from flask import current_app as app
 
 from everyclass.server import logger
+from everyclass.server.db.model import Semester
 from everyclass.server.db.mysql import get_local_conn
 
 
@@ -65,8 +66,6 @@ def get_my_semesters(student_id: str) -> (list, str):
     :param student_id: 学生学号
     :return: 学期列表，学生姓名
     """
-    from everyclass.server.db.model import Semester
-
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     db = get_local_conn()
     cursor = db.cursor()
@@ -85,15 +84,14 @@ def get_my_semesters(student_id: str) -> (list, str):
     return semesters, student_name
 
 
-def get_classes_for_student(student_id, sem):
+def get_classes_for_student(student_id: str, sem: Semester) -> dict:
     """
-    获得一个学生在指定学期的全部课程。
-
-    若学生存在于当前学期则返回姓名、课程 dict（键值为 day、time 组成的 tuple），
-    否则引出 NoStudentException
+    获得一个学生在指定学期的全部课程
+    如学生不存在当前学期则引出 NoStudentException
 
     :param student_id: 学号
     :param sem: 学期，`Semester` 类型对象
+    :return: dict，键为 (day, time)，值为课程列表，每一节课为一个包含了课程名称、老师、上课时间、地点信息的 dict
     """
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
 
@@ -130,12 +128,13 @@ def get_classes_for_student(student_id, sem):
         return courses
 
 
-def get_students_in_class(class_id):
+def get_students_in_class(class_id: str):
     """
-    获得一门课程的全部学生，若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），
+    获得一门课程的全部学生
+
+    :param class_id: 班级 ID
+    :return: 若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），
     否则引出 exception
-    :param class_id:
-    :return:
     """
     from everyclass.server.db.model import Semester
     from everyclass.server.exceptions import NoStudentException, NoClassException
@@ -173,7 +172,7 @@ def get_students_in_class(class_id):
         return class_name, class_day, class_time, class_teacher, students_info
 
 
-def get_privacy_settings(student_id):
+def get_privacy_settings(student_id: str) -> list:
     """
     获得隐私设定
 
@@ -197,7 +196,7 @@ def get_privacy_settings(student_id):
         return json.loads(result[0][0])
 
 
-def class_lookup(student_id):
+def class_lookup(student_id: str) -> str:
     """
     查询学生所在班级
 
@@ -215,7 +214,7 @@ def class_lookup(student_id):
         return "未知"
 
 
-def faculty_lookup(student_id):
+def faculty_lookup(student_id: str) -> str:
     """
     查询学生所在院系
 
