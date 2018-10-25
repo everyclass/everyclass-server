@@ -148,12 +148,11 @@ def create_app(offline=False) -> Flask:
 
             # 敏感内容抹去
             if key == 'SENTRY_CONFIG':
-                value.pop('dsn')
+                value['dsn'] = '[secret]'
             if key == 'MYSQL_CONFIG':
-                value.pop('user')
-                value.pop('password')
+                value['password'] = '[secret]'
             if key == 'ELASTIC_APM':
-                value.pop('SECRET_TOKEN')
+                value['SECRET_TOKEN'] = '[secret]'
 
             logger.info('{}: {}'.format(key, value))
     logger.info('================================================================')
