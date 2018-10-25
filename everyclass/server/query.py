@@ -20,21 +20,13 @@ def query():
 
     from everyclass.server.tools import is_chinese_char
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
-    from everyclass.server.db.mysql import get_local_conn
-    from everyclass.server.db.dao import faculty_lookup
-    from everyclass.server.db.dao import class_lookup
-    from everyclass.server.db.dao import get_classes_for_student
     from everyclass.server.db.model import Semester
-    from everyclass.server.db.dao import get_privacy_settings
-    from everyclass.server.db.dao import get_my_semesters
-    from everyclass.server.db.dao import check_if_stu_exist
+    from everyclass.server.db.dao import faculty_lookup, class_lookup, get_classes_for_student, get_privacy_settings, \
+        get_my_semesters, check_if_stu_exist, get_students_by_name
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
-
-    db = get_local_conn()
-    cursor = db.cursor()
 
     # 如 URL 中有 id 参数，判断是姓名还是学号，然后赋学号给student_id
     if request.values.get('id'):
@@ -45,21 +37,19 @@ def query():
             # 使用人名查询打点
             elasticapm.tag(ec_query_method='by_name')
 
-            mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
-            cursor.execute(mysql_query, (id_or_name,))
-            result = cursor.fetchall()
-            if cursor.rowcount > 1:
+            students = get_students_by_name(id_or_name)
+            if len(students) > 1:
                 # 查询到多个同名，进入选择界面
                 students_list = list()
-                for each_student in result:
+                for each_student in students:
                     students_list.append([each_student[0],
                                           each_student[1],
                                           faculty_lookup(each_student[1]),
                                           class_lookup(each_student[1])])
                 return render_template("query_same_name.html", count=cursor.rowcount, student_info=students_list)
-            elif cursor.rowcount == 1:
+            elif len(students) == 1:
                 # 仅能查询到一个人，则赋值学号
-                student_id = result[0][1]
+                student_id = students[0][1]
             else:
                 # 查无此人
                 elasticapm.tag(ec_query_not_found=True)
@@ -111,8 +101,6 @@ def query():
             if app.config['DEBUG']:
                 print('[query.query] IllegalSemesterException handled.' + Semester(session['semester']).to_str())
             session['semester'] = my_available_semesters[-1].to_tuple()
-
-    cursor.close()  # 关闭数据库连接
 
     # 如果 session 中无学期或学期无效，回落到本人可用最新学期
     # session 中学期使用 tuple 保存，因为 Semester 对象无法被序列化

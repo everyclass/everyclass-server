@@ -7,7 +7,12 @@ from everyclass.server.db.mysql import get_local_conn
 
 
 def check_if_stu_exist(student_id: str) -> bool:
-    """检查指定学号的学生是否存在于ec_students表"""
+    """
+    检查指定学号的学生是否存在于ec_students表
+
+    :param student_id: 学生学号
+    :return: 布尔值
+    """
     db = get_local_conn()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
@@ -18,6 +23,22 @@ def check_if_stu_exist(student_id: str) -> bool:
         return True
     else:
         return False
+
+
+def get_students_by_name(name: str) -> list:
+    """
+    通过姓名查询学生列表
+
+    :param name: 需要查询的学生姓名
+    :return: 列表，每一项为（姓名，学号）
+    """
+    db = get_local_conn()
+    cursor = db.cursor()
+    mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
+    cursor.execute(mysql_query, (name,))
+    result = cursor.fetchall()
+    cursor.close()
+    return result
 
 
 def get_all_students() -> list:
