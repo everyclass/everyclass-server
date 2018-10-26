@@ -4,7 +4,7 @@ MySQL 数据库有关操作
 
 import pymysql
 from DBUtils.PooledDB import PooledDB
-from flask import current_app as app, g
+from flask import current_app as app
 
 
 def init_pool(current_app):
@@ -22,8 +22,6 @@ def init_pool(current_app):
                                       charset=current_app.config['MYSQL_CONFIG']['charset'])
 
 
-def get_local_conn():
-    """获取每个线程的数据库连接，如当前线程 g 变量中没有 mysql_db，在连接池中获得连接并保存引用到当前线程"""
-    if not hasattr(g, 'mysql_db'):
-        g.mysql_db = app.mysql_pool.connection()
-    return g.mysql_db
+def get_connection():
+    """在连接池中获得连接"""
+    return app.mysql_pool.connection()

@@ -10,7 +10,6 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
-from everyclass.server.db.mysql import get_local_conn, init_pool
 from everyclass.server.utils import monkey_patch
 
 logger = logbook.Logger(__name__)
@@ -24,6 +23,9 @@ def create_app(offline=False) -> Flask:
     """创建 flask app
     @param offline: 如果设置为 `True`，则为离线模式。此模式下不会连接到 Sentry 和 ElasticAPM
     """
+    from everyclass.server.db.dao import new_user_id_sequence
+    from everyclass.server.db.mysql import get_connection, init_pool
+
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
                 static_url_path='',
@@ -92,18 +94,7 @@ def create_app(offline=False) -> Flask:
     def set_user_id():
         """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
         if not session.get('user_id', None):
-            # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
-            conn = get_local_conn()
-            cursor = conn.cursor()
-            cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
-            session['user_id'] = cursor.lastrowid
-            cursor.close()
-
-    @app.teardown_request
-    def close_db(error):
-        """结束时关闭数据库连接"""
-        if hasattr(g, 'mysql_db') and g.mysql_db:
-            g.mysql_db.close()
+            session['user_id'] = new_user_id_sequence()
 
     @app.after_request
     def response_minify(response):

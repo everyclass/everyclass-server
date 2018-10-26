@@ -4,7 +4,7 @@ from flask import current_app as app
 
 from everyclass.server import logger
 from everyclass.server.db.model import Semester
-from everyclass.server.db.mysql import get_local_conn
+from everyclass.server.db.mysql import get_connection
 
 
 def check_if_stu_exist(student_id: str) -> bool:
@@ -14,7 +14,7 @@ def check_if_stu_exist(student_id: str) -> bool:
     :param student_id: 学生学号
     :return: 布尔值
     """
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -33,7 +33,7 @@ def get_students_by_name(name: str) -> list:
     :param name: 需要查询的学生姓名
     :return: 列表，每一项为（姓名，学号）
     """
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
     cursor.execute(mysql_query, (name,))
@@ -48,7 +48,7 @@ def get_all_students() -> list:
 
     :return: 列表，每一项为（姓名，学号，学期）
     """
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     mysql_query = "SELECT xh,name,semesters FROM ec_students"
     cursor.execute(mysql_query)
@@ -67,7 +67,7 @@ def get_my_semesters(student_id: str) -> (list, str):
     :return: 学期列表，学生姓名
     """
     mysql_query = "SELECT semesters,name FROM ec_students WHERE xh=%s"
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
@@ -95,7 +95,7 @@ def get_classes_for_student(student_id: str, sem: Semester) -> dict:
     """
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
 
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
 
     # 初步合法性检验
@@ -141,7 +141,7 @@ def get_students_in_class(class_id: str):
 
     mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \
         .format('ec_classes_' + Semester.get().to_db_code())
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     cursor.execute(mysql_query, (class_id,))
     result = cursor.fetchall()
@@ -179,7 +179,7 @@ def get_privacy_settings(student_id: str) -> list:
     :param student_id: 学生学号
     :return: 隐私要求列表
     """
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
 
     mysql_query = "SELECT privacy FROM ec_students WHERE xh=%s"
@@ -203,7 +203,7 @@ def class_lookup(student_id: str) -> str:
     :param student_id: 学生学号
     :return: 字符串，学生所在的行政班级名称
     """
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -221,7 +221,7 @@ def faculty_lookup(student_id: str) -> str:
     :param student_id: 学生学号
     :return: 字符串，学生所在的院系
     """
-    db = get_local_conn()
+    db = get_connection()
     cursor = db.cursor()
     mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
@@ -230,3 +230,19 @@ def faculty_lookup(student_id: str) -> str:
         return result[0][0]
     else:
         return "未知"
+
+
+def new_user_id_sequence() -> int:
+    """
+    获得新的用户流水 ID
+
+    :return: last row id
+    """
+    # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
+    last_row_id = cursor.lastrowid
+    cursor.close()
+    conn.close()
+    return last_row_id
