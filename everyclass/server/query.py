@@ -46,7 +46,7 @@ def query():
                                           each_student[1],
                                           faculty_lookup(each_student[1]),
                                           class_lookup(each_student[1])])
-                return render_template("query_same_name.html", count=cursor.rowcount, student_info=students_list)
+                return render_template("query_same_name.html", count=len(students_list), student_info=students_list)
             elif len(students) == 1:
                 # 仅能查询到一个人，则赋值学号
                 student_id = students[0][1]
