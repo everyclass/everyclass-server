@@ -1,7 +1,6 @@
+import git
 import json
 import os
-
-import git
 
 
 class Config(object):
@@ -50,6 +49,10 @@ class Config(object):
         # https://www.elastic.co/guide/en/apm/agent/python/2.x/configuration.html#config-auto-log-stacks
         'AUTO_LOG_STACKS': False,
         'SERVICE_VERSION': GIT_DESCRIBE
+    }
+    LOGSTASH = {
+        'HOST': '127.0.0.1',
+        'PORT': 8888
     }
 
     """

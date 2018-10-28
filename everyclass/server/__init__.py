@@ -2,8 +2,8 @@ import copy
 import os
 
 import logbook
+import logbook.queues
 from elasticapm.contrib.flask import ElasticAPM
-from elasticapm.handlers.logbook import LogbookHandler as ElasticHandler
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
@@ -25,6 +25,7 @@ def create_app(offline=False) -> Flask:
     """
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.db.mysql import get_connection, init_pool
+    from everyclass.server.utils.log import LogstashHandler, LogstashFormatter
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -39,7 +40,7 @@ def create_app(offline=False) -> Flask:
     # logbook handlers
     # 规则如下：
     # - 全部输出到 stdout（本地开发调试、服务器端文件日志）
-    # - Elastic APM 或者 LogStash（日志中心）
+    # - 全部日志通过自定义的 handler 通过 TCP 输出到 LogStash，然后发送到日志中心
     # - WARNING 以上级别的输出到 Sentry
     #
     # 日志等级：
@@ -50,14 +51,10 @@ def create_app(offline=False) -> Flask:
     # info – for messages you usually don’t want to see
     # debug – for debug messages
     #
-    # Elastic APM：
-    # log.info("Nothing to see here", stack=False)
-    # stack 默认是 True，设置为 False 将不会向 Elastic APM 发送 stack trace
-    # https://discuss.elastic.co/t/how-to-use-logbook-handler/146209/6
     #
     # Sentry：
     # https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
-    # - stack 默认是 False，和 Elastic APM 的不一致，所以还是每次手动指定吧...
+    # - stack 默认是 False
     # - 默认事件类型是 `raven.events.Message`，设置 `exc_info` 为 `True` 将把事件类型升级为`raven.events.Exception`
     stderr_handler = logbook.StderrHandler(bubble=True)
     logger.handlers.append(stderr_handler)
@@ -69,9 +66,13 @@ def create_app(offline=False) -> Flask:
         logger.handlers.append(sentry_handler)
 
         # Elastic APM
-        apm = ElasticAPM(app)
-        elastic_handler = ElasticHandler(client=apm.client, bubble=True)
-        logger.handlers.append(elastic_handler)
+        ElasticAPM(app)
+
+        # Log to Logstash
+        logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
+                                           port=app.config['LOGSTASH']['PORT'],
+                                           bubble=True)
+        logger.handlers.append(logstash_handler)
 
     # CDN
     CDN(app)
