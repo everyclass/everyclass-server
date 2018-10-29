@@ -87,9 +87,11 @@ class LogstashFormatter(object):
 
         level_name = fields['level_name']
         logger = fields['channel']
+        timestamp = fields['time'].strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
         # Pop unnecessary or handled keys
-        for key in ['level', 'level_name', 'heavy_initialized', 'information_pulled', 'msg', 'message', 'channel']:
+        for key in ['level', 'level_name', 'heavy_initialized', 'information_pulled',
+                    'msg', 'message', 'channel', 'time']:
             if key in fields:
                 fields.pop(key)
 
@@ -108,8 +110,7 @@ class LogstashFormatter(object):
                 {'message'    : msg,
                  'level'      : level_name,
                  'logger'     : logger,
-                 '@timestamp' : datetime.datetime.utcnow().strftime('%Y-%m-%dT'
-                                                                    '%H:%M:%S.%fZ'),
+                 '@timestamp' : timestamp,
                  'source_host': self.source_host,
                  'context'    : self._build_fields(logr, fields)
                  }
@@ -169,7 +170,16 @@ class LogstashHandler(Handler):
         """
         if self.queue:
             for each_message in self.queue:
-                self.cli_sock.sendall((self.format(each_message) + '\n').encode("utf8"))
+                try:
+                    self.cli_sock.sendall((self.format(each_message) + '\n').encode("utf8"))
+                except ConnectionError:
+                    try:
+                        # todo if date
+                        self._establish_socket()
+                    except ConnectionError:
+                        # set date
+                        break
+
                 # print('send: {}'.format(self.format(each_message)))
         self.queue = []
 
