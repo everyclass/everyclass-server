@@ -7,10 +7,14 @@ There are no TCP/UDP socket handler for Logbook. So we have to write one.
 import datetime
 import json
 import socket
+import threading
 import traceback as tb
 from threading import Lock
 
 from logbook import Handler, NOTSET
+
+# OSError includes ConnectionError, ConnectionError includes ConnectionResetError
+NETWORK_ERRORS = OSError
 
 
 def _default_json_default(obj):
@@ -145,7 +149,8 @@ class LogstashHandler(Handler):
         handler = LogstashHandler('127.0.0.1', port='8888')
     """
 
-    def __init__(self, host, port, flush_threshold=1, level=NOTSET, filter=None, bubble=True):
+    def __init__(self, host, port, flush_threshold=1, level=NOTSET, filter=None, bubble=True,
+                 flush_time=5, queue_max_len=1000):
         Handler.__init__(self, level, filter, bubble)
 
         self.formatter = LogstashFormatter()
@@ -154,9 +159,19 @@ class LogstashHandler(Handler):
         self.port = port
         self.flush_threshold = flush_threshold
         self.queue = []
+        self.queue_max_len = queue_max_len
         self.lock = Lock()
 
         self._establish_socket()
+
+        # Set up a thread that flushes the queue every specified seconds
+        self._stop_event = threading.Event()
+        self._flushing_t = threading.Thread(target=self._flush_task,
+                                            args=(flush_time,))
+
+        # set daemon to True may cause some messages not be sent when exiting, so I commented this out.
+        # self._flushing_t.daemon = True
+        self._flushing_t.start()
 
         print('init logstash logger {}:{}'.format(host, port))
 
@@ -165,28 +180,44 @@ class LogstashHandler(Handler):
         self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.cli_sock.connect(self.address)
 
+    def _flush_task(self, duration):
+        """Calls the method _flush_buffer every certain time.
+        """
+        while not self._stop_event.isSet():
+            with self.lock:
+                print('{} get lock'.format(threading.currentThread().name))
+                self._flush_buffer()
+            self._stop_event.wait(duration)
+
     def _flush_buffer(self):
         """Flushes the messaging queue into Logstash.
         """
         if self.queue:
             for each_message in self.queue:
                 try:
-                    self.cli_sock.sendall((self.format(each_message) + '\n').encode("utf8"))
-                except ConnectionError:
+                    self.cli_sock.sendall((each_message + '\n').encode("utf8"))
+                except NETWORK_ERRORS:
                     try:
-                        # todo if date
                         self._establish_socket()
-                    except ConnectionError:
-                        # set date
-                        break
-
+                    except NETWORK_ERRORS:
+                        # got network error when trying to reconnect, can do nothing but exit
+                        return
                 # print('send: {}'.format(self.format(each_message)))
         self.queue = []
+
+    def disable_buffering(self):
+        """Disables buffering.
+
+        If called, every single message will be directly pushed to Redis.
+        """
+        self._stop_event.set()
+        self.flush_threshold = 1
 
     def emit(self, record):
         """Emits a JSON to Logstash.
         """
         with self.lock:
-            self.queue.append(record)
-            if len(self.queue) == self.flush_threshold:
-                self._flush_buffer()
+            if len(self.queue) < self.queue_max_len:
+                self.queue.append(self.format(record))
+        #    if len(self.queue) == self.flush_threshold:
+        #       self._flush_buffer()

@@ -74,7 +74,7 @@ def create_app(offline=False) -> Flask:
                                                port=app.config['LOGSTASH']['PORT'],
                                                bubble=True)
             logger.handlers.append(logstash_handler)
-        except ConnectionRefusedError:
+        except OSError:
             logger.error('Logstash TCP port connection refused', stack=True)
 
     # CDN
