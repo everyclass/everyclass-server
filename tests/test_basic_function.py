@@ -7,7 +7,7 @@ from everyclass.server import create_app
 
 class TestCase1(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
+        self.app = create_app(offline=True)
         self.app_context = self.app.app_context()
         self.app_context.push()
         # db.create_all()
