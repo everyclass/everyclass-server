@@ -132,7 +132,7 @@ def create_app(offline=False) -> Flask:
     logger.info('App created with `{0}` config'.format(app.config['CONFIG_NAME']), stack=False)
 
     # 输出配置内容
-    logger.info('Below are configurations:')
+    logger.info('Below are configurations we are using:')
     logger.info('================================================================')
     for key, value in app.config.items():
         if key not in ('SECRET_KEY',):
