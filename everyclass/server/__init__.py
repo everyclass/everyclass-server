@@ -69,10 +69,13 @@ def create_app(offline=False) -> Flask:
         ElasticAPM(app)
 
         # Log to Logstash
-        logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
-                                           port=app.config['LOGSTASH']['PORT'],
-                                           bubble=True)
-        logger.handlers.append(logstash_handler)
+        try:
+            logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
+                                               port=app.config['LOGSTASH']['PORT'],
+                                               bubble=True)
+            logger.handlers.append(logstash_handler)
+        except ConnectionRefusedError:
+            logger.error('Logstash TCP port connection refused', stack=True)
 
     # CDN
     CDN(app)

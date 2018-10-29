@@ -8,8 +8,9 @@ import datetime
 import json
 import socket
 import traceback as tb
-from logbook import Handler, NOTSET
 from threading import Lock
+
+from logbook import Handler, NOTSET
 
 
 def _default_json_default(obj):
@@ -148,16 +149,20 @@ class LogstashHandler(Handler):
 
         self.formatter = LogstashFormatter()
 
+        self.host = host
+        self.port = port
         self.flush_threshold = flush_threshold
         self.queue = []
         self.lock = Lock()
 
-        # establish TCP socket
-        self.address = (host, port)
-        self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.cli_sock.connect(self.address)
+        self._establish_socket()
 
         print('init logstash logger {}:{}'.format(host, port))
+
+    def _establish_socket(self):
+        self.address = (self.host, self.port)
+        self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.cli_sock.connect(self.address)
 
     def _flush_buffer(self):
         """Flushes the messaging queue into Logstash.
