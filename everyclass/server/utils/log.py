@@ -16,8 +16,8 @@ from logbook import Handler, NOTSET
 # OSError includes ConnectionError, ConnectionError includes ConnectionResetError
 NETWORK_ERRORS = OSError
 
-LOG_FORMAT_STRING = '[{record.time:%Y-%m-%d %H:%M:%S}] [{record.level_name}] ' \
-                    '[{record.module}] {record.message}'
+LOG_FORMAT_STRING = '[{record.time:%Y-%m-%d %H:%M:%S}] [{record.module}] ' \
+                    '[{record.level_name}]: {record.message}'
 
 
 def _default_json_default(obj):
@@ -165,17 +165,21 @@ class LogstashHandler(Handler):
         self.address = (host, port)
         self.flush_threshold = flush_threshold
         self.queue = []
+        # self.queue = collections.deque()
         self.queue_max_len = queue_max_len
         self.lock = Lock()
         self.logger = logger
 
         self.formatter = LogstashFormatter(release=release)
 
+        if logger:
+            logger.info('Logstash log handler connects to {}:{}'.format(host, port))
+
         try:
             self._establish_socket()
         except NETWORK_ERRORS:
             if self.logger:
-                self.logger.error('Logstash TCP port connection refused')
+                self.logger.error('Logstash TCP port connection refused when initializing handler, maybe later')
 
         # Set up a thread that flushes the queue every specified seconds
         self._stop_event = threading.Event()
@@ -186,10 +190,8 @@ class LogstashHandler(Handler):
         # self._flushing_t.daemon = True
         self._flushing_t.start()
 
-        if logger:
-            logger.info('Inited logstash logger {}:{}'.format(host, port))
-
     def _establish_socket(self):
+        print('Establishing socket...')
         self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.cli_sock.settimeout(5)
         self.cli_sock.connect(self.address)
@@ -199,23 +201,25 @@ class LogstashHandler(Handler):
         """
         while not self._stop_event.isSet():
             with self.lock:
-                self.logger.info('{} get lock'.format(threading.currentThread().name))
                 self._flush_buffer()
             self._stop_event.wait(duration)
 
     def _flush_buffer(self):
         """Flushes the messaging queue into Logstash.
+
+        Outside function should lock mutex.
         """
+        print('[Flush task] {} flushing buffer, q length: {}'.format(threading.currentThread().name, len(self.queue)))
         if self.queue:
             for each_message in self.queue:
                 try:
                     self.cli_sock.sendall((each_message + '\n').encode("utf8"))
                 except NETWORK_ERRORS:
                     try:
-                        print("Network error when sending logs to Logstash, try establish socket again.")
+                        print("Network error when sending logs to Logstash, try re-establish connection")
                         self._establish_socket()
                     except NETWORK_ERRORS:
-                        print("Network error when trying to establish socket again, hope next run will success.")
+                        print("Network error when establishing socket again, hope next run will success.\n")
                         # got network error when trying to reconnect, can do nothing but exit
                         return
                 # print('send: {}'.format(self.format(each_message)))
