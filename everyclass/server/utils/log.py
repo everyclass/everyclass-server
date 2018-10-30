@@ -4,12 +4,12 @@ There are no TCP/UDP socket handler for Logbook. So we have to write one.
 `LogstashFormatter` is from https://github.com/seatrade/logbook-logstash
 `LogstashHandler` uses a lot of code from logbook.queues.RedisHandler
 """
+import collections
 import datetime
 import json
 import socket
 import threading
 import traceback as tb
-from threading import Lock
 
 from logbook import Handler, NOTSET
 
@@ -164,10 +164,7 @@ class LogstashHandler(Handler):
 
         self.address = (host, port)
         self.flush_threshold = flush_threshold
-        self.queue = []
-        # self.queue = collections.deque()
-        self.queue_max_len = queue_max_len
-        self.lock = Lock()
+        self.queue = collections.deque(maxlen=queue_max_len)
         self.logger = logger
 
         self.formatter = LogstashFormatter(release=release)
@@ -200,44 +197,42 @@ class LogstashHandler(Handler):
         """Calls the method _flush_buffer every certain time.
         """
         while not self._stop_event.isSet():
-            with self.lock:
-                self._flush_buffer()
+            self._flush_buffer()
             self._stop_event.wait(duration)
 
     def _flush_buffer(self):
         """Flushes the messaging queue into Logstash.
-
-        Outside function should lock mutex.
         """
         print('[Flush task] {} flushing buffer, q length: {}'.format(threading.currentThread().name, len(self.queue)))
-        if self.queue:
-            for each_message in self.queue:
+        if len(self.queue) > 0:
+            item = self.queue.popleft()
+            try:
+                self.cli_sock.sendall((item + '\n').encode("utf8"))
+            except NETWORK_ERRORS:
                 try:
-                    self.cli_sock.sendall((each_message + '\n').encode("utf8"))
+                    print("Network error when sending logs to Logstash, try re-establish connection")
+                    self._establish_socket()
                 except NETWORK_ERRORS:
-                    try:
-                        print("Network error when sending logs to Logstash, try re-establish connection")
-                        self._establish_socket()
-                    except NETWORK_ERRORS:
-                        print("Network error when establishing socket again, hope next run will success.\n")
-                        # got network error when trying to reconnect, can do nothing but exit
-                        return
-                # print('send: {}'.format(self.format(each_message)))
-        self.queue = []
+                    # got network error when trying to reconnect, put the item back to queue and exit
+                    print("Network error when establishing socket again, hope next run will success.\n")
+                    self.queue.appendleft(item)
 
     def disable_buffering(self):
         """Disables buffering.
 
-        If called, every single message will be directly pushed to Redis.
+        If called, every single message will be directly pushed to Logstash.
         """
         self._stop_event.set()
         self.flush_threshold = 1
 
     def emit(self, record):
         """Emits a JSON to Logstash.
+
+        We have to check the length of queue before appending. Otherwise, when a bounded length deque is full and
+        new items are added, a corresponding number of items are discarded from the opposite end. This is not what
+        we want.
         """
-        with self.lock:
-            if len(self.queue) < self.queue_max_len:
-                self.queue.append(self.format(record))
+        if len(self.queue) < self.queue.maxlen:
+            self.queue.append(self.format(record))
         #    if len(self.queue) == self.flush_threshold:
         #       self._flush_buffer()
