@@ -9,8 +9,9 @@ import json
 import socket
 import threading
 import traceback as tb
-from logbook import Handler, NOTSET
 from threading import Lock
+
+from logbook import Handler, NOTSET
 
 # OSError includes ConnectionError, ConnectionError includes ConnectionResetError
 NETWORK_ERRORS = OSError
@@ -154,8 +155,7 @@ class LogstashHandler(Handler):
 
         self.formatter = LogstashFormatter()
 
-        self.host = host
-        self.port = port
+        self.address = (host, port)
         self.flush_threshold = flush_threshold
         self.queue = []
         self.queue_max_len = queue_max_len
@@ -175,8 +175,8 @@ class LogstashHandler(Handler):
         print('init logstash logger {}:{}'.format(host, port))
 
     def _establish_socket(self):
-        self.address = (self.host, self.port)
         self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.cli_sock.settimeout(5)
         self.cli_sock.connect(self.address)
 
     def _flush_task(self, duration):
