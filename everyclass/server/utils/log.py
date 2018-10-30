@@ -9,9 +9,8 @@ import json
 import socket
 import threading
 import traceback as tb
-from threading import Lock
-
 from logbook import Handler, NOTSET
+from threading import Lock
 
 # OSError includes ConnectionError, ConnectionError includes ConnectionResetError
 NETWORK_ERRORS = OSError
@@ -198,8 +197,10 @@ class LogstashHandler(Handler):
                     self.cli_sock.sendall((each_message + '\n').encode("utf8"))
                 except NETWORK_ERRORS:
                     try:
+                        print("Network error when sending logs to Logstash, try establish socket again.")
                         self._establish_socket()
                     except NETWORK_ERRORS:
+                        print("Network error when trying to establish socket again, hope next run will success.")
                         # got network error when trying to reconnect, can do nothing but exit
                         return
                 # print('send: {}'.format(self.format(each_message)))
