@@ -1,5 +1,6 @@
 import copy
 import os
+import sys
 
 import logbook
 import logbook.queues
@@ -25,7 +26,7 @@ def create_app(offline=False) -> Flask:
     """
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.db.mysql import get_connection, init_pool
-    from everyclass.server.utils.log import LogstashHandler, LogstashFormatter
+    from everyclass.server.utils.log import LogstashHandler, LogstashFormatter, LOG_FORMAT_STRING
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -55,8 +56,12 @@ def create_app(offline=False) -> Flask:
     # Sentry：
     # https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
     # - stack 默认是 False
-    # - 默认事件类型是 `raven.events.Message`，设置 `exc_info` 为 `True` 将把事件类型升级为`raven.events.Exception`
-    stderr_handler = logbook.StderrHandler(bubble=True)
+    stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: r.level < 13)
+    stdout_handler.format_string = LOG_FORMAT_STRING
+    logger.handlers.append(stdout_handler)
+
+    stderr_handler = logbook.StreamHandler(stream=sys.stderr, bubble=True, level='WARNING')
+    stderr_handler.format_string = LOG_FORMAT_STRING
     logger.handlers.append(stderr_handler)
 
     if not offline:
@@ -69,13 +74,10 @@ def create_app(offline=False) -> Flask:
         ElasticAPM(app)
 
         # Log to Logstash
-        try:
-            logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
-                                               port=app.config['LOGSTASH']['PORT'],
-                                               bubble=True)
-            logger.handlers.append(logstash_handler)
-        except OSError:
-            logger.error('Logstash TCP port connection refused', stack=True)
+        logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
+                                           port=app.config['LOGSTASH']['PORT'],
+                                           bubble=True, logger=logger)
+        logger.handlers.append(logstash_handler)
 
     # CDN
     CDN(app)

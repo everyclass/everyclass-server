@@ -16,6 +16,9 @@ from logbook import Handler, NOTSET
 # OSError includes ConnectionError, ConnectionError includes ConnectionResetError
 NETWORK_ERRORS = OSError
 
+LOG_FORMAT_STRING = '[{record.time:%Y-%m-%d %H:%M:%S}] [{record.level_name}] ' \
+                    '[{record.module}] {record.message}'
+
 
 def _default_json_default(obj):
     """
@@ -150,7 +153,7 @@ class LogstashHandler(Handler):
     """
 
     def __init__(self, host, port, flush_threshold=1, level=NOTSET, filter=None, bubble=True,
-                 flush_time=5, queue_max_len=1000):
+                 flush_time=5, queue_max_len=1000, logger=None):
         Handler.__init__(self, level, filter, bubble)
 
         self.formatter = LogstashFormatter()
@@ -160,8 +163,13 @@ class LogstashHandler(Handler):
         self.queue = []
         self.queue_max_len = queue_max_len
         self.lock = Lock()
+        self.logger = logger
 
-        self._establish_socket()
+        try:
+            self._establish_socket()
+        except NETWORK_ERRORS:
+            if self.logger:
+                self.logger.error('Logstash TCP port connection refused')
 
         # Set up a thread that flushes the queue every specified seconds
         self._stop_event = threading.Event()
@@ -172,7 +180,8 @@ class LogstashHandler(Handler):
         # self._flushing_t.daemon = True
         self._flushing_t.start()
 
-        print('init logstash logger {}:{}'.format(host, port))
+        if logger:
+            logger.info('Inited logstash logger {}:{}'.format(host, port))
 
     def _establish_socket(self):
         self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -184,7 +193,7 @@ class LogstashHandler(Handler):
         """
         while not self._stop_event.isSet():
             with self.lock:
-                print('{} get lock'.format(threading.currentThread().name))
+                self.logger.info('{} get lock'.format(threading.currentThread().name))
                 self._flush_buffer()
             self._stop_event.wait(duration)
 
