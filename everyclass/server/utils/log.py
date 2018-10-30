@@ -188,7 +188,7 @@ class LogstashHandler(Handler):
         self._flushing_t.start()
 
     def _establish_socket(self):
-        print('Establishing socket...')
+        self.logger.debug('Establishing socket...')
         self.cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.cli_sock.settimeout(5)
         self.cli_sock.connect(self.address)
@@ -203,18 +203,20 @@ class LogstashHandler(Handler):
     def _flush_buffer(self):
         """Flushes the messaging queue into Logstash.
         """
-        print('[Flush task] {} flushing buffer, q length: {}'.format(threading.currentThread().name, len(self.queue)))
-        if len(self.queue) > 0:
+        # self.logger.debug(
+        #    '[Flush task] {} flushing buffer, q length: {}'.format(threading.currentThread().name, len(self.queue)))
+        while len(self.queue) > 0:
             item = self.queue.popleft()
             try:
                 self.cli_sock.sendall((item + '\n').encode("utf8"))
             except NETWORK_ERRORS:
                 try:
-                    print("Network error when sending logs to Logstash, try re-establish connection")
+                    self.logger.error("Network error when sending logs to Logstash, try re-establish connection")
                     self._establish_socket()
+                    self.cli_sock.sendall((item + '\n').encode("utf8"))
                 except NETWORK_ERRORS:
                     # got network error when trying to reconnect, put the item back to queue and exit
-                    print("Network error when establishing socket again, hope next run will success.\n")
+                    self.logger.error("Network error when re-establishing socket, hope next run will success.")
                     self.queue.appendleft(item)
 
     def disable_buffering(self):

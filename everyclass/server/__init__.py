@@ -38,24 +38,31 @@ def create_app(offline=False) -> Flask:
     _config = get_config()
     app.config.from_object(_config)
 
-    # logbook handlers
-    # 规则如下：
-    # - 全部输出到 stdout（本地开发调试、服务器端文件日志）
-    # - 全部日志通过自定义的 handler 通过 TCP 输出到 LogStash，然后发送到日志中心
-    # - WARNING 以上级别的输出到 Sentry
-    #
-    # 日志等级：
-    # critical – for errors that lead to termination
-    # error – for errors that occur, but are handled
-    # warning – for exceptional circumstances that might not be errors
-    # notice – for non-error messages you usually want to see
-    # info – for messages you usually don’t want to see
-    # debug – for debug messages
-    #
-    #
-    # Sentry：
-    # https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
-    # - stack 默认是 False
+    """
+    每课统一日志机制
+
+
+    规则如下：
+    - WARNING 以下 log 输出到 stdout
+    - WARNING 以上输出到 stderr
+    - DEBUG 以上日志以 json 形式通过 TCP 输出到 Logstash，然后发送到日志中心
+    - WARNING 以上级别的输出到 Sentry
+
+
+    日志等级：
+    critical – for errors that lead to termination
+    error – for errors that occur, but are handled
+    warning – for exceptional circumstances that might not be errors
+    notice – for non-error messages you usually want to see
+    info – for messages you usually don’t want to see
+    debug – for debug messages
+    
+    
+    Sentry：
+    https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
+    - stack 默认是 False
+    
+    """
     stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: r.level < 13)
     stdout_handler.format_string = LOG_FORMAT_STRING
     logger.handlers.append(stdout_handler)
@@ -78,7 +85,8 @@ def create_app(offline=False) -> Flask:
                                            port=app.config['LOGSTASH']['PORT'],
                                            release=app.config['GIT_DESCRIBE'],
                                            bubble=True,
-                                           logger=logger)
+                                           logger=logger,
+                                           filter=lambda r, h: r.level >= 11)  # do not send DEBUG
         logger.handlers.append(logstash_handler)
 
     # CDN
