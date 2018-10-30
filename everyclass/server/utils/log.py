@@ -42,7 +42,8 @@ class LogstashFormatter(object):
                  datefmt=None,
                  json_cls=None,
                  json_default=_default_json_default,
-                 enable_handler_fields=False):
+                 enable_handler_fields=False,
+                 release=None):
         """
         :param fmt: Config as a JSON string, allowed fields;
                extra: provide extra fields always present in logs
@@ -73,6 +74,8 @@ class LogstashFormatter(object):
                 self.source_host = ""
 
         self.enable_handler_fields = enable_handler_fields
+
+        self.release = release
 
     def __call__(self, record, handler):
         """
@@ -123,6 +126,9 @@ class LogstashFormatter(object):
                  }
         )
 
+        if self.release:
+            logr.update({'release': self.release})
+
         if self.enable_handler_fields:
             handler_fields = handler.__dict__.copy()
             # Delete useless fields (they hold object references)
@@ -153,10 +159,8 @@ class LogstashHandler(Handler):
     """
 
     def __init__(self, host, port, flush_threshold=1, level=NOTSET, filter=None, bubble=True,
-                 flush_time=5, queue_max_len=1000, logger=None):
+                 flush_time=5, queue_max_len=1000, logger=None, release=None):
         Handler.__init__(self, level, filter, bubble)
-
-        self.formatter = LogstashFormatter()
 
         self.address = (host, port)
         self.flush_threshold = flush_threshold
@@ -164,6 +168,8 @@ class LogstashHandler(Handler):
         self.queue_max_len = queue_max_len
         self.lock = Lock()
         self.logger = logger
+
+        self.formatter = LogstashFormatter(release=release)
 
         try:
             self._establish_socket()

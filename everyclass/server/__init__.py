@@ -76,7 +76,9 @@ def create_app(offline=False) -> Flask:
         # Log to Logstash
         logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
                                            port=app.config['LOGSTASH']['PORT'],
-                                           bubble=True, logger=logger)
+                                           release=app.config['GIT_DESCRIBE'],
+                                           bubble=True,
+                                           logger=logger)
         logger.handlers.append(logstash_handler)
 
     # CDN
