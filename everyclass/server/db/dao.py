@@ -159,15 +159,15 @@ def get_students_in_class(class_id: str):
             cursor.close()
             raise NoStudentException
         for each_student in students:
-            mysql_query = "SELECT name FROM ec_students WHERE xh=%s"
+            mysql_query = "SELECT name, faculty, class_name FROM ec_students WHERE xh=%s"
             cursor.execute(mysql_query, (each_student,))
             result = cursor.fetchall()
             if result:
                 # 信息包含姓名、学号、学院、专业、班级
                 students_info.append([result[0][0],
                                       each_student,
-                                      faculty_lookup(each_student),
-                                      class_lookup(each_student)])
+                                      result[0][1],
+                                      result[0][2]])
         cursor.close()
         return class_name, class_day, class_time, class_teacher, students_info
 

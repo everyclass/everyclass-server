@@ -92,7 +92,7 @@ def create_app(offline=False) -> Flask:
     CDN(app)
 
     # 初始化数据库
-    if not offline and (app.config['CONFIG_NAME'] == "production" or app.config['CONFIG_NAME'] == "staging"):
+    if not offline and (app.config['CONFIG_NAME'] in ("production", "staging", "development")):
         init_pool(app)
 
     # 导入并注册 blueprints
