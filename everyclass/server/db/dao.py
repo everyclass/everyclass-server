@@ -158,16 +158,22 @@ def get_students_in_class(class_id: str):
         if not students:
             cursor.close()
             raise NoStudentException
+
+        students_in_sql = ''
         for each_student in students:
-            mysql_query = "SELECT name, faculty, class_name FROM ec_students WHERE xh=%s"
-            cursor.execute(mysql_query, (each_student,))
-            result = cursor.fetchall()
-            if result:
-                # 信息包含姓名、学号、学院、专业、班级
-                students_info.append([result[0][0],
-                                      each_student,
-                                      result[0][1],
-                                      result[0][2]])
+            students_in_sql += "'" + each_student + "',"
+        students_in_sql = '(' + students_in_sql[0:len(students_in_sql) - 1] + ')'
+        print(students_in_sql)
+        mysql_query = "SELECT xh, name, faculty, class_name FROM ec_students WHERE xh IN {}".format(students_in_sql)
+        cursor.execute(mysql_query)
+        result = cursor.fetchall()
+        if result:
+            # 信息包含姓名、学号、学院、专业、班级
+            for each in result:
+                students_info.append([each[1],
+                                      each[0],
+                                      each[2],
+                                      each[3]])
         cursor.close()
         return class_name, class_day, class_time, class_teacher, students_info
 
