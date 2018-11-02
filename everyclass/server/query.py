@@ -117,36 +117,39 @@ def query():
     except NoStudentException:
         return _no_student_handle(student_id)
     else:
-        # 空闲周末判断，考虑到大多数人周末都是没有课程的
-        empty_weekend = True
-        for cls_time in range(1, 7):
-            for cls_day in range(6, 8):
-                if (cls_day, cls_time) in student_classes:
-                    empty_weekend = False
+        with elasticapm.capture_span('empty_column_minify'):
+            # 空闲周末判断，考虑到大多数人周末都是没有课程的
+            empty_weekend = True
+            for cls_time in range(1, 7):
+                for cls_day in range(6, 8):
+                    if (cls_day, cls_time) in student_classes:
+                        empty_weekend = False
 
-        # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
-        empty_6 = True
-        for cls_day in range(1, 8):
-            if (cls_day, 6) in student_classes:
-                empty_6 = False
-        empty_5 = True
-        for cls_day in range(1, 8):
-            if (cls_day, 5) in student_classes:
-                empty_5 = False
+            # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
+            empty_6 = True
+            for cls_day in range(1, 8):
+                if (cls_day, 6) in student_classes:
+                    empty_6 = False
+            empty_5 = True
+            for cls_day in range(1, 8):
+                if (cls_day, 5) in student_classes:
+                    empty_5 = False
 
         # available_semesters 为当前学生所能选择的学期，是一个list。
         # 当中每一项又是一个包含两项的list，第一项为学期string，第二项为True/False表示是否为当前学期。
-        available_semesters = []
+        with elasticapm.capture_span('semester_calculate'):
+            available_semesters = []
 
-        for each_semester in my_available_semesters:
-            if session['semester'] == each_semester:
-                available_semesters.append([each_semester, True])
-            else:
-                available_semesters.append([each_semester, False])
+            for each_semester in my_available_semesters:
+                if session['semester'] == each_semester:
+                    available_semesters.append([each_semester, True])
+                else:
+                    available_semesters.append([each_semester, False])
 
         # Privacy settings
         # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
-        privacy_settings = get_privacy_settings(student_id)
+        with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
+            privacy_settings = get_privacy_settings(student_id)
 
         # privacy on
         if "show_table_on_page" in privacy_settings:
