@@ -42,6 +42,12 @@ def donate():
     return render_template('donate.html')
 
 
+@main_blueprint.route('/_healthCheck')
+def health_check():
+    """健康检查"""
+    return jsonify({"status": "ok"})
+
+
 @main_blueprint.app_errorhandler(404)
 def page_not_found(error):
     # 404跳转回首页
