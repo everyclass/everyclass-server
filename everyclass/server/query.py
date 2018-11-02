@@ -37,15 +37,17 @@ def query():
             # 使用人名查询打点
             elasticapm.tag(ec_query_method='by_name')
 
-            students = get_students_by_name(id_or_name)
+            with elasticapm.capture_span('db.get_students_by_name'):
+                students = get_students_by_name(id_or_name)
             if len(students) > 1:
                 # 查询到多个同名，进入选择界面
-                students_list = list()
-                for each_student in students:
-                    students_list.append([each_student[0],
-                                          each_student[1],
-                                          faculty_lookup(each_student[1]),
-                                          class_lookup(each_student[1])])
+                with elasticapm.capture_span('same_name_lookup'):
+                    students_list = list()
+                    for each_student in students:
+                        students_list.append([each_student[0],
+                                              each_student[1],
+                                              faculty_lookup(each_student[1]),
+                                              class_lookup(each_student[1])])
                 return render_template("query_same_name.html", count=len(students_list), student_info=students_list)
             elif len(students) == 1:
                 # 仅能查询到一个人，则赋值学号
@@ -80,7 +82,8 @@ def query():
         return redirect(url_for('main.main'))
 
     # 查询学生本人的可用学期
-    my_available_semesters, student_name = get_my_semesters(student_id)
+    with elasticapm.capture_span('db.get_semesters'):
+        my_available_semesters, student_name = get_my_semesters(student_id)
 
     # 如果没有学期，则直接返回
     if not my_available_semesters:
@@ -109,7 +112,8 @@ def query():
         session['semester'] = my_available_semesters[-1].to_tuple()
 
     try:
-        student_classes = get_classes_for_student(student_id=student_id, sem=Semester(session['semester']))
+        with elasticapm.capture_span('db.get_courses'):
+            student_classes = get_classes_for_student(student_id=student_id, sem=Semester(session['semester']))
     except NoStudentException:
         return _no_student_handle(student_id)
     else:
