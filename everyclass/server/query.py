@@ -37,11 +37,11 @@ def query():
             # 使用人名查询打点
             elasticapm.tag(ec_query_method='by_name')
 
-            with elasticapm.capture_span('db.get_students_by_name'):
+            with elasticapm.capture_span('get_students_by_name', span_type='db.mysql'):
                 students = get_students_by_name(id_or_name)
             if len(students) > 1:
                 # 查询到多个同名，进入选择界面
-                with elasticapm.capture_span('same_name_lookup'):
+                with elasticapm.capture_span('same_name_lookup', span_type='db.mysql'):
                     students_list = list()
                     for each_student in students:
                         students_list.append([each_student[0],
@@ -82,7 +82,7 @@ def query():
         return redirect(url_for('main.main'))
 
     # 查询学生本人的可用学期
-    with elasticapm.capture_span('db.get_semesters'):
+    with elasticapm.capture_span('get_semesters', span_type='db.mysql'):
         my_available_semesters, student_name = get_my_semesters(student_id)
 
     # 如果没有学期，则直接返回
@@ -112,7 +112,7 @@ def query():
         session['semester'] = my_available_semesters[-1].to_tuple()
 
     try:
-        with elasticapm.capture_span('db.get_courses'):
+        with elasticapm.capture_span('get_courses', span_type='db.mysql'):
             student_classes = get_classes_for_student(student_id=student_id, sem=Semester(session['semester']))
     except NoStudentException:
         return _no_student_handle(student_id)
