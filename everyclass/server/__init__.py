@@ -70,7 +70,7 @@ def create_app(offline=False) -> Flask:
     stderr_handler.format_string = LOG_FORMAT_STRING
     logger.handlers.append(stderr_handler)
 
-    if not offline and (app.config['CONFIG_NAME'] == "production" or app.config['CONFIG_NAME'] == "staging"):
+    if not offline and (app.config['CONFIG_NAME'] in ["production", "staging", "testing"]):
         # Sentry
         sentry.init_app(app=app)
         sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
@@ -92,7 +92,7 @@ def create_app(offline=False) -> Flask:
     CDN(app)
 
     # 初始化数据库
-    if not offline and (app.config['CONFIG_NAME'] in ("production", "staging", "development")):
+    if not offline and (app.config['CONFIG_NAME'] in ("production", "staging", "testing", "development")):
         init_pool(app)
 
     # 导入并注册 blueprints
