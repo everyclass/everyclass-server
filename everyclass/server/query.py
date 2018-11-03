@@ -146,12 +146,13 @@ def query():
                 else:
                     available_semesters.append([each_semester, False])
 
-        # Privacy settings
+        # 隐私设定
         # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
         with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
             privacy_settings = get_privacy_settings(student_id)
 
-        with elasticapm.capture_span('get_faculty_and_class'):
+        # 获得所在学院和班级
+        with elasticapm.capture_span('get_faculty_and_class', span_type='db.mysql'):
             faculty = faculty_lookup(student_id)
             class_name = class_lookup(student_id)
 
