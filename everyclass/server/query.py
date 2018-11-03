@@ -151,12 +151,16 @@ def query():
         with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
             privacy_settings = get_privacy_settings(student_id)
 
+        with elasticapm.capture_span('get_faculty_and_class'):
+            faculty = faculty_lookup(student_id)
+            class_name = class_lookup(student_id)
+
         # privacy on
         if "show_table_on_page" in privacy_settings:
             return render_template('blocked.html',
                                    name=student_name,
-                                   falculty=faculty_lookup(student_id),
-                                   class_name=class_lookup(student_id),
+                                   falculty=faculty,
+                                   class_name=class_name,
                                    stu_id=student_id,
                                    available_semesters=available_semesters,
                                    no_import_to_calender=True if "import_to_calender" in privacy_settings else False)
@@ -164,8 +168,8 @@ def query():
         # privacy off
         return render_template('query.html',
                                name=student_name,
-                               falculty=faculty_lookup(student_id),
-                               class_name=class_lookup(student_id),
+                               falculty=faculty,
+                               class_name=class_name,
                                stu_id=student_id,
                                classes=student_classes,
                                empty_wkend=empty_weekend,
