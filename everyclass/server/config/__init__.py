@@ -35,6 +35,10 @@ def get_config():
                 from everyclass.server.config.staging import StagingConfig
                 _override_config = StagingConfig
                 MixedConfig.CONFIG_NAME = 'staging'
+            elif mode == 'TESTING':
+                from everyclass.server.config.testing import TestingConfig
+                _override_config = TestingConfig
+                MixedConfig.CONFIG_NAME = 'testing'
             else:
                 MixedConfig.CONFIG_NAME = 'default'
                 logger.error('No valid MODE environment variable specified. Default config will be used.')
