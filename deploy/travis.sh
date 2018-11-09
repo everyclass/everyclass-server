@@ -22,7 +22,13 @@ IMAGE_ADDRESS=ccr.ccs.tencentyun.com/everyclass/everyclass-server:${VERSION}
 docker build -t ${IMAGE_ADDRESS} .
 docker push ${IMAGE_ADDRESS}
 
-sentry-cli releases deploys ${VERSION} new -e staging
+
+if [[ "$VERSION" == *_testing ]];then
+    sentry-cli releases deploys ${VERSION} new -e testing
+else
+    sentry-cli releases deploys ${VERSION} new -e staging
+fi
+
 
 else
 
