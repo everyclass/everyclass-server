@@ -13,14 +13,22 @@ WORKDIR /var/everyclass-server
 RUN apk add --no-cache git python3 uwsgi uwsgi-python3 \
     gcc musl-dev libffi-dev openssl-dev python3-dev
 
-# 经测试，如果把本目录在运行时挂载，会导致找不到 build 时生成的虚拟环境，于是只能在这里先把代码加到镜像里
 COPY . /var/everyclass-server
 
+# install Python dependencies
 RUN pip3 install --upgrade pip \
     && pip3 install pipenv \
     && pipenv sync \
     && rm -r /root/.cache
 
-ENV UWSGI_HTTP_SOCKET ":9000"
+# install gor
+RUN cd / \
+    && mkdir gor \
+    && cd gor \
+    && wget https://github.com/buger/goreplay/releases/download/v0.16.1/gor_0.16.1_x64.tar.gz \
+    && tar xzf gor_0.16.1_x64.tar.gz \
+    && rm gor_0.16.1_x64.tar.gz
 
-CMD ["uwsgi", "--ini", "/var/everyclass-server/deploy/uwsgi.ini"]
+ENV UWSGI_HTTP_SOCKET ":80"
+
+CMD ["sh", "deploy/docker-cmd.sh"]
