@@ -9,6 +9,7 @@ then
         --input-raw :80 \
         --output-http http://everyclass-server.staging \
         --output-http-elasticsearch https://${GOREPLAY_USER}:${GOREPLAY_PWD}@${GOREPLAY_ES}:443/gor-everyclass-server \
+        --http-disallow-url /_healthCheck \
         > /gor/goreplay.log &
 fi
 
