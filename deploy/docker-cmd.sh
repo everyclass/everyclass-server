@@ -8,7 +8,7 @@ then
     /gor/goreplay \
         --input-raw :80 \
         --output-http http://everyclass-server.staging \
-        --output-file /mnt/goreplay/everyclass-server-%Y-%m-%d-$(hostname).log.gz \
+        --output-file /mnt/goreplay/$(hostname)-%Y-%m-%d.log.gz \
         --http-allow-method GET \
         --http-disallow-url /_healthCheck \
         > /gor/goreplay.log &
