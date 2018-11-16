@@ -3,12 +3,13 @@
 # for debug use
 # /gor/goreplay --input-raw :80  --output-stdout
 
-if [ "$MODE"=="PRODUCTION" ]
+if [[ "$MODE"=="PRODUCTION" ]]
 then
     /gor/goreplay \
         --input-raw :80 \
         --output-http http://everyclass-server.staging \
-        --output-http-elasticsearch https://${GOREPLAY_USER}:${GOREPLAY_PWD}@${GOREPLAY_ES}:443/gor-everyclass-server \
+        --output-file /mnt/goreplay/everyclass-server-%Y-%m-%d-$(hostname).log.gz \
+        --http-allow-method GET \
         --http-disallow-url /_healthCheck \
         > /gor/goreplay.log &
 fi
