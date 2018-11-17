@@ -3,7 +3,6 @@ import sys
 
 import logbook
 import logbook.queues
-import uwsgidecorators
 from elasticapm.contrib.flask import ElasticAPM
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
@@ -21,39 +20,44 @@ ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAP
 
 __app = None
 
-
-@uwsgidecorators.postfork
-def init_db():
-    """init database connection after forking"""
-    from everyclass.server.db.mysql import init_pool
-    global __app
-    init_pool(__app)
+try:
+    import uwsgidecorators
 
 
-@uwsgidecorators.postfork
-def init_log_handlers():
-    """init log handlers after forking"""
-    from everyclass.server.utils.log import LogstashHandler
+    @uwsgidecorators.postfork
+    def init_db():
+        """init database connection after forking"""
+        from everyclass.server.db.mysql import init_pool
+        global __app
+        init_pool(__app)
 
-    global __app
-    current_app = __app
-    if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
-        # Sentry
-        sentry.init_app(app=current_app)
-        sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
-        logger.handlers.append(sentry_handler)
 
-        # Elastic APM
-        ElasticAPM(current_app)
+    @uwsgidecorators.postfork
+    def init_log_handlers():
+        """init log handlers after forking"""
+        from everyclass.server.utils.log import LogstashHandler
 
-        # Log to Logstash
-        logstash_handler = LogstashHandler(host=current_app.config['LOGSTASH']['HOST'],
-                                           port=current_app.config['LOGSTASH']['PORT'],
-                                           release=current_app.config['GIT_DESCRIBE'],
-                                           bubble=True,
-                                           logger=logger,
-                                           filter=lambda r, h: r.level >= 11)  # do not send DEBUG
-        logger.handlers.append(logstash_handler)
+        global __app
+        current_app = __app
+        if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
+            # Sentry
+            sentry.init_app(app=current_app)
+            sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+            logger.handlers.append(sentry_handler)
+
+            # Elastic APM
+            ElasticAPM(current_app)
+
+            # Log to Logstash
+            logstash_handler = LogstashHandler(host=current_app.config['LOGSTASH']['HOST'],
+                                               port=current_app.config['LOGSTASH']['PORT'],
+                                               release=current_app.config['GIT_DESCRIBE'],
+                                               bubble=True,
+                                               logger=logger,
+                                               filter=lambda r, h: r.level >= 11)  # do not send DEBUG
+            logger.handlers.append(logstash_handler)
+except ModuleNotFoundError:
+    print('ModuleNotFoundError when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
 
 
 def create_app(outside_container=False) -> Flask:
