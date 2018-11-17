@@ -2,7 +2,6 @@ import copy
 import sys
 
 import logbook
-import logbook.queues
 from elasticapm.contrib.flask import ElasticAPM
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
