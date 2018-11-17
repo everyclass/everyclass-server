@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "5eca1c91c9087763c07c52ca6035ae0e9c2bf644b51615f4d008244a1e78e506"
+            "sha256": "dc60d63b727f08cc3dabbcca3cb2176042fba53662d714f4223a8eb08149de42"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -316,6 +316,13 @@
             ],
             "index": "pypi",
             "version": "==1.23"
+        },
+        "uwsgi": {
+            "hashes": [
+                "sha256:d2318235c74665a60021a4fc7770e9c2756f9fc07de7b8c22805efe85b5ab277"
+            ],
+            "index": "pypi",
+            "version": "==2.0.17.1"
         },
         "uwsgidecorators": {
             "hashes": [
