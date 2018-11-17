@@ -3,8 +3,9 @@
 # for debug use
 # /gor/goreplay --input-raw :80  --output-stdout
 
-if [[ "$MODE"=="PRODUCTION" ]]
+if [[ "$MODE" == "PRODUCTION" ]]
 then
+    echo "Production mode. Start goreplay."
     /gor/goreplay \
         --input-raw :80 \
         --output-http http://everyclass-server.staging \

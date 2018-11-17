@@ -3,6 +3,7 @@ import sys
 
 import logbook
 import logbook.queues
+import uwsgidecorators
 from elasticapm.contrib.flask import ElasticAPM
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
@@ -18,14 +19,50 @@ sentry = Sentry()
 
 ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
+__app = None
 
-def create_app(offline=False) -> Flask:
+
+@uwsgidecorators.postfork
+def init_db():
+    """init database connection after forking"""
+    from everyclass.server.db.mysql import init_pool
+    global __app
+    init_pool(__app)
+
+
+@uwsgidecorators.postfork
+def init_log_handlers():
+    """init log handlers after forking"""
+    from everyclass.server.utils.log import LogstashHandler
+
+    global __app
+    current_app = __app
+    if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
+        # Sentry
+        sentry.init_app(app=current_app)
+        sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+        logger.handlers.append(sentry_handler)
+
+        # Elastic APM
+        ElasticAPM(current_app)
+
+        # Log to Logstash
+        logstash_handler = LogstashHandler(host=current_app.config['LOGSTASH']['HOST'],
+                                           port=current_app.config['LOGSTASH']['PORT'],
+                                           release=current_app.config['GIT_DESCRIBE'],
+                                           bubble=True,
+                                           logger=logger,
+                                           filter=lambda r, h: r.level >= 11)  # do not send DEBUG
+        logger.handlers.append(logstash_handler)
+
+
+def create_app(outside_container=False) -> Flask:
     """创建 flask app
-    @param offline: 如果设置为 `True`，则为离线模式。此模式下不会连接到 Sentry 和 ElasticAPM
+    @param outside_container: 是否不在容器内运行
     """
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.db.mysql import get_connection, init_pool
-    from everyclass.server.utils.log import LogstashHandler, LogstashFormatter, LOG_FORMAT_STRING
+    from everyclass.server.utils.log import LOG_FORMAT_STRING
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -70,29 +107,11 @@ def create_app(offline=False) -> Flask:
     stderr_handler.format_string = LOG_FORMAT_STRING
     logger.handlers.append(stderr_handler)
 
-    if not offline and (app.config['CONFIG_NAME'] in ["production", "staging", "testing"]):
-        # Sentry
-        sentry.init_app(app=app)
-        sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
-        logger.handlers.append(sentry_handler)
-
-        # Elastic APM
-        ElasticAPM(app)
-
-        # Log to Logstash
-        logstash_handler = LogstashHandler(host=app.config['LOGSTASH']['HOST'],
-                                           port=app.config['LOGSTASH']['PORT'],
-                                           release=app.config['GIT_DESCRIBE'],
-                                           bubble=True,
-                                           logger=logger,
-                                           filter=lambda r, h: r.level >= 11)  # do not send DEBUG
-        logger.handlers.append(logstash_handler)
-
     # CDN
     CDN(app)
 
-    # 初始化数据库
-    if not offline and (app.config['CONFIG_NAME'] in ("production", "staging", "testing", "development")):
+    # 容器外运行（无 uWSGI）时初始化数据库
+    if outside_container and (app.config['CONFIG_NAME'] == "development"):
         init_pool(app)
 
     # 导入并注册 blueprints
@@ -162,5 +181,8 @@ def create_app(offline=False) -> Flask:
 
             logger.info('{}: {}'.format(key, value))
     logger.info('================================================================')
+
+    global __app
+    __app = app
 
     return app

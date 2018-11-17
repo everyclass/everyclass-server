@@ -1,6 +1,6 @@
 from everyclass.server import create_app
 
-app = create_app()
+app = create_app(outside_container=True)
 
 
 @app.cli.command()
