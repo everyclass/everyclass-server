@@ -1,4 +1,5 @@
 import copy
+import gc
 import sys
 
 import logbook
@@ -55,6 +56,12 @@ try:
                                                logger=logger,
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
+
+
+    @uwsgidecorators.postfork
+    def enable_gc():
+        """enable garbage collection after forking"""
+        gc.set_threshold(700)
 except ModuleNotFoundError:
     print('ModuleNotFoundError when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
 

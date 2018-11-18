@@ -2,9 +2,9 @@ import gc
 
 from everyclass.server import create_app
 
-# disable gc
-gc.set_threshold(0)
-
+# disable gc and freeze
+gc.set_threshold(0)  # 700, 10, 10 as default
+gc.freeze()
 app = create_app()
 
 
