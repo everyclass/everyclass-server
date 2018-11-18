@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM python:3.7-alpine3.8
 LABEL maintainer="frederic.t.chan@gmail.com"
 ENV REFRESHED_AT 20180801
 ENV MODE PRODUCTION
@@ -8,10 +8,24 @@ ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" LC_CTYPE="en_US.UTF-8"
 
 WORKDIR /var/everyclass-server
 
-# 安装 uWSGI 本体和 Python 插件（语言相关的插件不在发行版的包管理器中）
-# uwsgi-python3 依赖uwsgi、python3、musl
-RUN apk add --no-cache git python3 uwsgi uwsgi-python3 \
-    gcc musl-dev libffi-dev openssl-dev python3-dev
+# build uWSGI and Python plugin for current python version
+# reference on how to build uwsgi python plugin: https://bradenmacdonald.com/blog/2015/uwsgi-emperor-multiple-python
+# make, gcc, libc-dev, linux-headers for compiling uWSGI
+# libffi-dev for installing Python package cffi
+# openssl-dev for installing Python package cryptography
+RUN apk add --no-cache git make gcc libc-dev linux-headers libffi-dev openssl-dev \
+    && mkdir /usr/local/src \
+    && cd /usr/local/src \
+    && wget http://projects.unbit.it/downloads/uwsgi-2.0.17.1.tar.gz \
+    && tar zxvf uwsgi-2.0.17.1.tar.gz \
+    && cd uwsgi-2.0.17.1/ \
+    && make PROFILE=nolang \
+    && sed -i "s:plugin_dir = .:plugin_dir = /usr/local/lib/uwsgi/:g" buildconf/base.ini \
+    && PYTHON=python3.7 ./uwsgi --build-plugin "plugins/python python37" \
+    && mkdir /usr/local/lib/uwsgi/ \
+    && cp python*_plugin.so /usr/local/lib/uwsgi/ \
+    && cp uwsgi /usr/local/bin/uwsgi \
+    && rm -rf /usr/local/src
 
 COPY . /var/everyclass-server
 
