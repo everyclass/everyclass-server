@@ -1,6 +1,11 @@
+import gc
+
 from everyclass.server import create_app
 
-app = create_app(outside_container=True)
+# disable gc
+gc.set_threshold(0)
+
+app = create_app()
 
 
 @app.cli.command()
@@ -12,4 +17,5 @@ def test():
 
 
 if __name__ == '__main__':
+    app = create_app(outside_container=True)
     app.run()

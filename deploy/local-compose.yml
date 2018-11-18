@@ -1,0 +1,10 @@
+version: "3"
+services:
+  everyclass-server:
+    image: everyclass-server:latest
+    sysctls:
+    - net.core.somaxconn=4096
+    environment:
+      MODE: DEVELOPMENT
+    ports:
+    - 80:80
