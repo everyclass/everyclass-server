@@ -3,20 +3,16 @@ import gc
 import sys
 
 import logbook
-from elasticapm.contrib.flask import ElasticAPM
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
-from everyclass.server.utils import monkey_patch
-
 logger = logbook.Logger(__name__)
 
 sentry = Sentry()
 
-ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
 __app = None
 
@@ -36,6 +32,9 @@ try:
     def init_log_handlers():
         """init log handlers after forking"""
         from everyclass.server.utils.log import LogstashHandler
+        from elasticapm.contrib.flask import ElasticAPM
+        from everyclass.server.utils import monkey_patch
+        ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
         global __app
         current_app = __app
