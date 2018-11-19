@@ -13,14 +13,14 @@ WORKDIR /var/everyclass-server
 # make, gcc, libc-dev, linux-headers for compiling uWSGI
 # libffi-dev for installing Python package cffi
 # openssl-dev for installing Python package cryptography
-RUN apk add --no-cache git make gcc libc-dev linux-headers libffi-dev openssl-dev \
+RUN apk add --no-cache git make gcc pcre-dev libc-dev linux-headers libffi-dev openssl-dev \
     && mkdir /usr/local/src \
     && cd /usr/local/src \
     && wget http://projects.unbit.it/downloads/uwsgi-2.0.17.1.tar.gz \
     && tar zxvf uwsgi-2.0.17.1.tar.gz \
     && cd uwsgi-2.0.17.1/ \
-    && make PROFILE=nolang \
     && sed -i "s:plugin_dir = .:plugin_dir = /usr/local/lib/uwsgi/:g" buildconf/base.ini \
+    && make PROFILE=nolang \
     && PYTHON=python3.7 ./uwsgi --build-plugin "plugins/python python37" \
     && mkdir /usr/local/lib/uwsgi/ \
     && cp python*_plugin.so /usr/local/lib/uwsgi/ \
