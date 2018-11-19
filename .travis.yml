@@ -41,7 +41,6 @@ deploy:
   script: bash deploy/travis.sh
   on:
     python: '3.6'
-    branch: release
 
 notifications:
   slack:
