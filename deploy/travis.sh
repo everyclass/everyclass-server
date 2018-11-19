@@ -8,7 +8,7 @@ if [[ -z ${TRAVIS_TAG+x} ]]; then
 else
     echo "TRAVIS_TAG is set to '$TRAVIS_TAG'. Start deploying.";
     # checkout release first, otherwise `git describe` will be wrong
-    git checkout release
+    git checkout $TRAVIS_TAG
     VERSION=$(git describe --tags)
 
     # sentry release
