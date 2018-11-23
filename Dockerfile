@@ -27,14 +27,6 @@ RUN apk add --no-cache git make gcc pcre-dev libc-dev linux-headers libffi-dev o
     && cp uwsgi /usr/local/bin/uwsgi \
     && rm -rf /usr/local/src
 
-COPY . /var/everyclass-server
-
-# install Python dependencies
-RUN pip3 install --upgrade pip \
-    && pip3 install pipenv \
-    && pipenv sync \
-    && rm -r /root/.cache
-
 # install gor
 RUN cd / \
     && mkdir gor \
@@ -42,6 +34,14 @@ RUN cd / \
     && wget https://github.com/buger/goreplay/releases/download/v0.16.1/gor_0.16.1_x64.tar.gz \
     && tar xzf gor_0.16.1_x64.tar.gz \
     && rm gor_0.16.1_x64.tar.gz
+
+COPY . /var/everyclass-server
+
+# install Python dependencies
+RUN pip3 install --upgrade pip \
+    && pip3 install pipenv \
+    && pipenv sync \
+    && rm -r /root/.cache
 
 ENV UWSGI_HTTP_SOCKET ":80"
 
