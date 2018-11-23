@@ -21,6 +21,7 @@ dbutils = "==1.3"
 # this is just to avoid warning from `requests` package. Though there shouldn't have anything using this package.
 urllib3 = "==1.23"
 uwsgidecorators = "*"
+uwsgitop = "*"
 
 [dev-packages]
 coverage = "==4.4.2"
