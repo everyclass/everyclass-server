@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build . -t everyclass
+docker build . -t everyclass-server
