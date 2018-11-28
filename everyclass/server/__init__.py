@@ -66,12 +66,7 @@ try:
         import uwsgi
         if uwsgi.worker_id() == 1:
             # set to warning level because we want to monitor restarts
-            logger.warning('App (re)started in `{0}` environment'.format(__app.config['CONFIG_NAME']), stack=False)
-
-            logger.info('Below are configurations we are using:')
-            logger.info('================================================================')
-
-            logger.info('================================================================')
+            print('hello')
 except ModuleNotFoundError:
     print('ModuleNotFoundError when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
 
