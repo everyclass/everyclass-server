@@ -196,8 +196,10 @@ class LogstashHandler(Handler):
     def _flush_task(self, duration):
         """Calls the method _flush_buffer every certain time.
         """
+        self.logger.debug('[utils.log] flush buffer thread start to work')
         while not self._stop_event.isSet():
             self._flush_buffer()
+            self.logger.debug('[utils.log] buffer flushed')
             self._stop_event.wait(duration)
 
     def _flush_buffer(self):
