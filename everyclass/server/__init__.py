@@ -18,22 +18,26 @@ __app = None
 try:
     import uwsgidecorators
 
+    """
+    below are functions that will be executed in **each** process after fork().
+    these functions will be executed in the same order of definition here.
+    """
 
     @uwsgidecorators.postfork
     def enable_gc():
-        """enable garbage collection after forking"""
+        """enable garbage collection"""
         gc.set_threshold(700)
 
     @uwsgidecorators.postfork
     def init_db():
-        """init database connection after forking"""
+        """init database connection"""
         from everyclass.server.db.mysql import init_pool
         global __app
         init_pool(__app)
 
     @uwsgidecorators.postfork
     def init_log_handlers():
-        """init log handlers after forking"""
+        """init log handlers"""
         from everyclass.server.utils.log import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
         from everyclass.server.utils import monkey_patch
