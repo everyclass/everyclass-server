@@ -199,14 +199,13 @@ class LogstashHandler(Handler):
         self.logger.debug('[utils.log] flush buffer thread start to work')
         while not self._stop_event.isSet():
             self._flush_buffer()
-            self.logger.debug('[utils.log] buffer flushed')
             self._stop_event.wait(duration)
 
     def _flush_buffer(self):
         """Flushes the messaging queue into Logstash.
         """
-        # self.logger.debug(
-        #    '[Flush task] {} flushing buffer, q length: {}'.format(threading.currentThread().name, len(self.queue)))
+        self.logger.debug(
+                '[Flush task] {} flushing buffer, q length: {}'.format(threading.currentThread().name, len(self.queue)))
         while len(self.queue) > 0:
             item = self.queue.popleft()
             try:
