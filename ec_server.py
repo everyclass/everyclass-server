@@ -1,6 +1,5 @@
 import faulthandler
 import gc
-import threading
 
 from everyclass.server import create_app
 
@@ -10,10 +9,6 @@ gc.freeze()
 
 # dump faults
 faulthandler.enable()
-
-# enlarge alpine linux stack size
-print('thread stack size: {}'.format(threading.stack_size()))
-threading.stack_size(2 * 1024 * 1024)
 
 app = create_app()
 

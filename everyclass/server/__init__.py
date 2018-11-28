@@ -28,6 +28,11 @@ try:
         """enable garbage collection"""
         gc.set_threshold(700)
 
+        # enlarge alpine linux stack size
+        import threading
+        print('thread stack size: {}'.format(threading.stack_size()))
+        threading.stack_size(2 * 1024 * 1024)
+
     @uwsgidecorators.postfork
     def init_db():
         """init database connection"""
