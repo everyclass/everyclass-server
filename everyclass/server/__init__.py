@@ -1,12 +1,16 @@
 import copy
+import faulthandler
 import gc
 import sys
+
+faulthandler.enable()
 
 import logbook
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
 from raven.contrib.flask import Sentry
+from raven.handlers.logbook import SentryHandler
 
 logger = logbook.Logger(__name__)
 
@@ -46,9 +50,9 @@ try:
         current_app = __app
         if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
             # Sentry
-            # sentry.init_app(app=current_app)
-            # sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
-            # logger.handlers.append(sentry_handler)
+            sentry.init_app(app=current_app)
+            sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+            logger.handlers.append(sentry_handler)
 
             # Elastic APM
             ElasticAPM(current_app)
