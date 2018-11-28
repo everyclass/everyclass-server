@@ -26,32 +26,9 @@ try:
         global __app
         init_pool(__app)
 
-
     @uwsgidecorators.postfork
-    def log_configurations():
-        import uwsgi
-        if uwsgi.worker_id() == 1:
-            # set to warning level because we want to monitor restarts
-            logger.warning('App (re)started in `{0}` environment'.format(__app.config['CONFIG_NAME']), stack=False)
-
-            # 输出配置内容
-            logger.info('Below are configurations we are using:')
-            logger.info('================================================================')
-            for key, value in __app.config.items():
-                if key not in ('SECRET_KEY',):
-                    value = copy.copy(value)
-
-                    # 敏感内容抹去
-                    if key == 'SENTRY_CONFIG':
-                        value['dsn'] = '[secret]'
-                    if key == 'MYSQL_CONFIG':
-                        value['password'] = '[secret]'
-                    if key == 'ELASTIC_APM':
-                        value['SECRET_TOKEN'] = '[secret]'
-
-                    logger.info('{}: {}'.format(key, value))
-            logger.info('================================================================')
-
+    def test():
+        print('hello world')
 
     @uwsgidecorators.postfork
     def init_log_handlers():
@@ -80,6 +57,29 @@ try:
                                                logger=logger,
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
+
+        # print current configuration
+        import uwsgi
+        if uwsgi.worker_id() == 1:
+            # set to warning level because we want to monitor restarts
+            logger.warning('App (re)started in `{0}` environment'.format(__app.config['CONFIG_NAME']), stack=False)
+
+            logger.info('Below are configurations we are using:')
+            logger.info('================================================================')
+            for key, value in __app.config.items():
+                if key not in ('SECRET_KEY',):
+                    value = copy.copy(value)
+
+                    # 敏感内容抹去
+                    if key == 'SENTRY_CONFIG':
+                        value['dsn'] = '[secret]'
+                    if key == 'MYSQL_CONFIG':
+                        value['password'] = '[secret]'
+                    if key == 'ELASTIC_APM':
+                        value['SECRET_TOKEN'] = '[secret]'
+
+                    logger.info('{}: {}'.format(key, value))
+            logger.info('================================================================')
 
 
     @uwsgidecorators.postfork
