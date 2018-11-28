@@ -5,6 +5,10 @@ import sys
 
 faulthandler.enable()
 
+import threading;
+
+threading.stack_size(2 * 1024 * 1024)
+
 import logbook
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
