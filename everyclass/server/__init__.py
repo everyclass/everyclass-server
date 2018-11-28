@@ -66,6 +66,8 @@ try:
         import uwsgi
         if uwsgi.worker_id() == 1:
             # set to warning level because we want to monitor restarts
+            logger.info('App (re)started in `{0}` environment'.format(current_app.config['CONFIG_NAME']), stack=False)
+
             logger.info('Below are configurations we are using:')
             logger.info('================================================================')
 
