@@ -171,7 +171,8 @@ def create_app(outside_container=False) -> Flask:
                                event_id=g.sentry_event_id,
                                public_dsn=sentry.client.get_public_dsn('https'))
 
-    logger.info('App created with `{0}` config'.format(app.config['CONFIG_NAME']), stack=False)
+    # set to warning level because we want to monitor restarts
+    logger.warning('App created with `{0}` config'.format(app.config['CONFIG_NAME']), stack=False)
 
     # 输出配置内容
     logger.info('Below are configurations we are using:')
