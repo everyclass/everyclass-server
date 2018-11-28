@@ -1,3 +1,4 @@
+import copy
 import gc
 import sys
 
@@ -70,7 +71,19 @@ try:
 
             logger.info('Below are configurations we are using:')
             logger.info('================================================================')
+            for key, value in __app.config.items():
+                if key not in ('SECRET_KEY',):
+                    value = copy.copy(value)
 
+                    # 敏感内容抹去
+                    if key == 'SENTRY_CONFIG':
+                        value['dsn'] = '[secret]'
+                    if key == 'MYSQL_CONFIG':
+                        value['password'] = '[secret]'
+                    if key == 'ELASTIC_APM':
+                        value['SECRET_TOKEN'] = '[secret]'
+
+                    logger.info('{}: {}'.format(key, value))
             logger.info('================================================================')
 except ModuleNotFoundError:
     print('ModuleNotFoundError when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
