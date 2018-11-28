@@ -172,7 +172,7 @@ def create_app(outside_container=False) -> Flask:
                                public_dsn=sentry.client.get_public_dsn('https'))
 
     # set to warning level because we want to monitor restarts
-    logger.warning('App created with `{0}` config'.format(app.config['CONFIG_NAME']), stack=False)
+    logger.warning('App (re)started in `{0}` environment'.format(app.config['CONFIG_NAME']), stack=False)
 
     # 输出配置内容
     logger.info('Below are configurations we are using:')
