@@ -27,10 +27,6 @@ try:
         init_pool(__app)
 
     @uwsgidecorators.postfork
-    def test():
-        print('hello world')
-
-    @uwsgidecorators.postfork
     def init_log_handlers():
         """init log handlers after forking"""
         from everyclass.server.utils.log import LogstashHandler
