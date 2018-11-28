@@ -13,7 +13,7 @@ WORKDIR /var/everyclass-server
 # make, gcc, libc-dev, linux-headers for compiling uWSGI
 # libffi-dev for installing Python package cffi
 # openssl-dev for installing Python package cryptography
-RUN apk add --no-cache git make gcc pcre-dev libc-dev linux-headers libffi-dev openssl-dev \
+RUN apk add --no-cache bash git make gcc pcre-dev libc-dev linux-headers libffi-dev openssl-dev \
     && mkdir /usr/local/src \
     && cd /usr/local/src \
     && wget http://projects.unbit.it/downloads/uwsgi-2.0.17.1.tar.gz \
