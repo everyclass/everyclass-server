@@ -56,8 +56,7 @@ try:
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
 
-
-    logger.info('debugging in staging environment')
+        logger.info('debugging in staging environment')
 
     @uwsgidecorators.postfork
     def enable_gc():
