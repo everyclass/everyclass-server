@@ -7,7 +7,6 @@ from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
 from raven.contrib.flask import Sentry
-from raven.handlers.logbook import SentryHandler
 
 logger = logbook.Logger(__name__)
 
@@ -47,9 +46,9 @@ try:
         current_app = __app
         if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
             # Sentry
-            sentry.init_app(app=current_app)
-            sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
-            logger.handlers.append(sentry_handler)
+            # sentry.init_app(app=current_app)
+            # sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+            # logger.handlers.append(sentry_handler)
 
             # Elastic APM
             ElasticAPM(current_app)
@@ -67,7 +66,7 @@ try:
         import uwsgi
         if uwsgi.worker_id() == 1:
             # set to warning level because we want to monitor restarts
-            logger.info('App (re)started in `{0}` environment'.format(current_app.config['CONFIG_NAME']), stack=False)
+            logger.warning('App (re)started in `{0}` environment'.format(current_app.config['CONFIG_NAME']), stack=False)
 
             logger.info('Below are configurations we are using:')
             logger.info('================================================================')
