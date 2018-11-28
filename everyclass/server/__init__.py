@@ -13,7 +13,6 @@ logger = logbook.Logger(__name__)
 
 sentry = Sentry()
 
-
 __app = None
 
 try:
@@ -26,6 +25,32 @@ try:
         from everyclass.server.db.mysql import init_pool
         global __app
         init_pool(__app)
+
+
+    @uwsgidecorators.postfork
+    def log_configurations():
+        import uwsgi
+        if uwsgi.worker_id() == 1:
+            # set to warning level because we want to monitor restarts
+            logger.warning('App (re)started in `{0}` environment'.format(__app.config['CONFIG_NAME']), stack=False)
+
+            # 输出配置内容
+            logger.info('Below are configurations we are using:')
+            logger.info('================================================================')
+            for key, value in __app.config.items():
+                if key not in ('SECRET_KEY',):
+                    value = copy.copy(value)
+
+                    # 敏感内容抹去
+                    if key == 'SENTRY_CONFIG':
+                        value['dsn'] = '[secret]'
+                    if key == 'MYSQL_CONFIG':
+                        value['password'] = '[secret]'
+                    if key == 'ELASTIC_APM':
+                        value['SECRET_TOKEN'] = '[secret]'
+
+                    logger.info('{}: {}'.format(key, value))
+            logger.info('================================================================')
 
 
     @uwsgidecorators.postfork
@@ -56,7 +81,6 @@ try:
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
 
-        logger.info('debugging in staging environment')
 
     @uwsgidecorators.postfork
     def enable_gc():
@@ -171,27 +195,6 @@ def create_app(outside_container=False) -> Flask:
         return render_template('500.html',
                                event_id=g.sentry_event_id,
                                public_dsn=sentry.client.get_public_dsn('https'))
-
-    # set to warning level because we want to monitor restarts
-    logger.warning('App (re)started in `{0}` environment'.format(app.config['CONFIG_NAME']), stack=False)
-
-    # 输出配置内容
-    logger.info('Below are configurations we are using:')
-    logger.info('================================================================')
-    for key, value in app.config.items():
-        if key not in ('SECRET_KEY',):
-            value = copy.copy(value)
-
-            # 敏感内容抹去
-            if key == 'SENTRY_CONFIG':
-                value['dsn'] = '[secret]'
-            if key == 'MYSQL_CONFIG':
-                value['password'] = '[secret]'
-            if key == 'ELASTIC_APM':
-                value['SECRET_TOKEN'] = '[secret]'
-
-            logger.info('{}: {}'.format(key, value))
-    logger.info('================================================================')
 
     global __app
     __app = app
