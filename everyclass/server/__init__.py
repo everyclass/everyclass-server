@@ -20,6 +20,11 @@ try:
 
 
     @uwsgidecorators.postfork
+    def enable_gc():
+        """enable garbage collection after forking"""
+        gc.set_threshold(700)
+
+    @uwsgidecorators.postfork
     def init_db():
         """init database connection after forking"""
         from everyclass.server.db.mysql import init_pool
@@ -76,12 +81,6 @@ try:
 
                     logger.info('{}: {}'.format(key, value))
             logger.info('================================================================')
-
-
-    @uwsgidecorators.postfork
-    def enable_gc():
-        """enable garbage collection after forking"""
-        gc.set_threshold(700)
 except ModuleNotFoundError:
     print('ModuleNotFoundError when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
 
