@@ -12,6 +12,7 @@ gc.freeze()
 faulthandler.enable()
 
 # enlarge alpine linux stack size
+print('thread stack size: {}'.format(threading.stack_size()))
 threading.stack_size(2 * 1024 * 1024)
 
 app = create_app()
