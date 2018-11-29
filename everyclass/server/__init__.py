@@ -49,32 +49,34 @@ try:
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
         global __app
-        current_app = __app
-        if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing",
-                                                 "development"]:  # ignore dev in container
+        if __app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:
             # Sentry
-            sentry.init_app(app=current_app)
+            sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
             logger.handlers.append(sentry_handler)
+            logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
 
             # Elastic APM
-            ElasticAPM(current_app)
+            ElasticAPM(__app)
+            logger.info('You are in {} mode, so APM is inited.'.format(__app.config['CONFIG_NAME']))
 
+        if __app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
             # Log to Logstash
-            logstash_handler = LogstashHandler(host=current_app.config['LOGSTASH']['HOST'],
-                                               port=current_app.config['LOGSTASH']['PORT'],
-                                               release=current_app.config['GIT_DESCRIBE'],
+            logstash_handler = LogstashHandler(host=__app.config['LOGSTASH']['HOST'],
+                                               port=__app.config['LOGSTASH']['PORT'],
+                                               release=__app.config['GIT_DESCRIBE'],
                                                bubble=True,
                                                logger=logger,
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
+            logger.info('You are in {} mode, so LogstashHandler is inited.'.format(__app.config['CONFIG_NAME']))
 
         # print current configuration
         import uwsgi
         if uwsgi.worker_id() == 1:
             # set to warning level because we want to monitor restarts
             logger.warning('App (re)started in `{0}` environment'
-                           .format(current_app.config['CONFIG_NAME']), stack=False)
+                           .format(__app.config['CONFIG_NAME']), stack=False)
 
             logger.info('Below are configurations we are using:')
             logger.info('================================================================')

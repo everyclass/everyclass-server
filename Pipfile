@@ -14,7 +14,7 @@ pytz = "==2017.2"
 raven = ">=6.9.0"
 termcolor = ">=1.1.0"
 blinker = "*"
-elastic-apm = {version = "*", extras = ["flask"]}
+elastic-apm = "~=3.0"
 pymysql = "*"
 logbook = "*"
 dbutils = "==1.3"
