@@ -28,11 +28,6 @@ try:
         """enable garbage collection"""
         gc.set_threshold(700)
 
-        # enlarge alpine linux stack size
-        # import threading
-        # print('thread stack size: {}'.format(threading.stack_size()))
-        # threading.stack_size(2 * 1024 * 1024)
-
     @uwsgidecorators.postfork
     def init_db():
         """init database connection"""
@@ -49,19 +44,20 @@ try:
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
         global __app
-        if __app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:
-            # Sentry
+        # Sentry
+        if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
             logger.handlers.append(sentry_handler)
             logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
 
-            # Elastic APM
+        # Elastic APM
+        if __app.config['CONFIG_NAME'] in __app.config['APM_AVAILABLE_IN']:
             ElasticAPM(__app)
             logger.info('You are in {} mode, so APM is inited.'.format(__app.config['CONFIG_NAME']))
 
-        if __app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
-            # Log to Logstash
+        # Logstash centralized log
+        if __app.config['CONFIG_NAME'] in __app.config['LOGSTASH_AVAILABLE_IN']:
             logstash_handler = LogstashHandler(host=__app.config['LOGSTASH']['HOST'],
                                                port=__app.config['LOGSTASH']['PORT'],
                                                release=__app.config['GIT_DESCRIBE'],
@@ -95,7 +91,7 @@ try:
                     logger.info('{}: {}'.format(key, value))
             logger.info('================================================================')
 except ModuleNotFoundError:
-    print('ModuleNotFoundError when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
+    print('ModuleNotFound when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
 
 
 def create_app(outside_container=False) -> Flask:

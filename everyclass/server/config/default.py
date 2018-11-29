@@ -1,6 +1,7 @@
-import git
 import json
 import os
+
+import git
 
 
 class Config(object):
@@ -54,6 +55,11 @@ class Config(object):
         'HOST': '127.0.0.1',
         'PORT': 8888
     }
+
+    # define available environments for logs, APM and error tracking
+    SENTRY_AVAILABLE_IN = ['production', 'staging', 'testing']
+    APM_AVAILABLE_IN = ['production', 'staging', 'testing']
+    LOGSTASH_AVAILABLE_IN = ['production', 'staging', 'testing']
 
     """
     维护模式
