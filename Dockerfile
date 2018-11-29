@@ -1,23 +1,26 @@
-FROM python:3.7-alpine3.8
+FROM python:3.7.1-slim-stretch
 LABEL maintainer="frederic.t.chan@gmail.com"
-ENV REFRESHED_AT 20180801
+ENV REFRESHED_AT 20181129
 ENV MODE PRODUCTION
 ENV FLASK_ENV production
 ENV PIPENV_VENV_IN_PROJECT 1
-ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" LC_CTYPE="en_US.UTF-8"
+# ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8"
 
 WORKDIR /var/everyclass-server
 
 # build uWSGI and Python plugin for current python version
 # reference on how to build uwsgi python plugin: https://bradenmacdonald.com/blog/2015/uwsgi-emperor-multiple-python
-# make, gcc, libc-dev, linux-headers for compiling uWSGI
-# libffi-dev for installing Python package cffi
-# openssl-dev for installing Python package cryptography
-RUN apk add --no-cache bash git make gcc pcre-dev libc-dev linux-headers libffi-dev openssl-dev \
-    && mkdir /usr/local/src \
+
+# Why we need these packages?
+# - git for using git in our app
+# - make, gcc, libpcre3-dev for compiling uWSGI
+# - libffi-dev for installing Python package cffi
+# - libssl-dev for installing Python package cryptography
+RUN apt-get update \
+    && apt-get install -y wget git make gcc libpcre3-dev libffi-dev libssl-dev \
     && cd /usr/local/src \
     && wget http://projects.unbit.it/downloads/uwsgi-2.0.17.1.tar.gz \
-    && tar zxvf uwsgi-2.0.17.1.tar.gz \
+    && tar zxf uwsgi-2.0.17.1.tar.gz \
     && cd uwsgi-2.0.17.1/ \
     && sed -i "s:plugin_dir = .:plugin_dir = /usr/local/lib/uwsgi/:g" buildconf/base.ini \
     && make PROFILE=nolang \
@@ -25,7 +28,7 @@ RUN apk add --no-cache bash git make gcc pcre-dev libc-dev linux-headers libffi-
     && mkdir /usr/local/lib/uwsgi/ \
     && cp python*_plugin.so /usr/local/lib/uwsgi/ \
     && cp uwsgi /usr/local/bin/uwsgi \
-    && rm -rf /usr/local/src
+    && rm -rf /usr/local/src/uwsgi-2.0.17.1
 
 # install gor
 RUN cd / \

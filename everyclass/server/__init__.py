@@ -29,9 +29,9 @@ try:
         gc.set_threshold(700)
 
         # enlarge alpine linux stack size
-        import threading
-        print('thread stack size: {}'.format(threading.stack_size()))
-        threading.stack_size(2 * 1024 * 1024)
+        # import threading
+        # print('thread stack size: {}'.format(threading.stack_size()))
+        # threading.stack_size(2 * 1024 * 1024)
 
     @uwsgidecorators.postfork
     def init_db():
@@ -50,7 +50,8 @@ try:
 
         global __app
         current_app = __app
-        if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing"]:  # ignore dev in container
+        if current_app.config['CONFIG_NAME'] in ["production", "staging", "testing",
+                                                 "development"]:  # ignore dev in container
             # Sentry
             sentry.init_app(app=current_app)
             sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
