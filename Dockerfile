@@ -49,4 +49,4 @@ RUN pip3 install --upgrade pip \
 
 ENV UWSGI_HTTP_SOCKET ":80"
 
-CMD ["sh", "deploy/docker-cmd.sh"]
+CMD ["bash", "deploy/docker-cmd.sh"]
