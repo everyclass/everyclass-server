@@ -43,7 +43,7 @@ try:
     @uwsgidecorators.postfork
     def init_log_handlers():
         """init log handlers"""
-        from everyclass.server.utils.log import LogstashHandler
+        from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
         from everyclass.server.utils import monkey_patch
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
@@ -73,7 +73,8 @@ try:
         import uwsgi
         if uwsgi.worker_id() == 1:
             # set to warning level because we want to monitor restarts
-            logger.warning('App (re)started in `{0}` environment'.format(current_app.config['CONFIG_NAME']), stack=False)
+            logger.warning('App (re)started in `{0}` environment'
+                           .format(current_app.config['CONFIG_NAME']), stack=False)
 
             logger.info('Below are configurations we are using:')
             logger.info('================================================================')
@@ -101,7 +102,7 @@ def create_app(outside_container=False) -> Flask:
     """
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.db.mysql import get_connection, init_pool
-    from everyclass.server.utils.log import LOG_FORMAT_STRING
+    from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
