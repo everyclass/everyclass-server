@@ -12,12 +12,14 @@ WORKDIR /var/everyclass-server
 # reference on how to build uwsgi python plugin: https://bradenmacdonald.com/blog/2015/uwsgi-emperor-multiple-python
 
 # Why we need these packages?
+# - procps contains useful proccess control commands like: free, kill, pkill, ps, top
+# - wget is quite basic tool
 # - git for using git in our app
 # - make, gcc, libpcre3-dev for compiling uWSGI
 # - libffi-dev for installing Python package cffi
 # - libssl-dev for installing Python package cryptography
 RUN apt-get update \
-    && apt-get install -y wget git make gcc libpcre3-dev libffi-dev libssl-dev \
+    && apt-get install -y procps wget git make gcc libpcre3-dev libffi-dev libssl-dev \
     && cd /usr/local/src \
     && wget http://projects.unbit.it/downloads/uwsgi-2.0.17.1.tar.gz \
     && tar zxf uwsgi-2.0.17.1.tar.gz \
