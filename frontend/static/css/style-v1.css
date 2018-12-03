@@ -3,7 +3,7 @@ body, button, input, select, textarea, h1, h2, h3, h4, h5, h6 {
 }
 
 .swag-line-special:before {
-    background: linear-gradient(45deg, #FF66CC, #FF0DA6) !important;
+    background: linear-gradient(45deg, #56e9ff, #30ccff) !important;
 }
 
 .centre {
