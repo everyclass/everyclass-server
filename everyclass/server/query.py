@@ -199,7 +199,7 @@ def get_classmates():
 
     # 获取选了这门课的学生信息
     class_name, class_day, class_time, class_teacher, students_info = get_students_in_class(
-            request.values.get('class_id', None))
+        request.values.get('class_id', None))
     return render_template('classmate.html',
                            class_name=class_name,
                            class_day=get_day_chinese(class_day),
