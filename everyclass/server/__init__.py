@@ -99,7 +99,7 @@ def create_app(outside_container=False) -> Flask:
     @param outside_container: 是否不在容器内运行
     """
     from everyclass.server.db.dao import new_user_id_sequence
-    from everyclass.server.db.mysql import get_connection, init_pool
+    from everyclass.server.db.mysql import init_pool
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
 
     app = Flask(__name__,
@@ -130,12 +130,11 @@ def create_app(outside_container=False) -> Flask:
     notice – for non-error messages you usually want to see
     info – for messages you usually don’t want to see
     debug – for debug messages
-    
-    
+
+
     Sentry：
     https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
     - stack 默认是 False
-    
     """
     stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: r.level < 13)
     stdout_handler.format_string = LOG_FORMAT_STRING
