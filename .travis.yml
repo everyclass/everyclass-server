@@ -30,6 +30,7 @@ before_script:
 - export MODE=CI
 
 script:
+  - flake8
 - nosetests tests --with-coverage
 
 after_success:
