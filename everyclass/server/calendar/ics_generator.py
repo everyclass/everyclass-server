@@ -76,7 +76,8 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
                         dtstart = __get_datetime(dur_starting_week, day, get_time(time)[0], semester)
                         dtend = __get_datetime(dur_starting_week, day, get_time(time)[1], semester)
                         until = __get_datetime(dur_ending_week, day, get_time(time)[1], semester) + timedelta(days=1)
-                        # 参数：课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID
+                        # 参数：
+                        # 课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID
                         cal.add_component(
                                 __add_event(name=every_class['name'],
                                             times=[dtstart, dtend, interval, until, each_duration, every_class['week']],
