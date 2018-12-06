@@ -15,12 +15,12 @@
   "author": "Frederic Chan",
   "license": "MPL-2.0",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-clean-css": "^3.7.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-rev": "^8.0.0",
-    "gulp-uglify": "^3.0.0",
-    "pump": "^3.0.0"
+    "gulp": "4",
+    "gulp-clean-css": "3",
+    "gulp-concat": "2",
+    "gulp-rename": "1",
+    "gulp-rev": "8",
+    "gulp-uglify": "3",
+    "pump": "3"
   }
 }
