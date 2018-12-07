@@ -10,10 +10,10 @@ from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
 logger = logbook.Logger(__name__)
-
 sentry = Sentry()
-
 __app = None
+__first_spawn = True
+__sentry_available = False
 
 try:
     import uwsgidecorators
@@ -23,10 +23,12 @@ try:
     these functions will be executed in the same order of definition here.
     """
 
+
     @uwsgidecorators.postfork
     def enable_gc():
         """enable garbage collection"""
         gc.set_threshold(700)
+
 
     @uwsgidecorators.postfork
     def init_db():
@@ -34,6 +36,7 @@ try:
         from everyclass.server.db.mysql import init_pool
         global __app
         init_pool(__app)
+
 
     @uwsgidecorators.postfork
     def init_log_handlers():
@@ -43,12 +46,14 @@ try:
         from everyclass.server.utils import monkey_patch
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
-        global __app
+        global __app, __first_spawn, __sentry_available
+
         # Sentry
         if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
             logger.handlers.append(sentry_handler)
+            __sentry_available = True
             logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
 
         # Elastic APM
@@ -69,7 +74,7 @@ try:
 
         # print current configuration
         import uwsgi
-        if uwsgi.worker_id() == 1:
+        if uwsgi.worker_id() == 1 and __first_spawn:
             # set to warning level because we want to monitor restarts
             logger.warning('App (re)started in `{0}` environment'
                            .format(__app.config['CONFIG_NAME']), stack=False)
@@ -90,6 +95,8 @@ try:
 
                     logger.info('{}: {}'.format(key, value))
             logger.info('================================================================')
+
+            __first_spawn = False
 except ModuleNotFoundError:
     print('ModuleNotFound when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
 
@@ -193,9 +200,12 @@ def create_app(outside_container=False) -> Flask:
 
     @app.errorhandler(500)
     def internal_server_error(error):
-        return render_template('500.html',
-                               event_id=g.sentry_event_id,
-                               public_dsn=sentry.client.get_public_dsn('https'))
+        global __sentry_available
+        if __sentry_available:
+            return render_template('500.html',
+                                   event_id=g.sentry_event_id,
+                                   public_dsn=sentry.client.get_public_dsn('https'))
+        return "500 error: {}. You are seeing this page because Sentry is not available.".format(error)
 
     global __app
     __app = app

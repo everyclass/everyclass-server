@@ -1,3 +1,5 @@
+import time
+
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from markupsafe import escape
 
@@ -9,6 +11,13 @@ main_blueprint = Blueprint('main', __name__)
 @main_blueprint.route('/')
 def main():
     """首页"""
+    return render_template('index.html')
+
+
+@main_blueprint.route('/sleep')
+def sleep():
+    """休眠测试"""
+    time.sleep(60)
     return render_template('index.html')
 
 
