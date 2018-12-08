@@ -15,11 +15,11 @@ WORKDIR /var/everyclass-server
 # - procps contains useful proccess control commands like: free, kill, pkill, ps, top
 # - wget is quite basic tool
 # - git for using git in our app
-# - make, gcc, libpcre3-dev for compiling uWSGI
+# - gcc, libpcre3-dev for compiling uWSGI
 # - libffi-dev for installing Python package cffi
 # - libssl-dev for installing Python package cryptography
 RUN apt-get update \
-    && apt-get install -y procps wget git libffi-dev libssl-dev \
+    && apt-get install -y procps wget gcc libpcre3-dev git libffi-dev libssl-dev \
     && pip install uwsgi
 
 # install gor
