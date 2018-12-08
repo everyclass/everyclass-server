@@ -19,18 +19,8 @@ WORKDIR /var/everyclass-server
 # - libffi-dev for installing Python package cffi
 # - libssl-dev for installing Python package cryptography
 RUN apt-get update \
-    && apt-get install -y procps wget git make gcc libpcre3-dev libffi-dev libssl-dev \
-    && cd /usr/local/src \
-    && wget http://projects.unbit.it/downloads/uwsgi-2.0.17.1.tar.gz \
-    && tar zxf uwsgi-2.0.17.1.tar.gz \
-    && cd uwsgi-2.0.17.1/ \
-    && sed -i "s:plugin_dir = .:plugin_dir = /usr/local/lib/uwsgi/:g" buildconf/base.ini \
-    && make PROFILE=nolang \
-    && PYTHON=python3.7 ./uwsgi --build-plugin "plugins/python python37" \
-    && mkdir /usr/local/lib/uwsgi/ \
-    && cp python*_plugin.so /usr/local/lib/uwsgi/ \
-    && cp uwsgi /usr/local/bin/uwsgi \
-    && rm -rf /usr/local/src/uwsgi-2.0.17.1
+    && apt-get install -y procps wget git libffi-dev libssl-dev \
+    && pip install uwsgi
 
 # install gor
 RUN cd / \

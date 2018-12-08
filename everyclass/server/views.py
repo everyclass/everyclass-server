@@ -17,7 +17,7 @@ def main():
 @main_blueprint.route('/sleep')
 def sleep():
     """休眠测试"""
-    time.sleep(60)
+    time.sleep(50)
     return render_template('index.html')
 
 
