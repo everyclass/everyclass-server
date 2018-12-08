@@ -1,8 +1,8 @@
-import gc
-
-from gevent import monkey;
+from gevent import monkey
 
 monkey.patch_all()
+
+import gc
 import gevent.pywsgi
 from everyclass.server import create_app
 
