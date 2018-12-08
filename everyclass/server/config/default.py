@@ -11,13 +11,15 @@ class Config(object):
     DEBUG = True
     SECRET_KEY = 'development_key'
     MYSQL_CONFIG = {
-        'user'       : 'database_user',
-        'password'   : 'database_password',
-        'host'       : '127.0.0.1',
-        'port'       : '6666',
-        'database'   : 'everyclass',
-        'use_unicode': True,
-        'charset'    : 'utf8mb4'
+        'host'          : 'mysql',
+        'port'          : 3306,
+        'db'            : 'everyclass',
+        'user'          : 'everyclass',
+        'passwd'        : 'password',
+        'charset'       : 'utf8mb4',
+        'mincached'     : 1,
+        'maxcached'     : 50,
+        'maxconnections': 100
     }
 
     """
