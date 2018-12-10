@@ -22,8 +22,8 @@ def test():
 
 
 if __name__ == '__main__':
-    # app = create_app(outside_container=True)
+    app = create_app(outside_container=True)
     # app.run()
 
-    gevent_server = gevent.pywsgi.WSGIServer(('', 5000), app)
+    gevent_server = gevent.pywsgi.WSGIServer(('', 80), app)
     gevent_server.serve_forever()
