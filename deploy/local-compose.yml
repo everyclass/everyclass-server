@@ -1,7 +1,7 @@
 version: "3"
 services:
   everyclass-server:
-    image: everyclass-server:latest
+    image: everyclass-server:${CURRENT_VERSION}
     sysctls:
     - net.core.somaxconn=4096
     environment:

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker-compose -f local-compose.yml up
+CURRENT_VERSION=$(git describe --tag) docker-compose -f local-compose.yml up
