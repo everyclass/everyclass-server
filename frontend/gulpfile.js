@@ -9,7 +9,7 @@ var gulp = require('gulp'),
 
 //CSS
 gulp.task('cssCompress', function () {
-    gulp.src("./static/css/*-v1.css")
+    return gulp.src("./static/css/*-v1.css")
     //.pipe(concat('style.min.css'))                 //Concat CSS files
         .pipe(minifyCss())                           //Compress
         .pipe(rev())                                 //Revision
@@ -35,7 +35,7 @@ gulp.task("js", gulp.series('jsMinify'));
 
 // 把 static 目录的其他文件拷贝到 dist 目录
 gulp.task('copyOtherFilesToDist', function () {
-    gulp.src(['./static', '!./static/css', '!./static/js'])
+    return gulp.src(['./static/**/*', '!./static/css', '!./static/js'])
         .pipe(gulp.dest('./dist'));
 });
 
