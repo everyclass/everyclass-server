@@ -17,9 +17,9 @@ class Config(object):
         'user'          : 'everyclass',
         'passwd'        : 'password',
         'charset'       : 'utf8mb4',
-        'mincached'     : 1,
-        'maxcached'     : 50,
-        'maxconnections': 100
+        'mincached'     : 10,
+        'maxcached'     : 1000,
+        'maxconnections': 2000
     }
 
     """
