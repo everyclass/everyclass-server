@@ -20,6 +20,8 @@ def check_if_stu_exist(student_id: str) -> bool:
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
     cursor.close()
+    db.close()
+
     if result:
         return True
     else:
@@ -39,6 +41,8 @@ def get_students_by_name(name: str) -> list:
     cursor.execute(mysql_query, (name,))
     result = cursor.fetchall()
     cursor.close()
+    db.close()
+
     return result
 
 
@@ -56,6 +60,8 @@ def get_all_students() -> list:
     if not result:
         logger.error("[db.dao.get_all_students] No result from db.", stack=True)
     cursor.close()
+    db.close()
+
     return result
 
 
@@ -71,6 +77,9 @@ def get_my_semesters(student_id: str) -> (list, str):
     cursor = db.cursor()
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
+    cursor.close()
+    db.close()
+
     if not result:
         logger.error("[db.dao.get_my_semesters] No result from db.", stack=True)
     sems = json.loads(result[0][0])
@@ -80,7 +89,6 @@ def get_my_semesters(student_id: str) -> (list, str):
     for each_sem in sems:
         semesters.append(Semester(each_sem))
 
-    # print('[db_operations.get_my_semesters] semesters=', semesters)
     return semesters, student_name
 
 
@@ -107,6 +115,7 @@ def get_classes_for_student(student_id: str, sem: Semester) -> dict:
     result = cursor.fetchall()
     if not result:
         cursor.close()
+        db.close()
         raise NoStudentException(student_id)
     else:
         courses_list = json.loads(result[0][0])
@@ -125,6 +134,7 @@ def get_classes_for_student(student_id: str, sem: Semester) -> dict:
                                                               location=result[0][6],
                                                               id=result[0][7]))
         cursor.close()
+        db.close()
         return courses
 
 
@@ -147,6 +157,7 @@ def get_students_in_class(class_id: str):
     result = cursor.fetchall()
     if not result:
         cursor.close()
+        db.close()
         raise NoClassException(class_id)
     else:
         students = json.loads(result[0][0])
@@ -157,6 +168,7 @@ def get_students_in_class(class_id: str):
         class_teacher = result[0][4]
         if not students:
             cursor.close()
+            db.close()
             raise NoStudentException
 
         students_in_sql = ''
@@ -175,6 +187,7 @@ def get_students_in_class(class_id: str):
                                       each[2],
                                       each[3]])
         cursor.close()
+        db.close()
         return class_name, class_day, class_time, class_teacher, students_info
 
 
@@ -193,12 +206,17 @@ def get_privacy_settings(student_id: str) -> list:
     result = cursor.fetchall()
     if not result:
         # No such student
+        cursor.close()
+        db.close()
         return []
     else:
         if not result[0][0]:
             # No privacy settings
+            cursor.close()
+            db.close()
             return []
         cursor.close()
+        db.close()
         return json.loads(result[0][0])
 
 
@@ -214,6 +232,8 @@ def class_lookup(student_id: str) -> str:
     mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
+    cursor.close()
+    db.close()
     if result:
         return result[0][0]
     else:
@@ -232,6 +252,8 @@ def faculty_lookup(student_id: str) -> str:
     mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"
     cursor.execute(mysql_query, (student_id,))
     result = cursor.fetchall()
+    cursor.close()
+    db.close()
     if result:
         return result[0][0]
     else:
