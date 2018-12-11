@@ -1,7 +1,9 @@
 """
 查询相关函数
 """
-from flask import Blueprint, flash
+import elasticapm
+import requests
+from flask import Blueprint, escape, flash, redirect, render_template, request, session, url_for
 
 from . import logger
 
@@ -11,12 +13,64 @@ query_blueprint = Blueprint('query', __name__)
 @query_blueprint.route('/query', methods=['GET', 'POST'])
 def query():
     """
-    查询本人课表视图函数
+    All in one 搜索入口，可以查询学生、老师、教室，然后跳转到具体资源页面
+
     正常情况应该是 post 方法，但是也兼容 get 防止意外情况，提高用户体验
+
+    埋点：
+    - `query_resource_type`, 查询类型: classroom, single_student, single_teacher, people, or nothing.
+    - `query_type`（原 `ec_query_method`）, 查询方式: by_student_name, by_student_id, by_teacher_name,
+      by_teacher_id, by_room_name, other
     """
-    from flask import request, render_template, redirect, url_for, session
     from flask import current_app as app
-    import elasticapm
+
+    # if under maintenance, return to maintenance.html
+    if app.config["MAINTENANCE"]:
+        return render_template("maintenance.html")
+
+    # call api-server to search
+    with elasticapm.capture_span('rpc_search'):
+        api_session = requests.sessions.session()
+        api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
+                                                                 request.values.get('id').encode('utf-8'))
+                                       )
+        api_response = api_response.json()
+
+    # render different template for different resource types
+    if 'room' in api_response:
+        # classroom
+        # we will use service name to filter apm document first, so it's not required to add service name prefix here
+        elasticapm.tag(query_resource_type='classroom')
+        return redirect('/classroom?rid={}'.format(api_response['room'][0]['rid']))
+    elif 'student' in api_response and len(api_response['student']) == 1 and 'teacher' not in api_response:
+        # only one student
+        elasticapm.tag(query_resource_type='single_student')
+        if len(api_response['student'][0]['semester']) < 1:
+            flash('没有可用学期')
+            return redirect(url_for('main.main'))
+        return redirect('/student/{}/{}'.format(api_response['student'][0]['sid'],
+                                                api_response['student'][0]['semester'][-1]))
+    elif 'teacher' in api_response and len(api_response['teacher']) == 1 and 'student' not in api_response:
+        # only one teacher
+        elasticapm.tag(query_resource_type='single_teacher')
+        return redirect('/teacher?rid={}&semester={}'.format(api_response['teacher'][0]['tid'],
+                                                             api_response['teacher'][0]['semester'][-1]))
+    elif 'teacher' in api_response or 'student' in api_response:
+        # multiple students, multiple teachers, or mix of both
+        elasticapm.tag(query_resource_type='people')
+        return render_template('query_same_name.html',
+                               students=api_response['student'],
+                               teachers=api_response['teacher'])
+    else:
+        elasticapm.tag(query_resource_type='nothing')
+        flash('没有找到任何有关 %s 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
+        return url_for('main.main')
+
+
+@query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
+def get_student(url_sid, url_semester):
+    """学生查询"""
+    from flask import current_app as app
 
     from everyclass.server.tools import is_chinese_char
     from everyclass.server.exceptions import NoStudentException, IllegalSemesterException
@@ -24,9 +78,12 @@ def query():
     from everyclass.server.db.dao import faculty_lookup, class_lookup, get_classes_for_student, get_privacy_settings, \
         get_my_semesters, check_if_stu_exist, get_students_by_name
 
-    # if under maintenance, return to maintenance.html
-    if app.config["MAINTENANCE"]:
-        return render_template("maintenance.html")
+    api_session = requests.sessions.session()
+    api_response = api_session.get('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
+                                                                url_sid.encode('utf-8'),
+                                                                url_semester)
+                                   )
+    api_response = api_response.json()
 
     # 如 URL 中有 id 参数，判断是姓名还是学号，然后赋学号给student_id
     if request.values.get('id'):
@@ -34,8 +91,6 @@ def query():
 
         # 首末均为中文,判断为人名
         if is_chinese_char(id_or_name[0:1]) and is_chinese_char(id_or_name[-1:]):
-            # 使用人名查询打点
-            elasticapm.tag(ec_query_method='by_name')
 
             with elasticapm.capture_span('get_students_by_name', span_type='db.mysql'):
                 students = get_students_by_name(id_or_name)
@@ -107,8 +162,8 @@ def query():
 
     # 如果 session 中无学期或学期无效，回落到本人可用最新学期
     # session 中学期使用 tuple 保存，因为 Semester 对象无法被序列化
-    semester = session.get('semester', None)
-    if not semester or Semester(semester) not in my_available_semesters:
+    url_semester = session.get('semester', None)
+    if not url_semester or Semester(url_semester) not in my_available_semesters:
         session['semester'] = my_available_semesters[-1].to_tuple()
 
     try:

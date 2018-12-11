@@ -103,5 +103,9 @@ class Config(object):
         }
     }
 
-    # API
-    API_CLIENTS = []
+    # other micro-services
+    API_SERVER_HOST = 'localhost'
+    API_SERVER_PORT = 8008
+    API_SERVER_SCHEME = 'http'
+
+    API_SERVER = '{}://{}:{}'.format(API_SERVER_SCHEME, API_SERVER_HOST, API_SERVER_PORT)
