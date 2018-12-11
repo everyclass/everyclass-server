@@ -38,13 +38,6 @@ class BasicFunctionTestCase(unittest.TestCase):
         from everyclass.server.db.model import Semester
         self.assertTrue(Semester('2016-2017-2').to_tuple() == (2016, 2017, 2))
 
-    def test_is_chinese_char(self):
-        from everyclass.server.tools import is_chinese_char
-        self.assertTrue(is_chinese_char('我'))
-        self.assertTrue(is_chinese_char('测'))
-        self.assertFalse(is_chinese_char('1'))
-        self.assertFalse(is_chinese_char('A'))
-
     def test_get_time(self):
         from everyclass.server.tools import get_time
         self.assertTrue(get_time(1) == ((8, 00), (9, 40)))

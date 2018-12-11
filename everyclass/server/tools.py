@@ -54,38 +54,16 @@ def get_time(digit):
         return (21, 00), (22, 40)
 
 
-def is_chinese_char(uchar):
-    """
-    Check if a char is a Chinese character. It's used to check whether a string is a name.
-
-    :param uchar: char
-    :return: True or False
-    """
-    if u'\u4e00' <= uchar <= u'\u9fa5':
-        return True
-    else:
-        return False
+def lesson_string_to_dict(lesson: str) -> (int, int):
+    """transform str like '10102' into tuple like (1,1)"""
+    day = int(lesson[0])
+    time = (int(lesson[2]) + 1) / 2
+    return day, time
 
 
-def print_formatted_info(info, show_debug_tip=False, info_about="DEBUG"):
-    """
-    调试输出函数
-
-    :param info:
-    :param show_debug_tip:
-    :param info_about:
-    :return:
-    """
-    from termcolor import cprint
-    if show_debug_tip:
-        cprint("-----" + info_about + "-----", "blue", attrs=['bold'])
-    if isinstance(info, dict):
-        for (k, v) in info.items():
-            print("%s =" % k, v)
-    elif isinstance(info, str):
-        cprint(info, attrs=["bold"])
-    else:
-        for each_info in info:
-            print(each_info)
-    if show_debug_tip:
-        cprint("----" + info_about + " ENDS----", "blue", attrs=['bold'])
+def teacher_list_to_str(teachers: list):
+    """parse a teacher list into a str"""
+    string = ''
+    for teacher in teachers:
+        string = string + teacher['name'] + teacher['title'] + ', '
+    return string[:len(string) - 1]
