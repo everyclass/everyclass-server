@@ -2,12 +2,11 @@
 查询相关函数
 """
 import elasticapm
-import gevent
-import requests
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
+from werkzeug.wrappers import Response
 
 from . import logger
-from .exceptions import *
+from .utils.rpc import http_rpc
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -33,23 +32,13 @@ def query():
 
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
-        api_session = requests.sessions.session()
-        try:
-            with gevent.Timeout(5):
-                url = '{}/v1/search/{}'.format(app.config['API_SERVER'], request.values.get('id'))
-                logger.debug('RPC GET {}'.format(url))
-                api_response = api_session.get(url)
-            _handle_http_status_code(api_response)
-            api_response = api_response.json()
-        except RpcClientException as e:
-            logger.error(repr(e))
-            return _flash_and_redirect('请求错误')
-        except RpcServerException as e:
-            logger.error(repr(e))
-            return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
-        except Exception as e:
-            logger.error('RPC exception: {}'.format(repr(e)))
-            return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
+        rpc_result = http_rpc('{}/v1/search/{}'.format(app.config['API_SERVER'], request.values.get('id')))
+        print(rpc_result)
+        print(type(rpc_result))
+        print(isinstance(rpc_result, Response))
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
 
     # render different template for different resource types
     if len(api_response['room']) >= 1:
@@ -90,13 +79,13 @@ def get_student(url_sid, url_semester):
     from everyclass.server.tools import lesson_string_to_dict, teacher_list_to_str
 
     with elasticapm.capture_span('rpc_query_student'):
-        api_session = requests.sessions.session()
-        api_response = api_session.get('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
-                                                                    url_sid,
-                                                                    url_semester)
-                                       , params={'week_string': 'true'})
-        _handle_http_status_code(api_response)
-        api_response = api_response.json()
+        rpc_result = http_rpc('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
+                                                           url_sid,
+                                                           url_semester), params={'week_string'   : 'true',
+                                                                                  'other_semester': 'true'})
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
 
     with elasticapm.capture_span('process_rpc_result'):
         student_classes = dict()
@@ -134,7 +123,7 @@ def get_student(url_sid, url_semester):
     with elasticapm.capture_span('semester_calculate'):
         available_semesters = []
 
-        for each_semester in api_response['semester']:
+        for each_semester in api_response['semester_list']:
             if url_semester == each_semester:
                 available_semesters.append([each_semester, True])
             else:
@@ -179,13 +168,12 @@ def get_course(url_cid: str, url_semester: str):
     from everyclass.server.db.dao import get_students_in_class
 
     with elasticapm.capture_span('rpc_query_course'):
-        api_session = requests.sessions.session()
-        api_response = api_session.get('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
-                                                                   url_cid,
-                                                                   url_semester)
-                                       )
-        _handle_http_status_code(api_response)
-        api_response = api_response.json()
+        rpc_result = http_rpc('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
+                                                          url_cid,
+                                                          url_semester))
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
 
     # 默认不显示学号，加入 show_id 参数显示
     if request.values.get('show_id') and request.values.get('show_id') == 'true':
@@ -195,7 +183,7 @@ def get_course(url_cid: str, url_semester: str):
 
     # 获取选了这门课的学生信息
     class_name, class_day, class_time, class_teacher, students_info = get_students_in_class(
-        request.values.get('class_id', None))
+            request.values.get('class_id', None))
     return render_template('classmate.html',
                            class_name=class_name,
                            class_day=get_day_chinese(class_day),
@@ -204,24 +192,3 @@ def get_course(url_cid: str, url_semester: str):
                            students=students_info,
                            student_count=len(students_info),
                            show_id=show_id)
-
-
-def _handle_http_status_code(response: requests.Response):
-    """
-    check HTTP RPC status code and raise exception if it's 4xx or 5xx
-
-    :param response: a `Response` object
-    """
-    status_code = response.status_code
-    if status_code >= 500:
-        # server internal error
-        raise RpcServerException(response.text)
-    if 400 <= status_code < 500:
-        # bad request
-        raise RpcClientException(response.text)
-
-
-def _flash_and_redirect(info: str):
-    """flash message and return to main page"""
-    flash(info)
-    return redirect(url_for('main.main'))
