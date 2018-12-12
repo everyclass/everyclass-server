@@ -65,5 +65,5 @@ def teacher_list_to_str(teachers: list):
     """parse a teacher list into a str"""
     string = ''
     for teacher in teachers:
-        string = string + teacher['name'] + teacher['title'] + ', '
+        string = string + teacher['name'] + teacher['title'] + '、'
     return string[:len(string) - 1]
