@@ -4,7 +4,7 @@
 import elasticapm
 import gevent
 import requests
-from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
 
 from . import logger
 from .exceptions import *
@@ -134,7 +134,7 @@ def get_student(url_sid, url_semester):
         available_semesters = []
 
         for each_semester in api_response['semester']:
-            if session['semester'] == each_semester:
+            if url_semester == each_semester:
                 available_semesters.append([each_semester, True])
             else:
                 available_semesters.append([each_semester, False])
