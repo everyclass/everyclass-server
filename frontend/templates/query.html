@@ -57,7 +57,7 @@
                                                     ，{{ every_class['location'] }}
                                                 {% endif %}
                                                 <br>
-                                                <a href="{{ url_for('query.get_classmates',class_id=every_class['id']) }}"
+                                                <a href="{{ url_for('query.get_course', url_cid=every_class['cid'], url_semester=current_semester) }}"
                                                    onclick="_czc.push(['_trackEvent', '查询页', '查询同学', '', '{{ every_class['id'] }}']);">查看同学</a>
                                                 <br>
                                             {% endfor %}

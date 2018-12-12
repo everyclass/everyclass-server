@@ -3,7 +3,7 @@
 """
 import elasticapm
 import requests
-from flask import Blueprint, escape, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from . import logger
 
@@ -71,8 +71,6 @@ def query():
 @query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
 def get_student(url_sid, url_semester):
     """学生查询"""
-    from flask import current_app as app
-
     from everyclass.server.db.dao import get_privacy_settings
     from everyclass.server.tools import lesson_string_to_dict, teacher_list_to_str
 
@@ -140,7 +138,8 @@ def get_student(url_sid, url_semester):
                                class_name=api_response['klass'],
                                stu_id=api_response['xh'],
                                available_semesters=available_semesters,
-                               no_import_to_calender=True if "import_to_calender" in privacy_settings else False)
+                               no_import_to_calender=True if "import_to_calender" in privacy_settings else False,
+                               current_semester=url_semester)
 
     # privacy off
     return render_template('query.html',
@@ -152,20 +151,26 @@ def get_student(url_sid, url_semester):
                            empty_wkend=empty_weekend,
                            empty_6=empty_6,
                            empty_5=empty_5,
-                           available_semesters=available_semesters)
+                           available_semesters=available_semesters,
+                           current_semester=url_semester)
 
 
-@query_blueprint.route('/classmates')
-def get_classmates():
-    """同学名单查询视图函数"""
-    from flask import request, render_template, session, redirect, url_for
+@query_blueprint.route('/course/<string:url_cid>/<string:url_semester>')
+def get_course(url_cid, url_semester):
+    """课程查询"""
+    from flask import request, render_template
 
     from everyclass.server.tools import get_time_chinese, get_day_chinese
     from everyclass.server.db.dao import get_students_in_class
 
-    # 如果 session stu_id 不存在则回到首页
-    if not session.get('stu_id', None):
-        return redirect(url_for('main.main'))
+    with elasticapm.capture_span('rpc_query_course'):
+        api_session = requests.sessions.session()
+        api_response = api_session.get('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
+                                                                   url_cid,
+                                                                   url_semester)
+                                       )
+        _handle_rpc_error(api_response)
+        api_response = api_response.json()
 
     # 默认不显示学号，加入 show_id 参数显示
     if request.values.get('show_id') and request.values.get('show_id') == 'true':
@@ -186,27 +191,11 @@ def get_classmates():
                            show_id=show_id)
 
 
-def _no_student_handle(stu_identifier=None):
-    """
-    flash a waring telling user that the identifier inputted is not found in database.
-
-    :param stu_identifier: student id or name
-    :return: none
-    """
-    from flask import escape, redirect, url_for
-    if stu_identifier:
-        flash('没有在数据库中找到你哦。是不是输错了？你刚刚输入的是%s。如果你输入正确且处于正常入学状态，请联系我们更新数据。' % escape(stu_identifier))
-    else:
-        flash('没有在数据库中找到你哦。如果你输入正确且处于正常入学状态，请联系我们更新数据。')
-    return redirect(url_for('main.main'))
-
-
 def _handle_rpc_error(response):
     """
     check HTTP RPC status code
 
     :param response: a `Response` object
-    :return:
     """
     status_code = response.status_code
     if status_code >= 500:
