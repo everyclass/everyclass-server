@@ -97,31 +97,6 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
     return True
 
 
-def batch_generate():
-    """生成当前学期所有学生的 ics 文件，每次更新当前学期数据后使用"""
-    from everyclass.server import create_app
-    from everyclass.server.db.dao import get_all_students, get_classes_for_student
-    from everyclass.server.db.model import Semester
-
-    config = get_config()
-    now_semester = Semester(config.DEFAULT_SEMESTER)
-    now_semester_str = str(now_semester)
-
-    with create_app(offline=True).app_context():
-        students = get_all_students()
-        print("Total {} students".format(len(students)))
-        for each in students:
-            if now_semester_str in each[2]:
-                print("Generate .ics for [{}]{}...".format(each[0], each[1]))
-                student_classes = get_classes_for_student(each[0], now_semester)
-                generate(student_id=each[0],
-                         student_name=each[1],
-                         student_classes=student_classes,
-                         semester_string=now_semester.to_str(simplify=True),
-                         semester=now_semester.to_tuple())
-        print("Done.")
-
-
 def __get_datetime(week, day, time, semester):
     """
     输入周次，星期、时间tuple（时,分），输出datetime类型的时间
@@ -176,7 +151,3 @@ def __add_event(name, times, location, teacher, student_id, day, time):
     alarm.add('trigger', datetime(1980, 1, 1, 3, 5, 0))
     event.add_component(alarm)
     return event
-
-
-if __name__ == "__main__":
-    batch_generate()
