@@ -1,11 +1,12 @@
 {% extends "layout.html" %}
-{% block title %}{{ class_name }}课程详情 - 每课{% endblock %}
+{% block title %}{{ course_name }}课程详情 - 每课{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">{{ class_name }}</h1>
-        <h4 class="text-muted">{{ class_teacher }}</h4>
-        <h4 class="text-muted">{{ class_day }}{{ class_time }}</h4>
-        <h4 class="text-muted">共 {{ student_count }} 名学生</h4>
+        <h1 class="hero-header">{{ course_name }}</h1>
+        <h4 class="text-muted">{{ course_teacher }}及 {{ student_count }} 名学生</h4>
+        <h4 class="text-muted">{{ week }}{{ course_day }}{{ course_time }}，{{ room }}</h4>
+        <h4 class="text-muted">本{{ course_type }}共 {{ study_hour }} 学时{% if show_heban %}，合班名称：
+            {{ heban_name }}{% endif %}</h4>
     </div>
     <br><br>
     <div class="row row-backbordered">

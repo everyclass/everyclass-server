@@ -163,7 +163,8 @@ def get_course(url_cid: str, url_semester: str):
     with elasticapm.capture_span('rpc_query_course'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
                                                                                 url_cid,
-                                                                                url_semester))
+                                                                                url_semester),
+                                                    params={'week_string': 'true'})
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
@@ -173,14 +174,28 @@ def get_course(url_cid: str, url_semester: str):
     # student list
     students = list()
     for each in api_response['student']:
-        students.append([each['name'], each['sid'], 'faculty', each['class']])
-        # todo add faculty
+        students.append([each['name'], each['sid'], each['deputy'], each['class']])
+
+    # 给“文化素质类”等加上“课”后缀
+    if api_response['type'][-1] != '课':
+        api_response['type'] = api_response['type'] + '课'
+
+    # 合班名称为数字时不展示合班名称
+    show_heban = True
+    if api_response['class'].isdigit():
+        show_heban = False
 
     return render_template('course.html',
-                           class_name=api_response['name'],
-                           class_day=get_day_chinese(day),
-                           class_time=get_time_chinese(time),
-                           class_teacher=teacher_list_to_str(api_response['teacher']),
+                           course_name=api_response['name'],
+                           course_day=get_day_chinese(day),
+                           course_time=get_time_chinese(time),
+                           study_hour=api_response['hour'],
+                           show_heban=show_heban,
+                           heban_name=api_response['class'],
+                           course_type=api_response['type'],
+                           week=api_response['week_string'],
+                           room=api_response['room'],
+                           course_teacher=teacher_list_to_str(api_response['teacher']),
                            students=students,
                            student_count=len(api_response['student']),
                            current_semester=url_semester
