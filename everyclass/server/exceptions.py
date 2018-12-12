@@ -8,3 +8,15 @@ class NoStudentException(ValueError):
 
 class IllegalSemesterException(ValueError):
     pass
+
+
+class RpcException(ConnectionError):
+    pass
+
+
+class RpcClientException(RpcException):
+    pass
+
+
+class RpcServerException(RpcException):
+    pass

@@ -6,6 +6,7 @@ import requests
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from . import logger
+from .exceptions import *
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -28,14 +29,27 @@ def query():
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
 
+    print('hello')
+    logger.info('world')
+
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
         api_session = requests.sessions.session()
-        api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
-                                                                 request.values.get('id').encode('utf-8'))
-                                       )
-        _handle_rpc_error(api_response)
-        api_response = api_response.json()
+        try:
+            api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
+                                                                     request.values.get('id').encode('utf-8'))
+                                           )
+            _handle_rpc_error(api_response)
+            api_response = api_response.json()
+        except RpcClientException as e:
+            logger.error(repr(e))
+            return _flash_and_redirect('请求错误')
+        except RpcServerException as e:
+            logger.error(repr(e))
+            return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
+        except Exception as e:
+            logger.error('RPC exception: {}'.format(repr(e)))
+            return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
 
     # render different template for different resource types
     if 'room' in api_response:
@@ -156,7 +170,7 @@ def get_student(url_sid, url_semester):
 
 
 @query_blueprint.route('/course/<string:url_cid>/<string:url_semester>')
-def get_course(url_cid, url_semester):
+def get_course(url_cid: str, url_semester: str):
     """课程查询"""
     from flask import request, render_template
 
@@ -191,20 +205,22 @@ def get_course(url_cid, url_semester):
                            show_id=show_id)
 
 
-def _handle_rpc_error(response):
+def _handle_rpc_error(response: requests.Response):
     """
-    check HTTP RPC status code
+    check HTTP RPC status code and raise exception
 
     :param response: a `Response` object
     """
     status_code = response.status_code
     if status_code >= 500:
         # server internal error
-        flash('服务器内部错误')
-        logger.error('5xx status code when RPC')
-        return redirect(url_for('main.main'))
+        raise RpcServerException(response.text)
     if 400 <= status_code < 500:
         # bad request
-        flash('请求异常')
-        logger.warn('4xx status code when RPC')
-        return redirect(url_for('main.main'))
+        raise RpcClientException(response.text)
+
+
+def _flash_and_redirect(info: str):
+    """flash message and return to main page"""
+    flash(info)
+    return redirect(url_for('main.main'))
