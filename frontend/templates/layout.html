@@ -110,11 +110,6 @@
 <script src="{{ url_for('static', filename='js/jquery.animate-colors.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
-    $("select#semester").change(function () {
-        $("form#semester-choose-form").submit();
-    });
-
-
     $(document).ready(function () {
         var ua = window.navigator.userAgent.toLowerCase();
         if (ua.match(/MicroMessenger/i) == 'micromessenger') {

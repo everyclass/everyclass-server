@@ -5,11 +5,11 @@
         <h1 class="hero-header">{{ name }}的课表</h1>
         <h4 class="text-muted">{{ falculty }} {{ class_name }}班
         </h4>
-        {% if name=='詹泽宇' %}
+        {% if sid == 'PEBJvQPd11RwMwDMj3At2ELn+i+Jk0XTQjST-SQeONA=' %}
             <h4 class="hero-header">为啥来查我的课表，你是不是喜欢我呀哈哈哈~</h4>
         {% endif %}
-        <form id="semester-choose-form" action="/query" method="post">
-            <select id="semester" name="semester">
+        <form id="semester-choose-form">
+            <select id="semester-select" name="semester">
                 {% for each_semester in available_semesters %}
                     <option value="{{ each_semester[0] }}"
                             {% if each_semester[1]==True %}selected{% endif %}>{{ each_semester[0] }}</option>
@@ -20,7 +20,7 @@
 
         <h4 class="text-muted visible-xs">课表内容较多，建议登陆电脑使用哦。网址：<br><a href="https://everyclass.xyz">https://everyclass.xyz</a>
         </h4>
-        <h4 class="text-muted"><a href="{{ url_for('calendar.cal_page', id=sid) }}"
+        <h4 class="text-muted"><a href="{{ url_for('calendar.cal_page', sid=sid) }}"
                                   onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a>（支持几乎所有设备）</h4>
     </div>
     <br><br>
@@ -99,4 +99,10 @@
             });
         </script>
     {% endif %}
+    <script>
+        $("select#semester-select").change(function () {
+            window.location.href = "/student/" + "{{ sid }}" + "/" + $('select#semester-select option:selected').val();
+        });
+
+    </script>
 {% endblock %}
