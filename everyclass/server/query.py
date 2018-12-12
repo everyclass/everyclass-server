@@ -21,10 +21,8 @@ def query():
 
     埋点：
     - `query_resource_type`, 查询类型: classroom, single_student, single_teacher, people, or nothing.
-    - `query_type`（原 `ec_query_method`）, 查询方式: by_student_name, by_student_id, by_teacher_name,
-      by_teacher_id, by_room_name, other
+    - `query_type`（原 `ec_query_method`）, 查询方式: by_name, by_student_id, by_teacher_id, by_room_name, other
     """
-    from flask import current_app as app
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
