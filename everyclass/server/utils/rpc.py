@@ -27,22 +27,29 @@ def _flash_and_redirect(info: str):
     return redirect(url_for('main.main'))
 
 
-def http_rpc(url, params=None):
-    api_session = requests.sessions.session()
-    try:
+class HttpRpc:
+    @staticmethod
+    def call(url, params=None):
+        api_session = requests.sessions.session()
         with gevent.Timeout(5):
             logger.debug('RPC GET {}'.format(url))
             api_response = api_session.get(url, params=params)
         _handle_http_status_code(api_response)
         logger.debug('RPC result: {}'.format(api_response))
         api_response = api_response.json()
-    except RpcClientException as e:
-        logger.error(repr(e))
-        return _flash_and_redirect('请求错误')
-    except RpcServerException as e:
-        logger.error(repr(e))
-        return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
-    except Exception as e:
-        logger.error('RPC exception: {}'.format(repr(e)))
-        return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
-    return api_response
+        return api_response
+
+    @staticmethod
+    def call_with_error_handle(url, params=None):
+        try:
+            api_response = HttpRpc.call(url, params=params)
+        except RpcClientException as e:
+            logger.error(repr(e))
+            return _flash_and_redirect('请求错误')
+        except RpcServerException as e:
+            logger.error(repr(e))
+            return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
+        except Exception as e:
+            logger.error('RPC exception: {}'.format(repr(e)))
+            return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
+        return api_response

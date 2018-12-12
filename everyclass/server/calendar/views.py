@@ -6,7 +6,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, flash, redirect, render_template, send_from_directory, url_for
 from werkzeug.wrappers import Response
 
-from everyclass.server.utils.rpc import http_rpc
+from everyclass.server.utils.rpc import HttpRpc
 
 cal_blueprint = Blueprint('calendar', __name__)
 
@@ -17,9 +17,9 @@ def cal_page(url_sid, url_semester):
     from everyclass.server.db.model import Semester
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = http_rpc('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
-                                                           url_sid,
-                                                           url_semester))
+        rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
+                                                                                 url_sid,
+                                                                                 url_semester))
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result

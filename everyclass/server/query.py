@@ -5,8 +5,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
-from . import logger
-from .utils.rpc import http_rpc
+from .utils.rpc import HttpRpc
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -27,12 +26,10 @@ def query():
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
 
-    print('hello')
-    logger.info('world')
-
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = http_rpc('{}/v1/search/{}'.format(app.config['API_SERVER'], request.values.get('id')))
+        rpc_result = HttpRpc.call_with_error_handle('{}/v1/search/{}'.format(app.config['API_SERVER'],
+                                                                             request.values.get('id')))
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
@@ -76,10 +73,10 @@ def get_student(url_sid, url_semester):
     from everyclass.server.tools import lesson_string_to_dict, teacher_list_to_str
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = http_rpc('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
-                                                           url_sid,
-                                                           url_semester), params={'week_string'   : 'true',
-                                                                                  'other_semester': 'true'})
+        rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
+                                                                                 url_sid,
+                                                                                 url_semester),
+                                                    params={'week_string': 'true', 'other_semester': 'true'})
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
@@ -164,9 +161,9 @@ def get_course(url_cid: str, url_semester: str):
     from everyclass.server.tools import get_time_chinese, get_day_chinese, lesson_string_to_dict, teacher_list_to_str
 
     with elasticapm.capture_span('rpc_query_course'):
-        rpc_result = http_rpc('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
-                                                          url_cid,
-                                                          url_semester))
+        rpc_result = HttpRpc.call_with_error_handle('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
+                                                                                url_cid,
+                                                                                url_semester))
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
