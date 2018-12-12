@@ -52,12 +52,12 @@ def query():
             return _flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
 
     # render different template for different resource types
-    if 'room' in api_response:
+    if len(api_response['room']) >= 1:
         # classroom
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
         return redirect('/classroom?rid={}'.format(api_response['room'][0]['rid']))
-    elif 'student' in api_response and len(api_response['student']) == 1 and 'teacher' not in api_response:
+    elif len(api_response['student']) == 1 and len(api_response['teacher']) == 0:
         # only one student
         elasticapm.tag(query_resource_type='single_student')
         if len(api_response['student'][0]['semester']) < 1:
@@ -65,12 +65,12 @@ def query():
             return redirect(url_for('main.main'))
         return redirect('/student/{}/{}'.format(api_response['student'][0]['sid'],
                                                 api_response['student'][0]['semester'][-1]))
-    elif 'teacher' in api_response and len(api_response['teacher']) == 1 and 'student' not in api_response:
+    elif len(api_response['teacher']) == 1 and len(api_response['student']) == 0:
         # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
         return redirect('/teacher?rid={}&semester={}'.format(api_response['teacher'][0]['tid'],
                                                              api_response['teacher'][0]['semester'][-1]))
-    elif 'teacher' in api_response or 'student' in api_response:
+    elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='people')
         return render_template('query_same_name.html',
