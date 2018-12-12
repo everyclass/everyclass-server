@@ -33,9 +33,6 @@ def query():
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
         rpc_result = http_rpc('{}/v1/search/{}'.format(app.config['API_SERVER'], request.values.get('id')))
-        print(rpc_result)
-        print(type(rpc_result))
-        print(isinstance(rpc_result, Response))
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result

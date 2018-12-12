@@ -34,6 +34,7 @@ def http_rpc(url, params=None):
             logger.debug('RPC GET {}'.format(url))
             api_response = api_session.get(url, params=params)
         _handle_http_status_code(api_response)
+        logger.debug('RPC result: {}'.format(api_response))
         api_response = api_response.json()
     except RpcClientException as e:
         logger.error(repr(e))
