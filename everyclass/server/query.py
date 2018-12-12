@@ -132,15 +132,16 @@ def get_student(url_sid, url_semester):
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
     with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
-        privacy_settings = get_privacy_settings(api_response['xh'])
+        # todo migrate privacy
+        privacy_settings = get_privacy_settings(url_sid)
 
     # privacy on
     if "show_table_on_page" in privacy_settings:
         return render_template('blocked.html',
                                name=api_response['name'],
                                falculty=api_response['deputy'],
-                               class_name=api_response['klass'],
-                               stu_id=api_response['xh'],
+                               class_name=api_response['class'],
+                               sid=url_sid,
                                available_semesters=available_semesters,
                                no_import_to_calender=True if "import_to_calender" in privacy_settings else False,
                                current_semester=url_semester)
@@ -149,8 +150,8 @@ def get_student(url_sid, url_semester):
     return render_template('query.html',
                            name=api_response['name'],
                            falculty=api_response['deputy'],
-                           class_name=api_response['klass'],
-                           stu_id=api_response['xh'],
+                           class_name=api_response['class'],
+                           sid=url_sid,
                            classes=student_classes,
                            empty_wkend=empty_weekend,
                            empty_6=empty_6,
