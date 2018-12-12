@@ -2,6 +2,7 @@
 查询相关函数
 """
 import elasticapm
+import gevent
 import requests
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
@@ -36,11 +37,11 @@ def query():
     with elasticapm.capture_span('rpc_search'):
         api_session = requests.sessions.session()
         try:
-            api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
-                                                                     request.values.get('id').encode('utf-8')),
-                                           timeout=(5, 5)
-                                           )
-            _handle_rpc_error(api_response)
+            with gevent.Timeout(5):
+                api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
+                                                                         request.values.get('id').encode('utf-8'))
+                                               )
+            _handle_http_status_code(api_response)
             api_response = api_response.json()
         except RpcClientException as e:
             logger.error(repr(e))
@@ -95,7 +96,7 @@ def get_student(url_sid, url_semester):
                                                                     url_sid.encode('utf-8'),
                                                                     url_semester)
                                        , params={'week_string': 'true'})
-        _handle_rpc_error(api_response)
+        _handle_http_status_code(api_response)
         api_response = api_response.json()
 
     with elasticapm.capture_span('process_rpc_result'):
@@ -184,7 +185,7 @@ def get_course(url_cid: str, url_semester: str):
                                                                    url_cid,
                                                                    url_semester)
                                        )
-        _handle_rpc_error(api_response)
+        _handle_http_status_code(api_response)
         api_response = api_response.json()
 
     # 默认不显示学号，加入 show_id 参数显示
@@ -206,9 +207,9 @@ def get_course(url_cid: str, url_semester: str):
                            show_id=show_id)
 
 
-def _handle_rpc_error(response: requests.Response):
+def _handle_http_status_code(response: requests.Response):
     """
-    check HTTP RPC status code and raise exception
+    check HTTP RPC status code and raise exception if it's 4xx or 5xx
 
     :param response: a `Response` object
     """
