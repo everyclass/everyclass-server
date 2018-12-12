@@ -98,7 +98,7 @@ def get_student(url_sid, url_semester):
                                                      duration='',
                                                      week=each_class['week_string'],
                                                      location=each_class['room'],
-                                                     id=each_class['cid']))
+                                                     cid=each_class['cid']))
 
     with elasticapm.capture_span('empty_column_minify'):
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
@@ -163,10 +163,8 @@ def get_student(url_sid, url_semester):
 @query_blueprint.route('/course/<string:url_cid>/<string:url_semester>')
 def get_course(url_cid: str, url_semester: str):
     """课程查询"""
-    from flask import request, render_template
 
-    from everyclass.server.tools import get_time_chinese, get_day_chinese
-    from everyclass.server.db.dao import get_students_in_class
+    from everyclass.server.tools import get_time_chinese, get_day_chinese, lesson_string_to_dict, teacher_list_to_str
 
     with elasticapm.capture_span('rpc_query_course'):
         rpc_result = http_rpc('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
@@ -176,20 +174,19 @@ def get_course(url_cid: str, url_semester: str):
             return rpc_result
         api_response = rpc_result
 
-    # 默认不显示学号，加入 show_id 参数显示
-    if request.values.get('show_id') and request.values.get('show_id') == 'true':
-        show_id = True
-    else:
-        show_id = False
+    day, time = lesson_string_to_dict(api_response['lesson'])
 
-    # 获取选了这门课的学生信息
-    class_name, class_day, class_time, class_teacher, students_info = get_students_in_class(
-            request.values.get('class_id', None))
-    return render_template('classmate.html',
-                           class_name=class_name,
-                           class_day=get_day_chinese(class_day),
-                           class_time=get_time_chinese(class_time),
-                           class_teacher=class_teacher,
-                           students=students_info,
-                           student_count=len(students_info),
-                           show_id=show_id)
+    # student list
+    students = list()
+    for each in api_response['student']:
+        students.append([each['name'], each['sid'], 'faculty', each['class']])
+
+    return render_template('course.html',
+                           class_name=api_response['name'],
+                           class_day=get_day_chinese(day),
+                           class_time=get_time_chinese(time),
+                           class_teacher=teacher_list_to_str(api_response['teacher']),
+                           students=students,
+                           student_count=len(api_response['student']),
+                           current_semester=url_semester
+                           )
