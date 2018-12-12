@@ -126,12 +126,11 @@ def get_student(url_sid, url_semester):
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
     with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
-        # todo migrate privacy
-        privacy_settings = get_privacy_settings(url_sid)
+        privacy_settings = get_privacy_settings(api_response['sid'])
 
     # privacy on
     if "show_table_on_page" in privacy_settings:
-        return render_template('blocked.html',
+        return render_template('student_blocked.html',
                                name=api_response['name'],
                                falculty=api_response['deputy'],
                                class_name=api_response['class'],
