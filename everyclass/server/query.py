@@ -147,7 +147,7 @@ def get_student(url_sid, url_semester):
                                current_semester=url_semester)
 
     # privacy off
-    return render_template('query.html',
+    return render_template('student.html',
                            name=api_response['name'],
                            falculty=api_response['deputy'],
                            class_name=api_response['class'],
@@ -180,6 +180,7 @@ def get_course(url_cid: str, url_semester: str):
     students = list()
     for each in api_response['student']:
         students.append([each['name'], each['sid'], 'faculty', each['class']])
+        # todo add faculty
 
     return render_template('course.html',
                            class_name=api_response['name'],
