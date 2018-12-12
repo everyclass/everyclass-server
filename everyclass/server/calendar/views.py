@@ -27,15 +27,15 @@ def cal_page(url_sid, url_semester):
         # todo generate calendar token
 
         return render_template('ics.html',
-                               student_id=url_sid,
+                               calendar_token='token',
                                semester=Semester(url_semester).to_str(simplify=True)
                                )
 
 
-@cal_blueprint.route('/calendar_files/<calendar_token>/<semester>.ics')
-def ics_download(calendar_token, semester):
+@cal_blueprint.route('/calendar/_ics/<calendar_token>.ics')
+def ics_download(calendar_token):
     """
-    iCalendar download
+    iCalendar ics file download
     """
     from everyclass.server.calendar import ics_generator
     from everyclass.server.db.dao import check_if_stu_exist, get_my_semesters, get_classes_for_student
@@ -86,8 +86,7 @@ def get_ics(student_id, semester_str):
     from everyclass.server.exceptions import IllegalSemesterException
     from everyclass.server import logger
 
-    # TODO: generate ics here and return it to user, instead of generating .ics files in other places.
-    # 临时 fix
+    # fix parameters
     place = student_id.find('-')
     semester_str = student_id[place + 1:len(student_id)] + '-' + semester_str
     student_id = student_id[:place]

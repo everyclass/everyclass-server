@@ -5,8 +5,8 @@
     <div class="row">
         <div class="rte col-md-offset-2 col-md-8 col-sm-12 col-sm-offset-0">
             <h4 class="p1">
-                你的专属日历文件地址为：https://everyclass.xyz{{ url_for('calendar.get_ics', student_id=student_id, semester_str=semester) }}<br>
-                <a href="webcal://everyclass.xyz{{ url_for('calendar.get_ics', student_id=student_id,semester_str=semester) }}"
+                你的专属日历文件地址为：https://everyclass.xyz{{ url_for('calendar.ics_download', calendar_token=calendar_token) }}<br>
+                <a href="webcal://everyclass.xyz{{ url_for('calendar.ics_download', calendar_token=calendar_token) }}"
                    onclick="_czc.push(['_trackEvent', '日历导出页', 'iOS链接']);">iPhone / Mac 点这里快速添加到日历</a><br>
                 <b>每课现已支持全平台，持有安卓 / Windows 设备的同学请看下方解决方案</b><br>
                 <div id="wechat-notify" style="display: none; color: #c9a535;">如果你在使用微信等 App 内置浏览器，你需要选择用系统浏览器打开↗</div>
@@ -18,8 +18,8 @@
                 Calendar）设置了云同步，你甚至可以<b>在任意一台设备上查看自己的所有日程</b>。
             </p>
             <p class="p1"><span class="s1"><b>该功能支持哪些设备？<br></b></span>iCalendar 是通用的日历交换格式，文件后缀名为『.ics』。您的专属文件地址为：<a
-                    href="{{ url_for('calendar.get_ics', student_id=student_id,semester_str=semester,_external=True) }}"
-                    onclick="_czc.push(['_trackEvent', '日历导出页', '安卓链接']);">{{ url_for('calendar.get_ics', student_id=student_id,semester_str=semester,_external=True) }}</a>。我们提供了适用于安卓、Windows、Mac、iPhone
+                    href="{{ url_for('calendar.ics_download', calendar_token=calendar_token, _external=True) }}"
+                    onclick="_czc.push(['_trackEvent', '日历导出页', '安卓链接']);">{{ url_for('calendar.ics_download', calendar_token=calendar_token,_external=True) }}</a>。我们提供了适用于安卓、Windows、Mac、iPhone
                 的配置教程（配置难度按上述顺序递减）：
             <ul>
                 <li><a href="https://base.admirable.one/t/topic/244/2?u=frederic"
