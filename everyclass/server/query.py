@@ -36,9 +36,9 @@ def query():
         api_session = requests.sessions.session()
         try:
             with gevent.Timeout(5):
-                api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
-                                                                         request.values.get('id').encode('utf-8'))
-                                               )
+                url = '{}/v1/search/{}'.format(app.config['API_SERVER'], request.values.get('id'))
+                logger.debug('RPC GET {}'.format(url))
+                api_response = api_session.get(url)
             _handle_http_status_code(api_response)
             api_response = api_response.json()
         except RpcClientException as e:
@@ -73,13 +73,14 @@ def query():
     elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='people')
+        # todo multiple name implementation
         return render_template('query_same_name.html',
                                students=api_response['student'],
                                teachers=api_response['teacher'])
     else:
         elasticapm.tag(query_resource_type='nothing')
-        flash('没有找到任何有关 %s 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
-        return url_for('main.main')
+        flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
+        return redirect(url_for('main.main'))
 
 
 @query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
@@ -91,7 +92,7 @@ def get_student(url_sid, url_semester):
     with elasticapm.capture_span('rpc_query_student'):
         api_session = requests.sessions.session()
         api_response = api_session.get('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
-                                                                    url_sid.encode('utf-8'),
+                                                                    url_sid,
                                                                     url_semester)
                                        , params={'week_string': 'true'})
         _handle_http_status_code(api_response)
