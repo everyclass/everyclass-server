@@ -37,7 +37,8 @@ def query():
         api_session = requests.sessions.session()
         try:
             api_response = api_session.get('{}/v1/_search/{}'.format(app.config['API_SERVER'],
-                                                                     request.values.get('id').encode('utf-8'))
+                                                                     request.values.get('id').encode('utf-8')),
+                                           timeout=(5, 5)
                                            )
             _handle_rpc_error(api_response)
             api_response = api_response.json()
