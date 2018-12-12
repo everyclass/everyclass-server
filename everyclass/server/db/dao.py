@@ -28,24 +28,6 @@ def check_if_stu_exist(student_id: str) -> bool:
         return False
 
 
-def get_students_by_name(name: str) -> list:
-    """
-    通过姓名查询学生列表
-
-    :param name: 需要查询的学生姓名
-    :return: 列表，每一项为（姓名，学号）
-    """
-    db = get_connection()
-    cursor = db.cursor()
-    mysql_query = "SELECT name,xh FROM ec_students WHERE name=%s"
-    cursor.execute(mysql_query, (name,))
-    result = cursor.fetchall()
-    cursor.close()
-    db.close()
-
-    return result
-
-
 def get_all_students() -> list:
     """
     获取全部学生的学号、姓名、学期信息
@@ -138,59 +120,6 @@ def get_classes_for_student(student_id: str, sem: Semester) -> dict:
         return courses
 
 
-def get_students_in_class(class_id: str):
-    """
-    获得一门课程的全部学生
-
-    :param class_id: 班级 ID
-    :return: 若有学生，返回课程名称、课程时间（day、time）、任课教师、学生列表（包含姓名、学号、学院、专业、班级），
-    否则引出 exception
-    """
-    from everyclass.server.db.model import Semester
-    from everyclass.server.exceptions import NoStudentException, NoClassException
-
-    mysql_query = "SELECT students,clsname,day,time,teacher FROM {} WHERE id=%s" \
-        .format('ec_classes_' + Semester.get().to_db_code())
-    db = get_connection()
-    cursor = db.cursor()
-    cursor.execute(mysql_query, (class_id,))
-    result = cursor.fetchall()
-    if not result:
-        cursor.close()
-        db.close()
-        raise NoClassException(class_id)
-    else:
-        students = json.loads(result[0][0])
-        students_info = list()
-        class_name = result[0][1]
-        class_day = result[0][2]
-        class_time = result[0][3]
-        class_teacher = result[0][4]
-        if not students:
-            cursor.close()
-            db.close()
-            raise NoStudentException
-
-        students_in_sql = ''
-        for each_student in students:
-            students_in_sql += "'" + each_student + "',"
-        students_in_sql = '(' + students_in_sql[0:len(students_in_sql) - 1] + ')'
-        print(students_in_sql)
-        mysql_query = "SELECT xh, name, faculty, class_name FROM ec_students WHERE xh IN {}".format(students_in_sql)
-        cursor.execute(mysql_query)
-        result = cursor.fetchall()
-        if result:
-            # 信息包含姓名、学号、学院、专业、班级
-            for each in result:
-                students_info.append([each[1],
-                                      each[0],
-                                      each[2],
-                                      each[3]])
-        cursor.close()
-        db.close()
-        return class_name, class_day, class_time, class_teacher, students_info
-
-
 def get_privacy_settings(student_id: str) -> list:
     """
     获得隐私设定
@@ -218,46 +147,6 @@ def get_privacy_settings(student_id: str) -> list:
         cursor.close()
         db.close()
         return json.loads(result[0][0])
-
-
-def class_lookup(student_id: str) -> str:
-    """
-    查询学生所在班级
-
-    :param student_id: 学生学号
-    :return: 字符串，学生所在的行政班级名称
-    """
-    db = get_connection()
-    cursor = db.cursor()
-    mysql_query = "SELECT class_name FROM ec_students WHERE xh=%s"
-    cursor.execute(mysql_query, (student_id,))
-    result = cursor.fetchall()
-    cursor.close()
-    db.close()
-    if result:
-        return result[0][0]
-    else:
-        return "未知"
-
-
-def faculty_lookup(student_id: str) -> str:
-    """
-    查询学生所在院系
-
-    :param student_id: 学生学号
-    :return: 字符串，学生所在的院系
-    """
-    db = get_connection()
-    cursor = db.cursor()
-    mysql_query = "SELECT faculty FROM ec_students WHERE xh=%s"
-    cursor.execute(mysql_query, (student_id,))
-    result = cursor.fetchall()
-    cursor.close()
-    db.close()
-    if result:
-        return result[0][0]
-    else:
-        return "未知"
 
 
 def new_user_id_sequence() -> int:
