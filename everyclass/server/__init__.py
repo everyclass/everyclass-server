@@ -202,7 +202,7 @@ def create_app(outside_container=False) -> Flask:
             return render_template('500.html',
                                    event_id=g.sentry_event_id,
                                    public_dsn=sentry.client.get_public_dsn('https'))
-        return "500 error: {}. You are seeing this page because Sentry is not available.".format(error)
+        return "<h2>500 Error: {}</h4><br>You are seeing this page because Sentry is not available.".format(repr(error))
 
     global __app
     __app = app
