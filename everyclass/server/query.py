@@ -53,7 +53,6 @@ def query():
     elif len(api_response['teacher']) == 1 and len(api_response['student']) == 0:
         # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
-        # todo teacher page
         if len(api_response['teacher'][0]['semester']) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
@@ -89,46 +88,20 @@ def get_student(url_sid, url_semester):
         api_response = rpc_result
 
     with elasticapm.capture_span('process_rpc_result'):
-        student_classes = dict()
+        courses = dict()
         for each_class in api_response['course']:
             day, time = lesson_string_to_dict(each_class['lesson'])
-            if (day, time) not in student_classes:
-                student_classes[(day, time)] = list()
-            student_classes[(day, time)].append(dict(name=each_class['name'],
-                                                     teacher=teacher_list_to_str(each_class['teacher']),
-                                                     duration='',
-                                                     week=each_class['week_string'],
-                                                     location=each_class['room'],
-                                                     cid=each_class['cid']))
+            if (day, time) not in courses:
+                courses[(day, time)] = list()
+            courses[(day, time)].append(dict(name=each_class['name'],
+                                             teacher=teacher_list_to_str(each_class['teacher']),
+                                             week=each_class['week_string'],
+                                             location=each_class['room'],
+                                             cid=each_class['cid']))
 
-    with elasticapm.capture_span('empty_column_minify'):
-        # 空闲周末判断，考虑到大多数人周末都是没有课程的
-        empty_weekend = True
-        for cls_time in range(1, 7):
-            for cls_day in range(6, 8):
-                if (cls_day, cls_time) in student_classes:
-                    empty_weekend = False
+    empty_5, empty_6, empty_weekend = _empty_column_check(courses)
 
-        # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
-        empty_6 = True
-        for cls_day in range(1, 8):
-            if (cls_day, 6) in student_classes:
-                empty_6 = False
-        empty_5 = True
-        for cls_day in range(1, 8):
-            if (cls_day, 5) in student_classes:
-                empty_5 = False
-
-    # available_semesters 为当前学生所能选择的学期，是一个list。
-    # 当中每一项又是一个包含两项的list，第一项为学期string，第二项为True/False表示是否为当前学期。
-    with elasticapm.capture_span('semester_calculate'):
-        available_semesters = []
-
-        for each_semester in api_response['semester_list']:
-            if url_semester == each_semester:
-                available_semesters.append([each_semester, True])
-            else:
-                available_semesters.append([each_semester, False])
+    available_semesters = _semester_calculate(url_semester, api_response['semester_list'])
 
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
@@ -152,7 +125,7 @@ def get_student(url_sid, url_semester):
                            falculty=api_response['deputy'],
                            class_name=api_response['class'],
                            sid=url_sid,
-                           classes=student_classes,
+                           classes=courses,
                            empty_wkend=empty_weekend,
                            empty_6=empty_6,
                            empty_5=empty_5,
@@ -185,34 +158,9 @@ def get_teacher(url_tid, url_semester):
                                              location=each_class['room'],
                                              cid=each_class['cid']))
 
-    with elasticapm.capture_span('empty_column_minify'):
-        # 空闲周末判断，考虑到大多数人周末都是没有课程的
-        empty_weekend = True
-        for cls_time in range(1, 7):
-            for cls_day in range(6, 8):
-                if (cls_day, cls_time) in courses:
-                    empty_weekend = False
+    empty_5, empty_6, empty_weekend = _empty_column_check(courses)
 
-        # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
-        empty_6 = True
-        for cls_day in range(1, 8):
-            if (cls_day, 6) in courses:
-                empty_6 = False
-        empty_5 = True
-        for cls_day in range(1, 8):
-            if (cls_day, 5) in courses:
-                empty_5 = False
-
-    # available_semesters 为当前学生所能选择的学期，是一个list。
-    # 当中每一项又是一个包含两项的list，第一项为学期string，第二项为True/False表示是否为当前学期。
-    with elasticapm.capture_span('semester_calculate'):
-        available_semesters = []
-
-        for each_semester in api_response['semester_list']:
-            if url_semester == each_semester:
-                available_semesters.append([each_semester, True])
-            else:
-                available_semesters.append([each_semester, False])
+    available_semesters = _semester_calculate(url_semester, api_response['semester_list'])
 
     return render_template('teacher.html',
                            name=api_response['name'],
@@ -273,3 +221,38 @@ def get_course(url_cid: str, url_semester: str):
                            student_count=len(api_response['student']),
                            current_semester=url_semester
                            )
+
+
+def _empty_column_check(courses: dict) -> (bool, bool, bool):
+    """检查是否周末和晚上有课，返回三个布尔值"""
+    with elasticapm.capture_span('_empty_column_check'):
+        # 空闲周末判断，考虑到大多数人周末都是没有课程的
+        empty_weekend = True
+        for cls_time in range(1, 7):
+            for cls_day in range(6, 8):
+                if (cls_day, cls_time) in courses:
+                    empty_weekend = False
+
+        # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
+        empty_6 = True
+        for cls_day in range(1, 8):
+            if (cls_day, 6) in courses:
+                empty_6 = False
+        empty_5 = True
+        for cls_day in range(1, 8):
+            if (cls_day, 5) in courses:
+                empty_5 = False
+    return empty_5, empty_6, empty_weekend
+
+
+def _semester_calculate(current_semester: str, semester_list: list):
+    """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
+    with elasticapm.capture_span('semester_calculate'):
+        available_semesters = []
+
+        for each_semester in semester_list:
+            if current_semester == each_semester:
+                available_semesters.append([each_semester, True])
+            else:
+                available_semesters.append([each_semester, False])
+    return available_semesters
