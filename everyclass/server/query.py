@@ -39,7 +39,9 @@ def query():
         # classroom
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
-        return redirect('/classroom?rid={}'.format(api_response['room'][0]['rid']))
+        # todo classroom page
+        return redirect('/classroom/{}/{}'.format(api_response['room'][0]['rid'],
+                                                  api_response['room'][0]['semester'][-1]))
     elif len(api_response['student']) == 1 and len(api_response['teacher']) == 0:
         # only one student
         elasticapm.tag(query_resource_type='single_student')
@@ -51,8 +53,12 @@ def query():
     elif len(api_response['teacher']) == 1 and len(api_response['student']) == 0:
         # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
-        return redirect('/teacher?rid={}&semester={}'.format(api_response['teacher'][0]['tid'],
-                                                             api_response['teacher'][0]['semester'][-1]))
+        # todo teacher page
+        if len(api_response['teacher'][0]['semester']) < 1:
+            flash('没有可用学期')
+            return redirect(url_for('main.main'))
+        return redirect('/teacher/{}/{}'.format(api_response['teacher'][0]['tid'],
+                                                api_response['teacher'][0]['semester'][-1]))
     elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='people')
@@ -146,6 +152,73 @@ def get_student(url_sid, url_semester):
                            class_name=api_response['class'],
                            sid=url_sid,
                            classes=student_classes,
+                           empty_wkend=empty_weekend,
+                           empty_6=empty_6,
+                           empty_5=empty_5,
+                           available_semesters=available_semesters,
+                           current_semester=url_semester)
+
+
+@query_blueprint.route('/teacher/<string:url_tid>/<string:url_semester>')
+def get_teacher(url_tid, url_semester):
+    """老师查询"""
+    from everyclass.server.tools import lesson_string_to_dict
+
+    with elasticapm.capture_span('rpc_query_student'):
+        rpc_result = HttpRpc.call_with_error_handle('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER'],
+                                                                                 url_tid,
+                                                                                 url_semester),
+                                                    params={'week_string': 'true', 'other_semester': 'true'})
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
+
+    with elasticapm.capture_span('process_rpc_result'):
+        courses = dict()
+        for each_class in api_response['course']:
+            day, time = lesson_string_to_dict(each_class['lesson'])
+            if (day, time) not in courses:
+                courses[(day, time)] = list()
+            courses[(day, time)].append(dict(name=each_class['name'],
+                                             week=each_class['week_string'],
+                                             location=each_class['room'],
+                                             cid=each_class['cid']))
+
+    with elasticapm.capture_span('empty_column_minify'):
+        # 空闲周末判断，考虑到大多数人周末都是没有课程的
+        empty_weekend = True
+        for cls_time in range(1, 7):
+            for cls_day in range(6, 8):
+                if (cls_day, cls_time) in courses:
+                    empty_weekend = False
+
+        # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
+        empty_6 = True
+        for cls_day in range(1, 8):
+            if (cls_day, 6) in courses:
+                empty_6 = False
+        empty_5 = True
+        for cls_day in range(1, 8):
+            if (cls_day, 5) in courses:
+                empty_5 = False
+
+    # available_semesters 为当前学生所能选择的学期，是一个list。
+    # 当中每一项又是一个包含两项的list，第一项为学期string，第二项为True/False表示是否为当前学期。
+    with elasticapm.capture_span('semester_calculate'):
+        available_semesters = []
+
+        for each_semester in api_response['semester_list']:
+            if url_semester == each_semester:
+                available_semesters.append([each_semester, True])
+            else:
+                available_semesters.append([each_semester, False])
+
+    return render_template('teacher.html',
+                           name=api_response['name'],
+                           falculty=api_response['unit'],
+                           title=api_response['title'],
+                           tid=url_tid,
+                           classes=courses,
                            empty_wkend=empty_weekend,
                            empty_6=empty_6,
                            empty_5=empty_5,

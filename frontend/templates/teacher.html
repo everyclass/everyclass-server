@@ -2,12 +2,9 @@
 {% block title %}{{ name }}的课表 - 每课{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">{{ name }}的课表</h1>
-        <h4 class="text-muted">{{ falculty }} {{ class_name }}班
+        <h1 class="hero-header">{{ name }}</h1>
+        <h4 class="text-muted">{{ falculty }} {{ title }}
         </h4>
-        {% if sid == 'PEBJvQPd11RwMwDMj3At2ELn+i+Jk0XTQjST-SQeONA=' %}
-            <h4 class="hero-header">为啥来查我的课表，你是不是喜欢我呀哈哈哈~</h4>
-        {% endif %}
         <form id="semester-choose-form">
             <select id="semester-select" name="semester">
                 {% for each_semester in available_semesters %}
@@ -20,7 +17,7 @@
 
         <h4 class="text-muted visible-xs">课表内容较多，建议登陆电脑使用哦。网址：<br><a href="https://everyclass.xyz">https://everyclass.xyz</a>
         </h4>
-        <h4 class="text-muted"><a href="{{ url_for('calendar.cal_page', url_sid=sid, url_semester=current_semester) }}"
+        <h4 class="text-muted"><a href="{{ url_for('calendar.cal_page', url_sid=tid, url_semester=current_semester) }}"
                                   onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a>（支持几乎所有设备）</h4>
     </div>
     <br><br>
@@ -51,8 +48,8 @@
                                     {% for day in range(1,8) if not ((day==6 or day==7) and empty_wkend) %}
                                         <td>
                                             {% for every_class in classes[(day, time)] %}
-                                                <b>{{ every_class['name'] }}</b><br>{{ every_class['teacher'] }}<br>
-                                                {{ every_class['duration'] }}{{ every_class['week'] }}
+                                                <b>{{ every_class['name'] }}</b><br>
+                                                {{ every_class['week'] }}
                                                 {% if every_class['location']!='None' %}
                                                     ，{{ every_class['location'] }}
                                                 {% endif %}
@@ -101,7 +98,7 @@
     {% endif %}
     <script>
         $("select#semester-select").change(function () {
-            window.location.href = "/student/" + "{{ sid }}" + "/" + $('select#semester-select option:selected').val();
+            window.location.href = "/teacher/" + "{{ tid }}" + "/" + $('select#semester-select option:selected').val();
         });
 
     </script>
