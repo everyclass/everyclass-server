@@ -198,7 +198,7 @@ def get_classroom(url_rid, url_semester):
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
                                              week=each_class['week_string'],
-                                             teacher=each_class['teacher'],
+                                             teacher=_teacher_list_fix(each_class['teacher']),
                                              location=each_class['room'],
                                              cid=each_class['cid']))
 
@@ -260,7 +260,7 @@ def get_course(url_cid: str, url_semester: str):
                            course_type=api_response['type'],
                            week=api_response['week_string'],
                            room=api_response['room'],
-                           course_teacher=teacher_list_to_str(api_response['teacher']),
+                           course_teacher=teacher_list_to_str(_teacher_list_fix(api_response['teacher'])),
                            students=students,
                            student_count=len(api_response['student']),
                            current_semester=url_semester
