@@ -179,7 +179,7 @@ def get_teacher(url_tid, url_semester):
 @query_blueprint.route('/classroom/<string:url_rid>/<string:url_semester>')
 def get_classroom(url_rid, url_semester):
     """教室查询"""
-    from everyclass.server.tools import lesson_string_to_dict, teacher_list_to_str
+    from everyclass.server.tools import lesson_string_to_dict
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/room/{}/{}'.format(app.config['API_SERVER'],
@@ -198,7 +198,7 @@ def get_classroom(url_rid, url_semester):
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
                                              week=each_class['week_string'],
-                                             teacher=teacher_list_to_str(each_class['teacher']),
+                                             teacher=each_class['teacher'],
                                              location=each_class['room'],
                                              cid=each_class['cid']))
 
