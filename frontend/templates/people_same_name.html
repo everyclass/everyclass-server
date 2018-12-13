@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block title %}人名重复 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">中南那么大，居然有{{ students_count+teachers_count }}个{{ students[0]["name"] }}！</h1>
+        <h4 class="text-muted">你想要查询谁的课表呢？</h4>
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>类型</th>
+                            <th>学院</th>
+                            <th>专业班级</th>
+                            <th>查询</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for student in students %}
+                            <tr>
+                                <td>{{ student["name"] }}</td>
+                                <td>学生</td>
+                                <td>{{ student["deputy"] }}</td>
+                                <td>{{ student["class"] }}</td>
+                                <td>
+                                    <a href="{{ url_for('query.get_student', url_sid=student["sid"], url_semester=student["semester"][-1]) }} "
+                                       onclick="_czc.push(['_trackEvent', '重名页', '重名查询']);">点击查询</a></td>
+                            </tr>
+                        {% endfor %}
+                        {% for teacher in teachers %}
+                            <tr>
+                                <td>{{ teacher["name"] }}</td>
+                                <td>教师</td>
+                                <td>{{ teacher["unit"] }}</td>
+                                <td></td>
+                                <td>
+                                    <a href="{{ url_for('query.get_teacher', url_tid=teacher["tid"], url_semester=teacher["semester"][-1]) }} "
+                                       onclick="_czc.push(['_trackEvent', '重名页', '重名查询']);">点击查询</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

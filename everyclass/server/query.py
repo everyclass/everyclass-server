@@ -61,10 +61,11 @@ def query():
                                                 api_response['teacher'][0]['semester'][-1]))
     elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
         # multiple students, multiple teachers, or mix of both
-        elasticapm.tag(query_resource_type='people')
-        # todo multiple name implementation
-        return render_template('query_same_name.html',
+        elasticapm.tag(query_resource_type='multiple_people')
+        return render_template('people_same_name.html',
+                               students_count=len(api_response['student']),
                                students=api_response['student'],
+                               teachers_count=len(api_response['teacher']),
                                teachers=api_response['teacher'])
     else:
         elasticapm.tag(query_resource_type='nothing')
