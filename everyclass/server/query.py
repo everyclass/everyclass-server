@@ -93,7 +93,7 @@ def get_student(url_sid, url_semester):
             if (day, time) not in courses:
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
-                                             teacher=each_class['teacher'],
+                                             teacher=_teacher_list_fix(each_class['teacher']),
                                              week=each_class['week_string'],
                                              classroom=each_class['room'],
                                              classroom_id=each_class['rid'],
@@ -300,3 +300,22 @@ def _semester_calculate(current_semester: str, semester_list: list):
             else:
                 available_semesters.append([each_semester, False])
     return available_semesters
+
+
+def _teacher_list_fix(teachers: list):
+    """修复老师职称“未定”，以及修复重复老师
+    @:param teachers: api server 返回的教师列表
+    @:return: teacher list that has been fixed
+    """
+    tids = []
+    new_teachers = []
+    for index, teacher in enumerate(teachers):
+        if teacher['title'] == '未定':
+            teacher['title'] = ''
+
+        if teacher['tid'] in tids:
+            continue
+        else:
+            tids.append(teacher['tid'])
+            new_teachers.append(teacher)
+    return new_teachers
