@@ -3,10 +3,8 @@
 """
 
 import elasticapm
-from flask import Blueprint, current_app as app, flash, redirect, render_template, send_from_directory, url_for
-from werkzeug.wrappers import Response
+from flask import Blueprint
 
-from everyclass.server.utils.rpc import HttpRpc
 
 cal_blueprint = Blueprint('calendar', __name__)
 
@@ -14,7 +12,11 @@ cal_blueprint = Blueprint('calendar', __name__)
 @cal_blueprint.route('/calendar/<string:url_sid>/<string:url_semester>')
 def cal_page(url_sid, url_semester):
     """课表导出页面视图函数"""
+    from werkzeug.wrappers import Response
+    from flask import current_app as app, render_template
+
     from everyclass.server.db.model import Semester
+    from everyclass.server.utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
@@ -37,6 +39,8 @@ def ics_download(calendar_token):
     """
     iCalendar ics file download
     """
+    from flask import flash, redirect, send_from_directory, url_for
+
     from everyclass.server.calendar import ics_generator
     from everyclass.server.db.dao import check_if_stu_exist, get_my_semesters, get_classes_for_student
     from everyclass.server.db.model import Semester
@@ -83,6 +87,8 @@ def get_ics(student_id, semester_str):
     """
     legacy iCalendar download
     """
+    from flask import flash, redirect, send_from_directory, url_for
+
     from everyclass.server.calendar import ics_generator
     from everyclass.server.db.dao import check_if_stu_exist, get_my_semesters, get_classes_for_student
     from everyclass.server.db.model import Semester

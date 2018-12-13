@@ -3,7 +3,8 @@ import requests
 from flask import flash, redirect, url_for
 
 from everyclass.server import logger
-from everyclass.server.exceptions import *
+from everyclass.server.exceptions import RpcBadRequestException, RpcClientException, RpcResourceNotFoundException, \
+    RpcServerException, RpcTimeoutException
 
 
 class HttpRpc:
