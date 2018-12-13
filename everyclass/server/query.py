@@ -75,7 +75,7 @@ def query():
 def get_student(url_sid, url_semester):
     """学生查询"""
     from everyclass.server.db.dao import get_privacy_settings
-    from everyclass.server.tools import lesson_string_to_dict, teacher_list_to_str
+    from everyclass.server.tools import lesson_string_to_dict
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
@@ -93,7 +93,7 @@ def get_student(url_sid, url_semester):
             if (day, time) not in courses:
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
-                                             teacher=teacher_list_to_str(each_class['teacher']),
+                                             teacher=each_class['teacher'],
                                              week=each_class['week_string'],
                                              classroom=each_class['room'],
                                              classroom_id=each_class['rid'],

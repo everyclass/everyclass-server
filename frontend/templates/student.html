@@ -51,7 +51,13 @@
                                     {% for day in range(1,8) if not ((day==6 or day==7) and empty_wkend) %}
                                         <td>
                                             {% for every_class in classes[(day, time)] %}
-                                                <b>{{ every_class['name'] }}</b><br>{{ every_class['teacher'] }}<br>
+                                                <b>{{ every_class['name'] }}</b><br>
+                                                {% for teacher in every_class['teacher'] %}
+                                                    <a href="{{ url_for('query.get_teacher', url_tid=teacher['tid'], url_semester=current_semester) }}">
+                                                        {{ teacher['name'] }}{{ teacher['title'] }}</a>
+                                                    {% if not loop.last %}、{% endif %}
+                                                {% endfor %}
+                                                <br>
                                                 {{ every_class['week'] }}
                                                 {% if every_class['classroom']!='None' %}
                                                     ，
