@@ -39,7 +39,6 @@ def query():
         # classroom
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
-        # todo classroom page
         return redirect('/classroom/{}/{}'.format(api_response['room'][0]['rid'],
                                                   api_response['room'][0]['semester'][-1]))
     elif len(api_response['student']) == 1 and len(api_response['teacher']) == 0:
@@ -167,6 +166,48 @@ def get_teacher(url_tid, url_semester):
                            falculty=api_response['unit'],
                            title=api_response['title'],
                            tid=url_tid,
+                           classes=courses,
+                           empty_wkend=empty_weekend,
+                           empty_6=empty_6,
+                           empty_5=empty_5,
+                           available_semesters=available_semesters,
+                           current_semester=url_semester)
+
+
+@query_blueprint.route('/classroom/<string:url_rid>/<string:url_semester>')
+def get_classroom(url_rid, url_semester):
+    """教室查询"""
+    from everyclass.server.tools import lesson_string_to_dict
+
+    with elasticapm.capture_span('rpc_query_student'):
+        rpc_result = HttpRpc.call_with_error_handle('{}/v1/room/{}/{}'.format(app.config['API_SERVER'],
+                                                                              url_rid,
+                                                                              url_semester),
+                                                    params={'week_string': 'true', 'other_semester': 'true'})
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
+
+    with elasticapm.capture_span('process_rpc_result'):
+        courses = dict()
+        for each_class in api_response['course']:
+            day, time = lesson_string_to_dict(each_class['lesson'])
+            if (day, time) not in courses:
+                courses[(day, time)] = list()
+            courses[(day, time)].append(dict(name=each_class['name'],
+                                             week=each_class['week_string'],
+                                             location=each_class['room'],
+                                             cid=each_class['cid']))
+
+    empty_5, empty_6, empty_weekend = _empty_column_check(courses)
+
+    available_semesters = _semester_calculate(url_semester, api_response['semester_list'])
+
+    return render_template('room.html',
+                           name=api_response['name'],
+                           campus=api_response['campus'],
+                           building=api_response['building'],
+                           rid=url_rid,
                            classes=courses,
                            empty_wkend=empty_weekend,
                            empty_6=empty_6,

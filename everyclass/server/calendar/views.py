@@ -43,7 +43,10 @@ def ics_download(calendar_token):
     from everyclass.server.exceptions import IllegalSemesterException
     from everyclass.server import logger
 
+    # todo ics download
+
     # 学号检测
+
     if not check_if_stu_exist(student_id):
         flash("{} 学号不存在".format(student_id))
         logger.warning("[ics] {} 学号不存在".format(student_id))
