@@ -15,10 +15,13 @@ def _handle_http_status_code(response: requests.Response):
     status_code = response.status_code
     if status_code >= 500:
         # server internal error
-        raise RpcServerException(response.text)
+        raise RpcServerException(status_code, response.text)
     if 400 <= status_code < 500:
-        # bad request
-        raise RpcClientException(response.text)
+        if status_code == 404:
+            raise RpcResourceNotFoundException(status_code, response.text)
+        if status_code == 400:
+            raise RpcBadRequestException(status_code, response.text)
+        raise RpcClientException(status_code, response.text)
 
 
 def _flash_and_redirect(info: str):
@@ -30,6 +33,7 @@ def _flash_and_redirect(info: str):
 class HttpRpc:
     @staticmethod
     def call(url, params=None):
+        """call HTTP API. if server returns 4xx or 500 status code, raise exceptions."""
         api_session = requests.sessions.session()
         with gevent.Timeout(5):
             logger.debug('RPC GET {}'.format(url))
@@ -41,8 +45,13 @@ class HttpRpc:
 
     @staticmethod
     def call_with_error_handle(url, params=None):
+        """call API and handle exceptions."""
         try:
             api_response = HttpRpc.call(url, params=params)
+        except RpcResourceNotFoundException:
+            return _flash_and_redirect('资源不存在')
+        except RpcBadRequestException:
+            return _flash_and_redirect('请求异常')
         except RpcClientException as e:
             logger.error(repr(e))
             return _flash_and_redirect('请求错误')
