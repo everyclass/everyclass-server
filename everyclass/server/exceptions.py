@@ -15,6 +15,11 @@ class RpcException(ConnectionError):
     pass
 
 
+class RpcTimeoutException(RpcException, TimeoutError):
+    """timeout"""
+    pass
+
+
 class RpcClientException(RpcException):
     """HTTP 4xx"""
     pass
