@@ -48,10 +48,12 @@ class HttpRpc:
         """call API and handle exceptions."""
         try:
             api_response = HttpRpc.call(url, params=params)
-        except RpcResourceNotFoundException:
-            return _flash_and_redirect('资源不存在')
-        except RpcBadRequestException:
-            return _flash_and_redirect('请求异常')
+        except RpcResourceNotFoundException as e:
+            logger.info(repr(e))
+            return _flash_and_redirect('资源不存在（404）')
+        except RpcBadRequestException as e:
+            logger.info(repr(e))
+            return _flash_and_redirect('请求异常（400）')
         except RpcClientException as e:
             logger.error(repr(e))
             return _flash_and_redirect('请求错误')
