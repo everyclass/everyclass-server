@@ -51,7 +51,8 @@
                                                 <b>{{ every_class['name'] }}</b><br>
                                                 {{ every_class['week'] }}
                                                 {% if every_class['location']!='None' %}
-                                                    ，{{ every_class['location'] }}
+                                                    ，
+                                                    <a href="{{ url_for('query.get_classroom', url_rid=every_class['classroom_id'], url_semester=current_semester) }}">{{ every_class['classroom'] }}</a>
                                                 {% endif %}
                                                 <br>
                                                 <a href="{{ url_for('query.get_course', url_cid=every_class['cid'], url_semester=current_semester) }}"

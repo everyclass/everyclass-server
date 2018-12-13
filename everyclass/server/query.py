@@ -95,7 +95,8 @@ def get_student(url_sid, url_semester):
             courses[(day, time)].append(dict(name=each_class['name'],
                                              teacher=teacher_list_to_str(each_class['teacher']),
                                              week=each_class['week_string'],
-                                             location=each_class['room'],
+                                             classroom=each_class['room'],
+                                             classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
 
     empty_5, empty_6, empty_weekend = _empty_column_check(courses)
@@ -154,7 +155,8 @@ def get_teacher(url_tid, url_semester):
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
                                              week=each_class['week_string'],
-                                             location=each_class['room'],
+                                             classroom=each_class['room'],
+                                             classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
 
     empty_5, empty_6, empty_weekend = _empty_column_check(courses)
