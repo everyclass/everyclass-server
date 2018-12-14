@@ -49,7 +49,6 @@ def ics_download(calendar_token):
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.tools import lesson_string_to_dict, teacher_list_fix, teacher_list_to_str
 
-    # todo ics download
     result = find_calendar_token(token=calendar_token)
     if not result:
         return 'invalid calendar token', 404

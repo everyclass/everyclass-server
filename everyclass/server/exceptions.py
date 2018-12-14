@@ -1,15 +1,3 @@
-class NoClassException(ValueError):
-    pass
-
-
-class NoStudentException(ValueError):
-    pass
-
-
-class IllegalSemesterException(ValueError):
-    pass
-
-
 class RpcException(ConnectionError):
     """HTTP 4xx or 5xx"""
     pass

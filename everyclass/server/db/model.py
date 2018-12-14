@@ -1,9 +1,5 @@
 import re
 
-from flask import session
-
-from everyclass.server.exceptions import IllegalSemesterException
-
 
 class Semester(object):
     def __init__(self, para):
@@ -30,7 +26,9 @@ class Semester(object):
 
         # illegal
         else:
-            raise IllegalSemesterException
+            self.year1 = 2020
+            self.year2 = 2021
+            self.sem = 1
 
     def __repr__(self):
         return '<Semester {}-{}-{}>'.format(self.year1, self.year2, self.sem)
@@ -65,38 +63,3 @@ class Semester(object):
         获取用于数据表命名的学期，如 16_17_2
         """
         return self.to_str(simplify=True).replace('-', '_')
-
-    @staticmethod
-    def get():
-        """
-        获取当前学期。进入此模块前必须保证 session 内有 stu_id。
-        当 url 中没有显式表明 semester 时，不设置 session，而是在这里设置默认值。
-        """
-        from everyclass.server.db.dao import get_my_semesters
-        from everyclass.server.exceptions import IllegalSemesterException
-        from everyclass.server.config import get_config
-        config = get_config()
-
-        my_available_semesters = get_my_semesters(session.get('stu_id'))[0]
-        if config.DEBUG:
-            print('[model.Semester.get()] my_available_semesters:', my_available_semesters)
-
-        # 如果 session 中包含学期信息且有效
-        if session.get('semester', None) and session.get('semester', None) in my_available_semesters:
-            if config.DEBUG:
-                print('[model.Semester.get()]have valid session')
-            return Semester(session['semester'])
-
-        # 如果没有 session或session无效
-        else:
-            if config.DEBUG:
-                print('[model.Semester.get()] no session or invalid session')
-            # 选择对本人有效的最后一个学期
-            if my_available_semesters:
-                if config.DEBUG:
-                    print('[model.Semester.get()] choose last available semester')
-                return my_available_semesters[-1]
-
-            # 如果本人没有一个有效学期,则引出IllegalSemesterException
-            else:
-                raise IllegalSemesterException('No any available semester for this student')
