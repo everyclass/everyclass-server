@@ -21,6 +21,7 @@ dbutils = "==1.3"
 requests = "~=2.0"
 uwsgidecorators = "*"
 gevent = "*"
+pymongo = "~=3.7"
 
 [dev-packages]
 coverage = "==4.4.2"
