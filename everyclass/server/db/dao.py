@@ -57,7 +57,6 @@ def insert_calendar_token(sid: str, semester: str):
     token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), sid + ':' + semester)
 
     db = get_mongodb()
-    # todo fix legacy uuid problem
     db.calendar_token.insert({'sid'     : sid,
                               'semester': semester,
                               'token'   : token})

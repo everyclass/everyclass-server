@@ -52,12 +52,13 @@ class Config(object):
         'tags'   : {'environment': 'default'}
     }
     ELASTIC_APM = {
-        'SERVICE_NAME'   : 'everyclass-server',
-        'SECRET_TOKEN'   : 'token',
-        'SERVER_URL'     : 'http://127.0.0.1:8200',
+        'SERVICE_NAME'                : 'everyclass-server',
+        'SECRET_TOKEN'                : 'token',
+        'SERVER_URL'                  : 'http://127.0.0.1:8200',
         # https://www.elastic.co/guide/en/apm/agent/python/2.x/configuration.html#config-auto-log-stacks
-        'AUTO_LOG_STACKS': False,
-        'SERVICE_VERSION': GIT_DESCRIBE
+        'AUTO_LOG_STACKS'             : False,
+        'SERVICE_VERSION'             : GIT_DESCRIBE,
+        'TRANSACTIONS_IGNORE_PATTERNS': ['GET /_healthCheck']
     }
     LOGSTASH = {
         'HOST': '127.0.0.1',

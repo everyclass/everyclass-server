@@ -95,8 +95,8 @@ def ics_download(calendar_token):
                                mimetype='text/calendar')
 
 
-@cal_blueprint.route('/calendar/ics/_androidClient/<url_xh>.ics')
-def android_client_get_ics(url_xh):
+@cal_blueprint.route('/calendar/ics/_androidClient/<identifier>')
+def android_client_get_ics(identifier):
     """
     android client get ics
 
@@ -105,6 +105,7 @@ def android_client_get_ics(url_xh):
     status code and the Android client ask user for password to try again.
     """
     pass
+    # todo android client
 
 
 @cal_blueprint.route('/<student_id>-<semester_str>.ics')
