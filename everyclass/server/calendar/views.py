@@ -12,7 +12,7 @@ cal_blueprint = Blueprint('calendar', __name__)
 def cal_page(url_sid, url_semester):
     """课表导出页面视图函数"""
     from werkzeug.wrappers import Response
-    from flask import current_app as app, render_template
+    from flask import current_app as app, render_template, url_for
 
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.db.dao import insert_calendar_token, find_calendar_token
@@ -24,14 +24,19 @@ def cal_page(url_sid, url_semester):
         if isinstance(rpc_result, Response):
             return rpc_result
 
+    # get token
     token = find_calendar_token(sid=url_sid, semester=url_semester)
     if not token:
         token = insert_calendar_token(sid=url_sid, semester=url_semester)
     else:
         token = token['token']
 
+    ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
+    ics_webcal = ics_url.replace('http', 'webcal').replace('https', 'webcal')
+
     return render_template('calendar_subscribe.html',
-                           calendar_token=token)
+                           ics_url=ics_url,
+                           ics_webcal=ics_webcal)
 
 
 @cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
