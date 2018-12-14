@@ -82,6 +82,12 @@ def ics_download(calendar_token):
                                mimetype='text/calendar')
 
 
+@cal_blueprint.route('/calendar/_ics/androidClient/<url_xh>.ics')
+def android_client_get_ics(url_xh):
+    """android client get ics"""
+    pass
+
+
 @cal_blueprint.route('/<student_id>-<semester_str>.ics')
 def get_ics(student_id, semester_str):
     """
@@ -130,3 +136,4 @@ def get_ics(student_id, semester_str):
     return send_from_directory("../../calendar_files", student_id + "-" + semester_str + ".ics",
                                as_attachment=True,
                                mimetype='text/calendar')
+
