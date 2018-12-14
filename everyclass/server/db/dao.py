@@ -51,6 +51,7 @@ def new_user_id_sequence() -> int:
 
 
 def insert_calendar_token(sid: str, semester: str):
+    """generate a calendar token, record to database and return str(token)"""
     import uuid
 
     token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), sid + ':' + semester)
@@ -64,6 +65,7 @@ def insert_calendar_token(sid: str, semester: str):
 
 
 def find_calendar_token(sid=None, semester=None, token=None):
+    """query a token document by token or (sid, semester)"""
     import uuid
 
     db = get_mongodb()

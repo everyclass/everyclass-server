@@ -21,10 +21,11 @@ class Config(object):
         'maxcached'     : 1000,
         'maxconnections': 2000
     }
-    MONGODB = {
+    MONGO = {
         'host': 'mongodb',
         'port': 12306
     }
+    MONGO_DB = 'everyclass_server'
 
     """
     Git Hash
