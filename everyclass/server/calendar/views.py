@@ -1,10 +1,10 @@
 """
 日历相关函数
 """
+import uuid
 
 import elasticapm
 from flask import Blueprint
-
 
 cal_blueprint = Blueprint('calendar', __name__)
 
@@ -17,6 +17,7 @@ def cal_page(url_sid, url_semester):
 
     from everyclass.server.db.model import Semester
     from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.db.mongodb import get_connection as get_mongodb
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
@@ -26,15 +27,20 @@ def cal_page(url_sid, url_semester):
             return rpc_result
         api_response = rpc_result
 
-        # todo generate calendar token
+        token = uuid.uuid4()
 
-        return render_template('ics.html',
-                               calendar_token='token',
+        db = get_mongodb()
+        db.calendar_token.insert({'sid'     : url_sid,
+                                  'semester': url_semester,
+                                  'token'   : token})
+
+        return render_template('calendar_subscribe.html',
+                               calendar_token=token,
                                semester=Semester(url_semester).to_str(simplify=True)
                                )
 
 
-@cal_blueprint.route('/calendar/_ics/<calendar_token>.ics')
+@cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
 def ics_download(calendar_token):
     """
     iCalendar ics file download
