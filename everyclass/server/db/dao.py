@@ -127,6 +127,7 @@ def get_privacy_settings(student_id: str) -> list:
     :param student_id: 学生学号
     :return: 隐私要求列表
     """
+    # todo migrate privacy settings to mongodb
     db = get_connection()
     cursor = db.cursor()
 
@@ -163,3 +164,28 @@ def new_user_id_sequence() -> int:
     cursor.close()
     conn.close()
     return last_row_id
+
+
+def insert_calendar_token(sid: str, semester: str):
+    import uuid
+    from everyclass.server.db.mongodb import get_connection as get_mongodb
+    token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), sid + ':' + semester)
+
+    db = get_mongodb()
+    # todo fix legacy uuid problem
+    db.calendar_token.insert({'sid'     : sid,
+                              'semester': semester,
+                              'token'   : token})
+    return str(token)
+
+
+def find_calendar_token(sid=None, semester=None, token=None):
+    from everyclass.server.db.mongodb import get_connection as get_mongodb
+    import uuid
+
+    db = get_mongodb()
+    if token:
+        return db.calendar_token.find_one({'token': uuid.UUID(token)})
+    else:
+        return db.calendar_token.find_one({'sid'     : sid,
+                                           'semester': semester})
