@@ -13,10 +13,13 @@ from everyclass.server.config import get_config
 from everyclass.server.tools import get_time
 
 
-def generate(student_id: str, student_name: str, student_classes, semester_string: str, semester):
+def generate(student_id: str, student_name: str, student_classes, semester_string: str, semester, ics_token=None,
+             use_token=False):
     """
     生成 ics 文件并保存到目录
 
+    :param use_token: 是否使用 token（老版本使用学号，新版本使用 token）
+    :param ics_token: ics token
     :param student_id: 学号
     :param student_name: 姓名
     :param student_classes: classes student are taking
@@ -83,17 +86,21 @@ def generate(student_id: str, student_name: str, student_classes, semester_strin
                                             times=[dtstart, dtend, interval, until, each_duration, every_class['week']],
                                             location=every_class['location'],
                                             teacher=every_class['teacher'],
-                                            student_id=student_id,
                                             day=day,
                                             time=time))
 
     # 写入文件
     import os
-    with open(os.path.join(os.path.dirname(__file__),
-                           '../../../calendar_files/%s-%s.ics' % (student_id, semester_string)),
-              'w') as f:
-        f.write(cal.to_ical().decode(encoding='utf-8'))
-
+    if not use_token:
+        with open(os.path.join(os.path.dirname(__file__),
+                               '../../../calendar_files/%s-%s.ics' % (student_id, semester_string)),
+                  'w') as f:
+            f.write(cal.to_ical().decode(encoding='utf-8'))
+    else:
+        with open(os.path.join(os.path.dirname(__file__),
+                               '../../../calendar_files/{}.ics'.format(ics_token)),
+                  'w') as f:
+            f.write(cal.to_ical().decode(encoding='utf-8'))
     return True
 
 
@@ -113,7 +120,7 @@ def __get_datetime(week, day, time, semester):
                     ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
 
-def __add_event(name, times, location, teacher, student_id, day, time):
+def __add_event(name, times, location, teacher, day, time):
     """
     把 `Event` 对象添加到 `calendar` 对象中
 
@@ -121,7 +128,6 @@ def __add_event(name, times, location, teacher, student_id, day, time):
     :param times: 开始和结束时间
     :param location: 课程地点
     :param teacher: 任课教师
-    :param student_id: 学号
     :return: `Event` 对象
     """
 

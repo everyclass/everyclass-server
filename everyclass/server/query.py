@@ -5,8 +5,6 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
-from .utils.rpc import HttpRpc
-
 query_blueprint = Blueprint('query', __name__)
 
 
@@ -21,6 +19,7 @@ def query():
     - `query_resource_type`, 查询类型: classroom, single_student, single_teacher, people, or nothing.
     - `query_type`（原 `ec_query_method`）, 查询方式: by_name, by_student_id, by_teacher_id, by_room_name, other
     """
+    from .utils.rpc import HttpRpc
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -76,6 +75,8 @@ def get_student(url_sid, url_semester):
     """学生查询"""
     from everyclass.server.db.dao import get_privacy_settings
     from everyclass.server.tools import lesson_string_to_dict
+    from everyclass.server.tools import semester_calculate, teacher_list_fix
+    from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
@@ -93,7 +94,7 @@ def get_student(url_sid, url_semester):
             if (day, time) not in courses:
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
-                                             teacher=_teacher_list_fix(each_class['teacher']),
+                                             teacher=teacher_list_fix(each_class['teacher']),
                                              week=each_class['week_string'],
                                              classroom=each_class['room'],
                                              classroom_id=each_class['rid'],
@@ -101,7 +102,7 @@ def get_student(url_sid, url_semester):
 
     empty_5, empty_6, empty_weekend = _empty_column_check(courses)
 
-    available_semesters = _semester_calculate(url_semester, api_response['semester_list'])
+    available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
@@ -137,6 +138,8 @@ def get_student(url_sid, url_semester):
 def get_teacher(url_tid, url_semester):
     """老师查询"""
     from everyclass.server.tools import lesson_string_to_dict
+    from everyclass.server.tools import semester_calculate
+    from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER'],
@@ -161,7 +164,7 @@ def get_teacher(url_tid, url_semester):
 
     empty_5, empty_6, empty_weekend = _empty_column_check(courses)
 
-    available_semesters = _semester_calculate(url_semester, api_response['semester_list'])
+    available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
     return render_template('teacher.html',
                            name=api_response['name'],
@@ -180,6 +183,8 @@ def get_teacher(url_tid, url_semester):
 def get_classroom(url_rid, url_semester):
     """教室查询"""
     from everyclass.server.tools import lesson_string_to_dict
+    from everyclass.server.tools import semester_calculate, teacher_list_fix
+    from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/room/{}/{}'.format(app.config['API_SERVER'],
@@ -198,13 +203,13 @@ def get_classroom(url_rid, url_semester):
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],
                                              week=each_class['week_string'],
-                                             teacher=_teacher_list_fix(each_class['teacher']),
+                                             teacher=teacher_list_fix(each_class['teacher']),
                                              location=each_class['room'],
                                              cid=each_class['cid']))
 
     empty_5, empty_6, empty_weekend = _empty_column_check(courses)
 
-    available_semesters = _semester_calculate(url_semester, api_response['semester_list'])
+    available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
     return render_template('room.html',
                            name=api_response['name'],
@@ -224,6 +229,8 @@ def get_course(url_cid: str, url_semester: str):
     """课程查询"""
 
     from everyclass.server.tools import get_time_chinese, get_day_chinese, lesson_string_to_dict, teacher_list_to_str
+    from everyclass.server.tools import teacher_list_fix
+    from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_course'):
         rpc_result = HttpRpc.call_with_error_handle('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
@@ -260,7 +267,7 @@ def get_course(url_cid: str, url_semester: str):
                            course_type=api_response['type'],
                            week=api_response['week_string'],
                            room=api_response['room'],
-                           course_teacher=teacher_list_to_str(_teacher_list_fix(api_response['teacher'])),
+                           course_teacher=teacher_list_to_str(teacher_list_fix(api_response['teacher'])),
                            students=students,
                            student_count=len(api_response['student']),
                            current_semester=url_semester
@@ -287,35 +294,3 @@ def _empty_column_check(courses: dict) -> (bool, bool, bool):
             if (cls_day, 5) in courses:
                 empty_5 = False
     return empty_5, empty_6, empty_weekend
-
-
-def _semester_calculate(current_semester: str, semester_list: list):
-    """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
-    with elasticapm.capture_span('semester_calculate'):
-        available_semesters = []
-
-        for each_semester in semester_list:
-            if current_semester == each_semester:
-                available_semesters.append([each_semester, True])
-            else:
-                available_semesters.append([each_semester, False])
-    return available_semesters
-
-
-def _teacher_list_fix(teachers: list):
-    """修复老师职称“未定”，以及修复重复老师
-    @:param teachers: api server 返回的教师列表
-    @:return: teacher list that has been fixed
-    """
-    tids = []
-    new_teachers = []
-    for index, teacher in enumerate(teachers):
-        if teacher['title'] == '未定':
-            teacher['title'] = ''
-
-        if teacher['tid'] in tids:
-            continue
-        else:
-            tids.append(teacher['tid'])
-            new_teachers.append(teacher)
-    return new_teachers

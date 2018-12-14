@@ -1,3 +1,6 @@
+import elasticapm
+
+
 def get_day_chinese(digit):
     """
     get Chinese char of day of week
@@ -67,3 +70,35 @@ def teacher_list_to_str(teachers: list):
     for teacher in teachers:
         string = string + teacher['name'] + teacher['title'] + '、'
     return string[:len(string) - 1]
+
+
+def semester_calculate(current_semester: str, semester_list: list):
+    """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
+    with elasticapm.capture_span('semester_calculate'):
+        available_semesters = []
+
+        for each_semester in semester_list:
+            if current_semester == each_semester:
+                available_semesters.append([each_semester, True])
+            else:
+                available_semesters.append([each_semester, False])
+    return available_semesters
+
+
+def teacher_list_fix(teachers: list):
+    """修复老师职称“未定”，以及修复重复老师
+    @:param teachers: api server 返回的教师列表
+    @:return: teacher list that has been fixed
+    """
+    tids = []
+    new_teachers = []
+    for index, teacher in enumerate(teachers):
+        if teacher['title'] == '未定':
+            teacher['title'] = ''
+
+        if teacher['tid'] in tids:
+            continue
+        else:
+            tids.append(teacher['tid'])
+            new_teachers.append(teacher)
+    return new_teachers
