@@ -22,8 +22,9 @@ class Config(object):
         'maxconnections': 2000
     }
     MONGO = {
-        'host': 'mongodb',
-        'port': 12306
+        'host'              : 'mongodb',
+        'port'              : 12306,
+        'uuidRepresentation': 'standard'
     }
     MONGO_DB = 'everyclass_server'
 
