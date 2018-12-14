@@ -31,9 +31,12 @@ try:
     @uwsgidecorators.postfork
     def init_db():
         """init database connection"""
-        from everyclass.server.db.mysql import init_pool
+        import everyclass.server.db.mysql
+        import everyclass.server.db.mongodb
+
         global __app
-        init_pool(__app)
+        everyclass.server.db.mysql.init_pool(__app)
+        everyclass.server.db.mongodb.init_pool(__app)
 
     @uwsgidecorators.postfork
     def init_log_handlers():
@@ -103,7 +106,8 @@ def create_app(outside_container=False) -> Flask:
     @param outside_container: 是否不在容器内运行
     """
     from everyclass.server.db.dao import new_user_id_sequence
-    from everyclass.server.db.mysql import init_pool
+    import everyclass.server.db.mysql
+    import everyclass.server.db.mongodb
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
 
     app = Flask(__name__,
@@ -153,7 +157,8 @@ def create_app(outside_container=False) -> Flask:
 
     # 容器外运行（无 uWSGI）时初始化数据库
     if outside_container and (app.config['CONFIG_NAME'] == "development"):
-        init_pool(app)
+        everyclass.server.db.mysql.init_pool(app)
+        everyclass.server.db.mongodb.init_pool(app)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint

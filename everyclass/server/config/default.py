@@ -21,6 +21,10 @@ class Config(object):
         'maxcached'     : 1000,
         'maxconnections': 2000
     }
+    MONGODB = {
+        'host': 'mongodb',
+        'port': 12306
+    }
 
     """
     Git Hash
