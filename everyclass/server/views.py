@@ -1,7 +1,6 @@
 import time
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from markupsafe import escape
 
 main_blueprint = Blueprint('main', __name__)
 
