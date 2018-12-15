@@ -132,6 +132,5 @@ def __add_event(course_name, times, classroom, teacher, current_week, week_strin
     alarm = Alarm()
     alarm.add('action', 'none')
     alarm.add('trigger', datetime(1980, 1, 1, 3, 5, 0))
-    # todo fix last update time?
     event.add_component(alarm)
     return event
