@@ -11,6 +11,7 @@ cal_blueprint = Blueprint('calendar', __name__)
 @cal_blueprint.route('/calendar/<string:url_sid>/<string:url_semester>')
 def cal_page(url_sid, url_semester):
     """课表导出页面视图函数"""
+    # todo teacher subscribe
     from werkzeug.wrappers import Response
     from flask import current_app as app, render_template, url_for
 
@@ -18,7 +19,7 @@ def cal_page(url_sid, url_semester):
     from everyclass.server.db.dao import insert_calendar_token, find_calendar_token
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
                                                                                  url_sid,
                                                                                  url_semester))
         if isinstance(rpc_result, Response):
@@ -59,7 +60,7 @@ def ics_download(calendar_token):
         return 'invalid calendar token', 404
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_error_handle('{}/v1/student/{}/{}'.format(current_app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(current_app.config['API_SERVER'],
                                                                                  result['sid'],
                                                                                  result['semester']),
                                                     params={'week_string': 'true'})
@@ -96,16 +97,69 @@ def ics_download(calendar_token):
 
 
 @cal_blueprint.route('/calendar/ics/_androidClient/<identifier>')
-def android_client_get_ics(identifier):
+def android_client_get_semester(identifier):
+    """android client get a student or teacher's semesters
     """
-    android client get ics
+    from werkzeug.wrappers import Response
+    from flask import current_app as app, jsonify
+    from everyclass.server.utils.rpc import HttpRpc
+
+    with elasticapm.capture_span('rpc_search'):
+        rpc_result = HttpRpc.call_with_handle_message('{}/v1/search/{}'.format(app.config['API_SERVER'],
+                                                                               identifier))
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
+
+    if len(api_response['student']) == 1:
+        return jsonify({'type'     : 'student',
+                        'semesters': api_response['student'][0]['semester']})
+    if len(api_response['teacher']) == 1:
+        return jsonify({'type'     : 'teacher',
+                        'semesters': api_response['teacher'][0]['semester']})
+    return "Bad request (got multiple people)", 400
+
+
+@cal_blueprint.route('/calendar/ics/_androidClient/<resource_type>/<identifier>/<semester>')
+def android_client_get_ics(resource_type, identifier, semester):
+    """
+    android client get a student or teacher's ics file
 
     If the student does not have privacy mode, anyone can use student number to subscribe his calendar.
     If the privacy mode is on and there is no HTTP basic authentication, return a 401(unauthorized)
     status code and the Android client ask user for password to try again.
     """
-    pass
-    # todo android client
+    from werkzeug.wrappers import Response
+    from flask import current_app as app, jsonify
+
+    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.db.dao import get_privacy_settings
+
+    if resource_type not in ('student', 'teacher'):
+        return "Unknown resource type", 400
+
+    # todo get ics
+
+    with elasticapm.capture_span('rpc_search'):
+        rpc_result = HttpRpc.call_with_handle_message('{}/v1/{}/{}'.format(app.config['API_SERVER'],
+                                                                           resource_type,
+                                                                           identifier))
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
+
+    if len(api_response['student']) == 1:
+        with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
+            # todo this need to be replaced with real student id here
+            privacy_settings = get_privacy_settings(api_response['student'][0]['sid'])
+        # legacy privacy setting, for disable a user's all operations
+        if "show_table_on_page" in privacy_settings:
+            return "Unauthorized (privacy on)", 401
+        else:
+            return jsonify({'semesters': api_response['student'][0]['semester']})
+    if len(api_response['teacher']) == 1:
+        return jsonify({'semesters': api_response['teacher'][0]['semester']})
+    return "Bad request (got multiple people)", 400
 
 
 @cal_blueprint.route('/<student_id>-<semester_str>.ics')
@@ -130,7 +184,7 @@ def get_ics(student_id, semester_str):
     semester = Semester(semester_str)
 
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_error_handle('{}/v1/search/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER'],
                                                                              student_id))
         if isinstance(rpc_result, Response):
             return rpc_result

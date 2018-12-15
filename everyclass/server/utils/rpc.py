@@ -47,8 +47,10 @@ class HttpRpc:
         return api_response
 
     @staticmethod
-    def call_with_error_handle(url, params=None):
-        """call API and handle exceptions."""
+    def call_with_handle_flash(url, params=None):
+        """call API and handle exceptions.
+        if exception, flash a message and redirect to main page.
+        """
         try:
             api_response = HttpRpc.call(url, params=params)
         except RpcTimeoutException as e:
@@ -69,4 +71,31 @@ class HttpRpc:
         except Exception as e:
             logger.error('RPC exception: {}'.format(repr(e)))
             return HttpRpc._flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
+        return api_response
+
+    @staticmethod
+    def call_with_handle_message(url, params=None):
+        """call API and handle exceptions.
+        if exception, return a message
+        """
+        try:
+            api_response = HttpRpc.call(url, params=params)
+        except RpcTimeoutException as e:
+            logger.warn(repr(e))
+            return "Backend timeout", 408
+        except RpcResourceNotFoundException as e:
+            logger.info(repr(e))
+            return "Resource not found", 404
+        except RpcBadRequestException as e:
+            logger.info(repr(e))
+            return "Bad request", 400
+        except RpcClientException as e:
+            logger.error(repr(e))
+            return "Bad request", 400
+        except RpcServerException as e:
+            logger.error(repr(e))
+            return "Server internal error", 500
+        except Exception as e:
+            logger.error('RPC exception: {}'.format(repr(e)))
+            return "Server internal error", 500
         return api_response
