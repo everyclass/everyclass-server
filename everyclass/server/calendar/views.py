@@ -212,7 +212,7 @@ def legacy_get_ics(student_id, semester_str):
         privacy_settings = get_privacy_settings(api_response['student'][0]['sid'])
         # legacy privacy setting, for disable a user's all operations
         if "show_table_on_page" in privacy_settings:
-            return abort(401)
+            return "Visit {} to get your calendar".format(url_for("main.main")), 401
 
     token = get_or_set_calendar_token(resource_type='student',
                                       resource_identifier=api_response['student'][0]['sid'],
