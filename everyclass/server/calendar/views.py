@@ -133,7 +133,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     status code and the Android client ask user for password to try again.
     """
     from werkzeug.wrappers import Response
-    from flask import current_app as app, redirect, url_for
+    from flask import current_app as app, redirect, url_for, request
 
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.db.dao import get_privacy_settings, get_or_set_calendar_token
@@ -160,13 +160,14 @@ def android_client_get_ics(resource_type, identifier, semester):
             privacy_settings = get_privacy_settings(api_response['sid'])
         # legacy privacy setting, for disable a user's all operations
         if "show_table_on_page" in privacy_settings:
-            # todo implement basic auth
-            return "Unauthorized (privacy on)", 401
-        else:
-            cal_token = get_or_set_calendar_token(resource_type=resource_type,
-                                                  resource_identifier=identifier,
-                                                  semester=semester)
-            return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
+            username, password = request.authorization
+            if not (0 == 1 and username and password):
+                # todo implement basic auth
+                return "Unauthorized (privacy on)", 401
+        cal_token = get_or_set_calendar_token(resource_type=resource_type,
+                                              resource_identifier=identifier,
+                                              semester=semester)
+        return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
 
 
 @cal_blueprint.route('/<student_id>-<semester_str>.ics')
