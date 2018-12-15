@@ -8,27 +8,39 @@ from flask import Blueprint
 cal_blueprint = Blueprint('calendar', __name__)
 
 
-@cal_blueprint.route('/calendar/<string:url_sid>/<string:url_semester>')
-def cal_page(url_sid, url_semester):
+@cal_blueprint.route('/calendar/<string:resource_type>/<resource_identifier>/<string:url_semester>')
+def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
     # todo teacher subscribe
     from werkzeug.wrappers import Response
-    from flask import current_app as app, render_template, url_for
+    from flask import current_app as app, render_template, url_for, flash, redirect
 
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.db.dao import insert_calendar_token, find_calendar_token
 
+    if resource_type not in ('student', 'teacher'):
+        flash('请求异常')
+        return redirect(url_for('main.main'))
+
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
-                                                                                 url_sid,
-                                                                                 url_semester))
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(app.config['API_SERVER'],
+                                                                            resource_type,
+                                                                            resource_identifier,
+                                                                            url_semester))
         if isinstance(rpc_result, Response):
             return rpc_result
 
     # get token
-    token = find_calendar_token(sid=url_sid, semester=url_semester)
+    if resource_type == 'student':
+        token = find_calendar_token(sid=resource_identifier, semester=url_semester)
+    else:
+        token = find_calendar_token(tid=resource_identifier, semester=url_semester)
+
     if not token:
-        token = insert_calendar_token(sid=url_sid, semester=url_semester)
+        if resource_type == 'student':
+            token = insert_calendar_token(resource_type=resource_type, sid=resource_identifier, semester=url_semester)
+        else:
+            token = insert_calendar_token(resource_type=resource_type, tid=resource_identifier, semester=url_semester)
     else:
         token = token['token']
 
@@ -206,7 +218,9 @@ def get_ics(student_id, semester_str):
 
     token_result = find_calendar_token(sid=api_response['student'][0]['sid'], semester=semester.to_str())
     if not token_result:
-        token = insert_calendar_token(sid=api_response['student'][0]['sid'], semester=semester.to_str())
+        token = insert_calendar_token(resource_type='student',
+                                      sid=api_response['student'][0]['sid'],
+                                      semester=semester.to_str())
     else:
         token = token_result['token']
     return redirect(url_for('calendar.ics_download', calendar_token=token))

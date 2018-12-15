@@ -50,20 +50,30 @@ def new_user_id_sequence() -> int:
     return last_row_id
 
 
-def insert_calendar_token(sid: str, semester: str):
+def insert_calendar_token(resource_type: str, semester: str, sid=None, tid=None):
     """generate a calendar token, record to database and return str(token)"""
     import uuid
 
-    token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), sid + ':' + semester)
+    if resource_type == 'student':
+        token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), 's' + sid + ':' + semester)
+    else:
+        token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), 't' + tid + ':' + semester)
 
     db = get_mongodb()
-    db.calendar_token.insert({'sid'     : sid,
-                              'semester': semester,
-                              'token'   : token})
+    if resource_type == 'student':
+        db.calendar_token.insert({'type'    : 'student',
+                                  'sid'     : sid,
+                                  'semester': semester,
+                                  'token'   : token})
+    elif resource_type == 'teacher':
+        db.calendar_token.insert({'type'    : 'teacher',
+                                  'tid'     : tid,
+                                  'semester': semester,
+                                  'token'   : token})
     return str(token)
 
 
-def find_calendar_token(sid=None, semester=None, token=None):
+def find_calendar_token(tid=None, sid=None, semester=None, token=None):
     """query a token document by token or (sid, semester)"""
     import uuid
 
@@ -71,5 +81,9 @@ def find_calendar_token(sid=None, semester=None, token=None):
     if token:
         return db.calendar_token.find_one({'token': uuid.UUID(token)})
     else:
-        return db.calendar_token.find_one({'sid'     : sid,
-                                           'semester': semester})
+        if tid:
+            return db.calendar_token.find_one({'tid'     : tid,
+                                               'semester': semester})
+        if sid:
+            return db.calendar_token.find_one({'sid'     : sid,
+                                               'semester': semester})

@@ -10,7 +10,7 @@
 
         {% if no_import_to_calender==False %}
             <h4 class="text-muted"><a
-                    href="{{ url_for('calendar.cal_page', url_sid=sid, url_semester=current_semester) }}"
+                    href="{{ url_for('calendar.cal_page', resource_type="student", resource_identifier=sid, url_semester=current_semester) }}"
                     onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">导入到日历</a></h4>
         {% endif %}
 
