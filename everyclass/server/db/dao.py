@@ -87,3 +87,20 @@ def find_calendar_token(tid=None, sid=None, semester=None, token=None):
         if sid:
             return db.calendar_token.find_one({'sid'     : sid,
                                                'semester': semester})
+
+
+def get_or_set_calendar_token(resource_type, resource_identifier, semester):
+    """find token by resource_type(student or teacher) first. if not found, generate one"""
+    if resource_type == 'student':
+        token = find_calendar_token(sid=resource_identifier, semester=semester)
+    else:
+        token = find_calendar_token(tid=resource_identifier, semester=semester)
+
+    if not token:
+        if resource_type == 'student':
+            token = insert_calendar_token(resource_type=resource_type, sid=resource_identifier, semester=semester)
+        else:
+            token = insert_calendar_token(resource_type=resource_type, tid=resource_identifier, semester=semester)
+    else:
+        token = token['token']
+    return token
