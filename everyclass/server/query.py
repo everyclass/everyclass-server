@@ -19,16 +19,22 @@ def query():
     - `query_resource_type`, 查询类型: classroom, single_student, single_teacher, people, or nothing.
     - `query_type`（原 `ec_query_method`）, 查询方式: by_name, by_student_id, by_teacher_id, by_room_name, other
     """
+    import re
     from .utils.rpc import HttpRpc
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
 
+    # transform upper case xh to lower case(currently api-server does not support upper case xh)
+    to_search = request.values.get('id')
+    if re.match('^[A-Za-z0-9]*$', request.values.get('id')):
+        to_search = to_search.lower()
+
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER'],
-                                                                             request.values.get('id')))
+                                                                             to_search))
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
