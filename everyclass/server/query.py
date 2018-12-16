@@ -31,6 +31,10 @@ def query():
     if re.match('^[A-Za-z0-9]*$', request.values.get('id')):
         to_search = to_search.lower()
 
+    # add ‘座‘ since many users may search classroom in new campus without '座' and api-server doesn't not support
+    if to_search[0] in ('a', 'b', 'c', 'd') and len(to_search) <= 5:
+        to_search = to_search[0] + '座' + to_search[1:]
+
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER'],
