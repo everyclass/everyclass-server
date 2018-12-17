@@ -160,6 +160,15 @@ def create_app(outside_container=False) -> Flask:
         everyclass.server.db.mysql.init_pool(app)
         everyclass.server.db.mongodb.init_pool(app)
 
+    # security check in production environment
+    if app.config['CONFIG_NAME'] == 'production':
+        from everyclass.server.config.default import Config as DefaultConfig
+        need_to_check = ['CALENDAR_UUID_NAMESPACE', 'SECRET_KEY']
+        for each_key in need_to_check:
+            if app.config[each_key] == getattr(DefaultConfig, each_key):
+                print("{} must be overwritten in production environment. Exit.".format(each_key))
+                exit(1)
+
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
     from everyclass.server.query import query_blueprint
