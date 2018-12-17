@@ -112,3 +112,6 @@ class Config(object):
 
     # other micro-services
     API_SERVER = 'http://localhost:8008'
+
+    # calendar token base uuid
+    CALENDAR_UUID_NAMESPACE = '12345678123456781234567812345678'

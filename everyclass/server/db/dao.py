@@ -53,11 +53,13 @@ def new_user_id_sequence() -> int:
 def insert_calendar_token(resource_type: str, semester: str, sid=None, tid=None):
     """generate a calendar token, record to database and return str(token)"""
     import uuid
+    from everyclass.server.config import get_config
+    uuid_ns = get_config()['CALENDAR_UUID_NAMESPACE']
 
     if resource_type == 'student':
-        token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), 's' + sid + ':' + semester)
+        token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + sid + ':' + semester)
     else:
-        token = uuid.uuid5(uuid.UUID('12345678123456781234567812345678'), 't' + tid + ':' + semester)
+        token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + tid + ':' + semester)
 
     db = get_mongodb()
     if resource_type == 'student':
