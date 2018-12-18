@@ -15,11 +15,6 @@ env:
   - secure: "OYby5o4k2bQrH0EKrSUNynZoi2RpCXw632cATRb/adJkL2PzSKQ9HOQRLYj8Gx7OgpvuFvwh9ujqceRVIdwEn/sjh8PEnJaC+wu5TL32DVrvB+EH9IOYLTHX8nvWeMYaeUEccMsW1pGT+WKfuR3mEBkvhQOOis/H+gvmiR+G+PmIFdz1xAoX6KapsTpMXg1bnISVMeD6BZ4Wi7TsRH/DFw9Clx5tsZaUI+RJwPOXLj6BhRa9QzNqvKJ3KPSsL3keC06EBNgsXAEHWVjTk6ouOoXkO3ENgvqjqxCjqkTh//D8iMi0KhZQEB7RU0T0Iyf3AL6GornpUOYO97dnNNH0aU4FDE27tdFu1oAveRz0+EZ20YfVfnenj8uWWTeC1jjZVyJJ++b8IqDb1YVodjtxYLR86RwiUjsaLMWSB/KFZms8YW1FsYvcaL8HQpJNi1QkB3a/+db3JyrtjmLedUKOkJetsxfbS3WLnvYWCnM8NaHYdMgt0i6QPQ4Hu2Ja8Krjq+9EJ6RwQM+ZD9pdlRbGcfyvDIfvmraPceQ7anN9JDgJiq4neuK2CxNlypV4F6tCbDuOqB/FXLoh1JNa/FjHVIlsmNKMt0v6f9DMj8ZXYB739jNwYyELSdIn27mJOn9S+k/Bjk6T8K88SDy4s3zRNpr98k4yJs4MmivVqNx/6Wk="
   - FLASK_ENV=development
 
-
-before_install:
-- openssl aes-256-cbc -K $encrypted_0180fa854b5b_key -iv $encrypted_0180fa854b5b_iv -in deploy/ssh_key.enc -out /tmp/deploy_key -d
-- openssl aes-256-cbc -K $encrypted_1287f26e886e_key -iv $encrypted_1287f26e886e_iv -in deploy/stage_key.enc -out /tmp/stage_key -d
-
 install:
 - pip install pipenv
 - pipenv install --dev
