@@ -1,2 +1,0 @@
-# Legacy deployment ways
-Now we use Docker to deploy. But we use supervisor to daemon EveryClass-server running barely on host machine in the past. This folder contains some configuration files that we use in the past.
