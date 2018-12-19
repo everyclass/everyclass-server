@@ -11,7 +11,7 @@ def get_privacy_settings(student_id: str) -> list:
     :param student_id: 学生学号
     :return: 隐私要求列表
     """
-    # todo migrate privacy settings to mongodb
+    # todo migrate privacy settings to api-server
     db = get_mysql_connection()
     cursor = db.cursor()
 
