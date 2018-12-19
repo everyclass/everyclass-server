@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.mysql import get_connection as get_mysql_connection
@@ -50,59 +51,72 @@ def new_user_id_sequence() -> int:
     return last_row_id
 
 
-def insert_calendar_token(resource_type: str, semester: str, sid=None, tid=None):
-    """generate a calendar token, record to database and return str(token)"""
-    import uuid
-    from everyclass.server.config import get_config
-    uuid_ns = getattr(get_config(), 'CALENDAR_UUID_NAMESPACE')
+class CalendarTokenDAO:
+    @staticmethod
+    def insert_calendar_token(resource_type: str, semester: str, sid=None, tid=None):
+        """generate a calendar token, record to database and return str(token)"""
+        from everyclass.server.config import get_config
+        uuid_ns = getattr(get_config(), 'CALENDAR_UUID_NAMESPACE')
 
-    if resource_type == 'student':
-        token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + sid + ':' + semester)
-    else:
-        token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + tid + ':' + semester)
-
-    db = get_mongodb()
-    if resource_type == 'student':
-        db.calendar_token.insert({'type'    : 'student',
-                                  'sid'     : sid,
-                                  'semester': semester,
-                                  'token'   : token})
-    elif resource_type == 'teacher':
-        db.calendar_token.insert({'type'    : 'teacher',
-                                  'tid'     : tid,
-                                  'semester': semester,
-                                  'token'   : token})
-    return str(token)
-
-
-def find_calendar_token(tid=None, sid=None, semester=None, token=None):
-    """query a token document by token or (sid, semester)"""
-    import uuid
-
-    db = get_mongodb()
-    if token:
-        return db.calendar_token.find_one({'token': uuid.UUID(token)})
-    else:
-        if tid:
-            return db.calendar_token.find_one({'tid'     : tid,
-                                               'semester': semester})
-        if sid:
-            return db.calendar_token.find_one({'sid'     : sid,
-                                               'semester': semester})
-
-
-def get_or_set_calendar_token(resource_type, resource_identifier, semester):
-    """find token by resource_type(student or teacher) first. if not found, generate one"""
-    if resource_type == 'student':
-        token = find_calendar_token(sid=resource_identifier, semester=semester)
-    else:
-        token = find_calendar_token(tid=resource_identifier, semester=semester)
-
-    if not token:
         if resource_type == 'student':
-            token = insert_calendar_token(resource_type=resource_type, sid=resource_identifier, semester=semester)
+            token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + sid + ':' + semester)
         else:
-            token = insert_calendar_token(resource_type=resource_type, tid=resource_identifier, semester=semester)
-    else:
-        token = token['token']
-    return token
+            token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + tid + ':' + semester)
+
+        db = get_mongodb()
+        if resource_type == 'student':
+            db.calendar_token.insert({'type'    : 'student',
+                                      'sid'     : sid,
+                                      'semester': semester,
+                                      'token'   : token})
+        elif resource_type == 'teacher':
+            db.calendar_token.insert({'type'    : 'teacher',
+                                      'tid'     : tid,
+                                      'semester': semester,
+                                      'token'   : token})
+        return str(token)
+
+    @staticmethod
+    def find_calendar_token(tid=None, sid=None, semester=None, token=None):
+        """query a token document by token or (sid, semester)"""
+        db = get_mongodb()
+        if token:
+            return db.calendar_token.find_one({'token': uuid.UUID(token)})
+        else:
+            if tid:
+                return db.calendar_token.find_one({'tid'     : tid,
+                                                   'semester': semester})
+            if sid:
+                return db.calendar_token.find_one({'sid'     : sid,
+                                                   'semester': semester})
+
+    @staticmethod
+    def get_or_set_calendar_token(resource_type, resource_identifier, semester):
+        """find token by resource_type(student or teacher) first. if not found, generate one"""
+        if resource_type == 'student':
+            token = CalendarTokenDAO.find_calendar_token(sid=resource_identifier, semester=semester)
+        else:
+            token = CalendarTokenDAO.find_calendar_token(tid=resource_identifier, semester=semester)
+
+        if not token:
+            if resource_type == 'student':
+                token = CalendarTokenDAO.insert_calendar_token(resource_type=resource_type,
+                                                               sid=resource_identifier,
+                                                               semester=semester)
+            else:
+                token = CalendarTokenDAO.insert_calendar_token(resource_type=resource_type,
+                                                               tid=resource_identifier,
+                                                               semester=semester)
+        else:
+            token = token['token']
+        return token
+
+
+class UserDAO:
+    @staticmethod
+    def exist(xh):
+        """check if a student has registered"""
+        db = get_mongodb()
+        if db.user.find_one({'xh': xh}):
+            return True
+        return False

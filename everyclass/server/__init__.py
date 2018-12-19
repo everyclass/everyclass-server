@@ -116,10 +116,11 @@ def create_app(outside_container=False) -> Flask:
     """创建 flask app
     @param outside_container: 是否不在容器内运行
     """
-    from everyclass.server.db.dao import new_user_id_sequence
     import everyclass.server.db.mysql
     import everyclass.server.db.mongodb
+    from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
+    from everyclass.server.user import user_bp
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -130,6 +131,8 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.config import get_config
     _config = get_config()
     app.config.from_object(_config)
+
+    app.register_blueprint(user_bp, url_prefix='/user')
 
     """
     每课统一日志机制

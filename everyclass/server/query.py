@@ -100,7 +100,8 @@ def get_student(url_sid, url_semester):
     from everyclass.server.db.dao import get_privacy_settings
     from everyclass.server.tools import lesson_string_to_dict
     from everyclass.server.tools import semester_calculate, teacher_list_fix
-    from .utils.rpc import HttpRpc
+    from everyclass.server.utils.rpc import HttpRpc
+    from flask import session
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
@@ -127,6 +128,10 @@ def get_student(url_sid, url_semester):
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
     available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
+
+    # save student resource id to session for login purpose
+    # note: client-side session is not encrypted, don't save read id here
+    session['viewing_sid'] = url_sid
 
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
