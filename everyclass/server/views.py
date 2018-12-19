@@ -8,32 +8,32 @@ main_blueprint = Blueprint('main', __name__)
 @main_blueprint.route('/')
 def main():
     """首页"""
-    return render_template('index.html')
+    return render_template('common/index.html')
 
 
 @main_blueprint.route('/sleep')
 def sleep():
     """休眠测试"""
     time.sleep(50)
-    return render_template('index.html')
+    return render_template('common/index.html')
 
 
 @main_blueprint.route('/faq')
 def faq():
     """帮助页面"""
-    return render_template('faq.html')
+    return render_template('common/faq.html')
 
 
 @main_blueprint.route('/about')
 def about():
     """关于页面"""
-    return render_template('about.html')
+    return render_template('common/about.html')
 
 
 @main_blueprint.route('/guide')
 def guide():
     """帮助页面"""
-    return render_template('guide.html')
+    return render_template('common/guide.html')
 
 
 @main_blueprint.route('/testing')
@@ -45,7 +45,7 @@ def testing():
 @main_blueprint.route('/donate')
 def donate():
     """点击发送邮件后的捐助页面"""
-    return render_template('donate.html')
+    return render_template('common/donate.html')
 
 
 @main_blueprint.route('/_healthCheck')

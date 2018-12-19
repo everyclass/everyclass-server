@@ -69,7 +69,7 @@ def query():
     elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='multiple_people')
-        return render_template('people_same_name.html',
+        return render_template('query/people_same_name.html',
                                students_count=len(api_response['student']),
                                students=api_response['student'],
                                teachers_count=len(api_response['teacher']),
@@ -121,7 +121,7 @@ def get_student(url_sid, url_semester):
 
     # privacy on
     if "show_table_on_page" in privacy_settings:
-        return render_template('student_blocked.html',
+        return render_template('query/student_blocked.html',
                                name=api_response['name'],
                                falculty=api_response['deputy'],
                                class_name=api_response['class'],
@@ -131,7 +131,7 @@ def get_student(url_sid, url_semester):
                                current_semester=url_semester)
 
     # privacy off
-    return render_template('student.html',
+    return render_template('query/student.html',
                            name=api_response['name'],
                            falculty=api_response['deputy'],
                            class_name=api_response['class'],
@@ -176,7 +176,7 @@ def get_teacher(url_tid, url_semester):
 
     available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
-    return render_template('teacher.html',
+    return render_template('query/teacher.html',
                            name=api_response['name'],
                            falculty=api_response['unit'],
                            title=api_response['title'],
@@ -221,7 +221,7 @@ def get_classroom(url_rid, url_semester):
 
     available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
-    return render_template('room.html',
+    return render_template('query/room.html',
                            name=api_response['name'],
                            campus=api_response['campus'],
                            building=api_response['building'],
@@ -267,7 +267,7 @@ def get_course(url_cid: str, url_semester: str):
     if api_response['class'].isdigit():
         show_heban = False
 
-    return render_template('course.html',
+    return render_template('query/course.html',
                            course_name=api_response['name'],
                            course_day=get_day_chinese(day),
                            course_time=get_time_chinese(time),
