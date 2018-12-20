@@ -47,6 +47,5 @@ gulp.task("default", gulp.series("css", "js", "copyOtherFilesToDist"));
 
 //Watch tasks
 gulp.task('watch', function () {
-    gulp.watch('./static/css/*.css', ['css']);
-    gulp.watch('./static/js/*.js', ['js']);
+    return gulp.watch('./static/*', ['default']);
 });

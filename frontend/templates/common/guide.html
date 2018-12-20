@@ -10,27 +10,36 @@
             <p class="p1"><span class="s1"><b>首页<br></b></span>
             </p>
             <p align="center"><img src="{{ url_for('static', filename='images/screenshot1.jpg') }}" height="500"></p>
-            <p class="p1">如你所见，这是每课的首页。你可以输入学号或者姓名，然后点击开始按钮。有重名？别担心，我们已经处理好了这个问题。
+            <p class="p1">如你所见，这是每课的首页。你可以输入学号（教工号）、学生或老师的姓名、教师名称，然后点击开始按钮。有重名？别担心，我们已经处理好了这个问题。
             </p>
 
-            <p class="p1"><span class="s1"><b>课表页面<br></b></span>
+            <p class="p1"><span class="s1"><b>学生/教师课表页面<br></b></span>
             </p>
             <p align="center"><img src="{{ url_for('static', filename='images/screenshot2.jpg') }}" width="550" class="img-responsive"></p>
-            <p class="p1">课表界面会显示你所有周的课表，甚至包括没有录入到教务系统的英语约课。你可以在上方选择你想查询的学期（每课从2016年下学期开始运行）。<br>
+            <p class="p1">课表界面会显示你最新学期的课表。你可以在上方选择你想查询的学期（每课从2016年下学期开始运行）。<br>
                 因为手机屏幕过于狭窄，不便于显示完整课表，建议你在电脑端访问。
             </p>
 
-            <p class="p1"><span class="s1"><b>查看同学<br></b></span>
+            <p class="p1"><span class="s1"><b>课程详情<br></b></span>
             </p>
-            <p align="center"><img src="{{ url_for('static', filename='images/screenshot3.jpg') }}" width="550" class="img-responsive"></p>
-            <p class="p1">对于课表页面的每一节课，你可以点击"查看同学"链接，然后我们会列出所有参加这门课程的同学信息，包括姓名、学院、专业、班级。（因为是通过学号判断的，转专业的同学查询到的仍然是入学时候的专业）<br>
-                你也可以点击每个人最右边的"查询课表"链接，查询他的课表，就像你查询自己的课表一样。<br>
-                请注意，我们没有使用任何"不干净"的手段获取这些信息。
+            <p align="center"><img src="{{ url_for('static', filename='images/screenshot_course.png') }}" width="550"
+                                   class="img-responsive"></p>
+            <p class="p1">
+                对于课表页面的每一节课，你可以点击“课程详情”链接以查看课程详情。课程详情界面可以展示课程的教师、课程类型（专业课、专业选修课、军体类、文化素质类等）、上课周次、学时、合班名称等信息。<br>
+                你也可以在这里查询到参加这门课程的同学信息。点击每个人右边的"查询课表"链接即可查询他的课表，就像你查询自己的课表一样。如果该同学设置了隐私选项，则无法显示。<br>
+            </p>
+
+            <p class="p1"><span class="s1"><b>教室详情<br></b></span>
+            </p>
+            <p align="center"><img src="{{ url_for('static', filename='images/screenshot_classroom.png') }}" width="550"
+                                   class="img-responsive"></p>
+            <p class="p1">自习室怎么找？空教室在哪？通过教室查询功能，你可以查看本学期（以及之前的学期）的教室课程安排。
             </p>
 
             <p class="p1"><span class="s1"><b>导出课表<br></b></span>
             </p>
-            <p align="center"><img src="{{ url_for('static', filename='images/screenshot4.jpg') }}" height="500"></p>
+            <p align="center"><img src="{{ url_for('static', filename='images/screenshot_subscribe.png') }}"
+                                   height="500"></p>
             <p class="p1">这是一个非常有用的功能，也是每课最初存在的理由。<br>
                 把课表导出到系统日历能让你在同一个地方管理每天的所有日程，而不需要打开单独的课表 App。借助 <a
                         href="https://www.dida365.com/" target="_blank">滴答清单</a> 等强大好用的 App 的配合，你会发现自己你的每一天可以过得更加井井有条。
@@ -39,27 +48,15 @@
 
             <p class="p1">iOS 和 Mac 均对日历订阅有良好的原生支持，你可以通过"设置→日历→账户"管理已订阅的日历或添加新日历订阅。
             </p>
-            <p class="p1">.ics 格式是“日历数据交换”的标准（RFC 5545），然而，安卓设备似乎并不原生支持这项功能。如果你使用安卓手机，<b>你可以使用<a
+            <p class="p1">.ics 格式是“日历数据交换”的标准（RFC 5545），然而，安卓设备似乎并不原生支持这项功能。如果你使用安卓手机，你可以使用<a
                     href="https://www.dida365.com/" target="_blank"
-                    onclick="_czc.push(['_trackEvent', '引导页', '滴答清单']);">滴答清单</a>等带有日历订阅功能的第三方 App</b>，亦可使用 Google
-                Calendar 等服务的网页版导入，然后将 Google 账号与手机进行同步。（需自备梯子）
+                    onclick="_czc.push(['_trackEvent', '引导页', '滴答清单']);">滴答清单</a>等带有日历订阅功能的第三方 App，亦可使用 Google
+                Calendar 等服务的网页版导入，然后将 Google 账号与手机进行同步。此外，<b>我们很快将要推出每课安卓导入工具，使用此工具可以方便的将课表导入日历。</b>
             </p>
-            <p class="p1">参考链接：</p>
-            <ul>
-                <li><a href="https://base.admirable.one/t/iphone-mac/235"
-                       target="_blank" onclick="_czc.push(['_trackEvent', '引导页', 'iPhoneAndMac文档']);">在
-                    iPhone、Mac 上添加和管理日历订阅</a></li>
-                <li><a href="https://base.admirable.one/t/google-calendar/238"
-                       target="_blank" onclick="_czc.push(['_trackEvent', '引导页', 'GoogleCalendar文档']);">使用 Google
-                    Calendar 添加日历订阅</a></li>
-                <li>
-                    <a href="https://base.admirable.one/t/topic/239"
-                       target="_blank"
-                       onclick="_czc.push(['_trackEvent', '日历导出', '滴答清单文档']);">使用滴答清单添加日历订阅</a></li>
-            </ul>
 
             <br><br>
-            <p class="p1" align="center"><a href="/" onclick="_czc.push(['_trackEvent', '引导页', '现在开始']);">现在就开始吧</a>
+            <p class="p1" align="center"><a href="{{ url_for('main.main') }}"
+                                            onclick="_czc.push(['_trackEvent', '引导页', '现在开始']);">现在就开始吧</a>
             </p>
         </div>
     </div>
