@@ -209,8 +209,7 @@ def legacy_get_ics(student_id, semester_str):
         return abort(400)
 
     with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
-        # todo this need to be replaced with real student id here
-        privacy_settings = get_privacy_settings(api_response['student'][0]['sid'])
+        privacy_settings = get_privacy_settings(api_response['student'][0]['sid_orig'])
         # legacy privacy setting, for disable a user's all operations
         if "show_table_on_page" in privacy_settings:
             return "Visit {} to get your calendar".format(url_for("main.main")), 401
