@@ -17,7 +17,7 @@
                 <div class="panel-body">
                     <div class="col-lg-6 hidden-xs">
                         <div class="panel-content">
-                            <h5 class="m-b-0"><strong>输入姓名、学号、老师或教室，然后点击开始吧！</strong></h5>
+                            <h5 class="m-b-0"><strong>输入姓名、学号、教工号或教室名，然后点击开始吧！</strong></h5>
                         </div>
                     </div>
                     <div class="clearfix visible-xs"></div>
@@ -27,7 +27,7 @@
                                 <form class="form-inline pull-right" action="{{ url_for('query.query') }}" method="get"
                                       id="search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '桌面端']);">
                                     <input class="form-control input-lg panel-email-input" name="id"
-                                           placeholder="姓名、学号、老师或教室" style="display: inline-block">
+                                           placeholder="姓名、学号、教工号或教室名" style="display: inline-block">
                                     <input type="submit" value="开始" class="btn btn-lg"
                                            style="display: inline-block" id="search-button">
                                 </form>
@@ -46,7 +46,7 @@
                 <form class="form-inline centre" action="{{ url_for('query.query') }}" method="get"
                       id="mobile-search-form" onsubmit="_czc.push(['_trackEvent', '首页', '查询', '手机端']);">
                     <div class="input-group">
-                        <input type="text" name="id" class="form-control" placeholder="姓名、老师、教室">
+                        <input type="text" name="id" class="form-control" placeholder="姓名、学号或教室名">
                         <span class="input-group-btn">
 						<button class="btn btn-default" type="submit" value="开始">开始</button>
 					</span>
