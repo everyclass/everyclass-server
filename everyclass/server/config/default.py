@@ -96,6 +96,9 @@ class Config(object):
     DATA_LAST_UPDATE_TIME = '2018 年 9 月 7 日'  # 数据最后更新日期，在页面下方展示
     DEFAULT_SEMESTER = (2018, 2019, 1)
     AVAILABLE_SEMESTERS = {
+        (2016, 2017, 1): {
+            'start': (2016, 9, 5),
+        },
         (2016, 2017, 2): {
             'start': (2017, 2, 20),
         },
