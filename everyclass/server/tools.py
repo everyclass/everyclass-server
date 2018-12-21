@@ -60,7 +60,7 @@ def get_time(digit):
 def lesson_string_to_dict(lesson: str) -> (int, int):
     """transform str like '10102' into tuple like (1,1)"""
     day = int(lesson[0])
-    time = (int(lesson[2]) + 1) / 2
+    time = int((int(lesson[2]) + 1) / 2)
     return day, time
 
 

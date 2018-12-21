@@ -115,7 +115,7 @@ def get_student(url_sid, url_semester):
                                              classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
 
-    empty_5, empty_6, empty_weekend = _empty_column_check(courses)
+    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
     available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
@@ -142,7 +142,8 @@ def get_student(url_sid, url_semester):
                            class_name=api_response['class'],
                            sid=url_sid,
                            classes=courses,
-                           empty_wkend=empty_weekend,
+                           empty_sat=empty_sat,
+                           empty_sun=empty_sun,
                            empty_6=empty_6,
                            empty_5=empty_5,
                            available_semesters=available_semesters,
@@ -177,7 +178,7 @@ def get_teacher(url_tid, url_semester):
                                              classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
 
-    empty_5, empty_6, empty_weekend = _empty_column_check(courses)
+    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
     available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
@@ -187,7 +188,8 @@ def get_teacher(url_tid, url_semester):
                            title=api_response['title'],
                            tid=url_tid,
                            classes=courses,
-                           empty_wkend=empty_weekend,
+                           empty_sat=empty_sat,
+                           empty_sun=empty_sun,
                            empty_6=empty_6,
                            empty_5=empty_5,
                            available_semesters=available_semesters,
@@ -222,7 +224,7 @@ def get_classroom(url_rid, url_semester):
                                              location=each_class['room'],
                                              cid=each_class['cid']))
 
-    empty_5, empty_6, empty_weekend = _empty_column_check(courses)
+    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
     available_semesters = semester_calculate(url_semester, api_response['semester_list'])
 
@@ -232,7 +234,8 @@ def get_classroom(url_rid, url_semester):
                            building=api_response['building'],
                            rid=url_rid,
                            classes=courses,
-                           empty_wkend=empty_weekend,
+                           empty_sat=empty_sat,
+                           empty_sun=empty_sun,
                            empty_6=empty_6,
                            empty_5=empty_5,
                            available_semesters=available_semesters,
@@ -289,15 +292,19 @@ def get_course(url_cid: str, url_semester: str):
                            )
 
 
-def _empty_column_check(courses: dict) -> (bool, bool, bool):
+def _empty_column_check(courses: dict) -> (bool, bool, bool, bool):
     """检查是否周末和晚上有课，返回三个布尔值"""
     with elasticapm.capture_span('_empty_column_check'):
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
-        empty_weekend = True
+        empty_sat = True
         for cls_time in range(1, 7):
-            for cls_day in range(6, 8):
-                if (cls_day, cls_time) in courses:
-                    empty_weekend = False
+            if (6, cls_time) in courses:
+                empty_sat = False
+
+        empty_sun = True
+        for cls_time in range(1, 7):
+            if (7, cls_time) in courses:
+                empty_sun = False
 
         # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
         empty_6 = True
@@ -308,4 +315,4 @@ def _empty_column_check(courses: dict) -> (bool, bool, bool):
         for cls_day in range(1, 8):
             if (cls_day, 5) in courses:
                 empty_5 = False
-    return empty_5, empty_6, empty_weekend
+    return empty_5, empty_6, empty_sat, empty_sun
