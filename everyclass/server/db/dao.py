@@ -114,9 +114,10 @@ class CalendarTokenDAO:
 
 class UserDAO:
     @staticmethod
-    def exist(xh):
+    def exist(sid_orig):
         """check if a student has registered"""
         db = get_mongodb()
-        if db.user.find_one({'xh': xh}):
+        result = db.user.find_one({'sid_orig': sid_orig})
+        if result:
             return True
         return False

@@ -1,5 +1,5 @@
 import elasticapm
-from flask import current_app as app, flash, redirect, render_template, session
+from flask import current_app as app, flash, redirect, render_template, session, url_for
 from werkzeug.wrappers import Response
 
 from everyclass.server.db.dao import UserDAO
@@ -28,7 +28,7 @@ def login():
 
     # if not registered, redirect to register page
     if not UserDAO.exist(api_response['sid']):
-        return redirect('user.register')
+        return redirect(url_for('user.register'))
 
     return render_template('user/login.html',
                            viewing_sid=api_response['sid'])
@@ -44,7 +44,7 @@ def register():
         return redirect('main.main')
 
     # if registered, redirect to login page
-    if not UserDAO.exist(session['viewing_sid']):
+    if UserDAO.exist(session['viewing_sid']):
         flash('你已经注册了，请直接登录。')
         return redirect('user.login')
 
