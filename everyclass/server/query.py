@@ -28,6 +28,11 @@ def query():
 
     # transform upper case xh to lower case(currently api-server does not support upper case xh)
     to_search = request.values.get('id')
+
+    if not to_search:
+        flash('请输入需要查询的姓名、学号、教工号或教室名称')
+        return redirect(url_for('main.main'))
+
     if re.match('^[A-Za-z0-9]*$', request.values.get('id')):
         to_search = to_search.lower()
 
