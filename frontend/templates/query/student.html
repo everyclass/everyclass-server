@@ -17,15 +17,11 @@
             </select>
         </form>
 
-
-        <h4 class="text-muted visible-xs">课表内容较多，建议登陆电脑使用哦。网址：<br><a
-                href="{{ url_for("main.main", _external=True) }}">{{ url_for("main.main", _external=True) }}</a>
-        </h4>
         <h4 class="text-muted">
             <a href="{{ url_for('user.login') }}">登陆</a> &nbsp;
             <a
-                href="{{ url_for('calendar.cal_page', resource_type="student", resource_identifier=sid, url_semester=current_semester) }}"
-                onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a>（支持几乎所有设备）</h4>
+                    href="{{ url_for('calendar.cal_page', resource_type="student", resource_identifier=sid, url_semester=current_semester) }}"
+                    onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a></h4>
     </div>
     <br><br>
     <div class="row row-backbordered">
