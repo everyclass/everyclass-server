@@ -75,6 +75,7 @@ def query():
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='multiple_people')
         return render_template('query/people_same_name.html',
+                               name=to_search,
                                students_count=len(api_response['student']),
                                students=api_response['student'],
                                teachers_count=len(api_response['teacher']),
