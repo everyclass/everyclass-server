@@ -60,10 +60,12 @@ def ics_download(calendar_token):
     if not result:
         return 'invalid calendar token', 404
 
-    with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(current_app.config['API_SERVER'],
-                                                                                 result['sid'],
-                                                                                 result['semester']),
+    with elasticapm.capture_span('rpc_find_people'):
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER'],
+                                                                            result['type'],
+                                                                            result['sid'] if result['type'] == 'student'
+                                                                            else result['tid'],
+                                                                            result['semester']),
                                                     params={'week_string': 'true'})
         if isinstance(rpc_result, Response):
             return rpc_result
