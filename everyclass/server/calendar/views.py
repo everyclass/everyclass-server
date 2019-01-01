@@ -103,14 +103,13 @@ def ics_download(calendar_token):
 def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
-    from werkzeug.wrappers import Response
     from flask import current_app as app, jsonify
     from everyclass.server.utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_handle_message('{}/v1/search/{}'.format(app.config['API_SERVER'],
                                                                                identifier))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, tuple):
             return rpc_result
         api_response = rpc_result
 
@@ -134,7 +133,6 @@ def android_client_get_ics(resource_type, identifier, semester):
     If the privacy mode is on and there is no HTTP basic authentication, return a 401(unauthorized)
     status code and the Android client ask user for password to try again.
     """
-    from werkzeug.wrappers import Response
     from flask import current_app as app, redirect, url_for, request
 
     from everyclass.server.utils.rpc import HttpRpc
@@ -148,7 +146,7 @@ def android_client_get_ics(resource_type, identifier, semester):
                                                                               resource_type,
                                                                               identifier,
                                                                               semester))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, tuple):
             return rpc_result
         api_response = rpc_result
 
