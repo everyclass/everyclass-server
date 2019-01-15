@@ -204,7 +204,7 @@ def get_classroom(url_rid, url_semester):
     from everyclass.server.tools import semester_calculate, teacher_list_fix
     from .utils.rpc import HttpRpc
 
-    with elasticapm.capture_span('rpc_query_student'):
+    with elasticapm.capture_span('rpc_query_room'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/room/{}/{}'.format(app.config['API_SERVER'],
                                                                               url_rid,
                                                                               url_semester),
@@ -212,6 +212,10 @@ def get_classroom(url_rid, url_semester):
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
+
+    if 'name' not in api_response:
+        flash("教务数据异常，暂时无法查询本教室。其他教室不受影响。")
+        return redirect(url_for("main.main"))
 
     with elasticapm.capture_span('process_rpc_result'):
         courses = dict()
