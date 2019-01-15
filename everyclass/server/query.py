@@ -5,6 +5,8 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
+from everyclass.server import logger
+
 query_blueprint = Blueprint('query', __name__)
 
 
@@ -214,6 +216,7 @@ def get_classroom(url_rid, url_semester):
         api_response = rpc_result
 
     if 'name' not in api_response:
+        logger.info("Hit classroom 'name' KeyError temporary fix")
         flash("教务数据异常，暂时无法查询本教室。其他教室不受影响。")
         return redirect(url_for("main.main"))
 
