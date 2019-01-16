@@ -120,7 +120,7 @@ def get_student(url_sid, url_semester):
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, api_response['semester_list'])
+    available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
 
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
@@ -183,7 +183,7 @@ def get_teacher(url_tid, url_semester):
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, api_response['semester_list'])
+    available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
 
     return render_template('query/teacher.html',
                            name=api_response['name'],
@@ -234,7 +234,7 @@ def get_classroom(url_rid, url_semester):
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, api_response['semester_list'])
+    available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
 
     return render_template('query/room.html',
                            name=api_response['name'],
