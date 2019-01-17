@@ -1,6 +1,9 @@
+import os
 import time
 
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
+
+from everyclass.server.config import get_config
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -52,6 +55,28 @@ def donate():
 def health_check():
     """健康检查"""
     return jsonify({"status": "ok"})
+
+
+@main_blueprint.route("/_maintenance")
+def enter_maintenance():
+    config = get_config()
+    username, password = request.authorization
+    if username and username in config.MAINTENANCE_CREDENTIALS and config.MAINTENANCE_CREDENTIALS[username] == password:
+        open(config.MAINTENANCE_FILE, "w+").close()  # maintenance file
+        open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
+    else:
+        abort(404)
+
+
+@main_blueprint.route("/_exitMaintenance")
+def exit_maintenance():
+    config = get_config()
+    username, password = request.authorization
+    if username and username in config.MAINTENANCE_CREDENTIALS and config.MAINTENANCE_CREDENTIALS[username] == password:
+        os.remove(config.MAINTENANCE_FILE)  # remove maintenance file
+        open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
+    else:
+        abort(404)
 
 
 @main_blueprint.app_errorhandler(404)

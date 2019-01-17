@@ -92,6 +92,8 @@ try:
                         value['passwd'] = '[secret]'
                     if key == 'ELASTIC_APM':
                         value['SECRET_TOKEN'] = '[secret]'
+                    if key == 'MAINTENANCE_CREDENTIALS':
+                        value = '[secret]'
 
                     logger.info('{}: {}'.format(key, value))
             logger.info('================================================================')

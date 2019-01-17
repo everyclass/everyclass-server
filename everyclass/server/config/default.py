@@ -73,6 +73,8 @@ class Config(object):
     """
     维护模式
     """
+    MAINTENANCE_CREDENTIALS = {
+    }
     MAINTENANCE_FILE = os.path.join(os.getcwd(), 'maintenance')
     if os.path.exists(MAINTENANCE_FILE):
         MAINTENANCE = True

@@ -6,11 +6,13 @@ from flask import Blueprint, current_app as app, escape, flash, redirect, render
 from werkzeug.wrappers import Response
 
 from everyclass.server import logger
+from everyclass.server.tools import disallow_in_maintenance
 
 query_blueprint = Blueprint('query', __name__)
 
 
 @query_blueprint.route('/query', methods=['GET', 'POST'])
+@disallow_in_maintenance
 def query():
     """
     All in one 搜索入口，可以查询学生、老师、教室，然后跳转到具体资源页面
@@ -89,6 +91,7 @@ def query():
 
 
 @query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
+@disallow_in_maintenance
 def get_student(url_sid, url_semester):
     """学生查询"""
     from everyclass.server.db.dao import get_privacy_settings
@@ -154,6 +157,7 @@ def get_student(url_sid, url_semester):
 
 
 @query_blueprint.route('/teacher/<string:url_tid>/<string:url_semester>')
+@disallow_in_maintenance
 def get_teacher(url_tid, url_semester):
     """老师查询"""
     from everyclass.server.tools import lesson_string_to_dict
@@ -200,6 +204,7 @@ def get_teacher(url_tid, url_semester):
 
 
 @query_blueprint.route('/classroom/<string:url_rid>/<string:url_semester>')
+@disallow_in_maintenance
 def get_classroom(url_rid, url_semester):
     """教室查询"""
     from everyclass.server.tools import lesson_string_to_dict
@@ -251,6 +256,7 @@ def get_classroom(url_rid, url_semester):
 
 
 @query_blueprint.route('/course/<string:url_cid>/<string:url_semester>')
+@disallow_in_maintenance
 def get_course(url_cid: str, url_semester: str):
     """课程查询"""
 

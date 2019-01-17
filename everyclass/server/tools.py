@@ -1,4 +1,9 @@
+import functools
+
 import elasticapm
+from flask import render_template
+
+from everyclass.server.config import get_config
 
 
 def get_day_chinese(digit):
@@ -102,3 +107,18 @@ def teacher_list_fix(teachers: list):
             tids.append(teacher['tid'])
             new_teachers.append(teacher)
     return new_teachers
+
+
+def disallow_in_maintenance(func):
+    """
+    a decorator for routes which should be unavailable in maintenance mode.
+    """
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        config = get_config()
+        if config.MAINTENANCE:
+            return render_template('maintenance.html')
+        return func(*args, **kwargs)
+
+    return wrapped

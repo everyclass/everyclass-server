@@ -5,10 +5,13 @@
 import elasticapm
 from flask import Blueprint
 
+from everyclass.server.tools import disallow_in_maintenance
+
 cal_blueprint = Blueprint('calendar', __name__)
 
 
 @cal_blueprint.route('/calendar/<string:resource_type>/<resource_identifier>/<string:url_semester>')
+@disallow_in_maintenance
 def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
     from werkzeug.wrappers import Response
@@ -42,6 +45,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
 
 
 @cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
+@disallow_in_maintenance
 def ics_download(calendar_token):
     """
     iCalendar ics file download
@@ -100,6 +104,7 @@ def ics_download(calendar_token):
 
 
 @cal_blueprint.route('/calendar/ics/_androidClient/<identifier>')
+@disallow_in_maintenance
 def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
@@ -125,6 +130,7 @@ def android_client_get_semester(identifier):
 
 
 @cal_blueprint.route('/calendar/ics/_androidClient/<resource_type>/<identifier>/<semester>')
+@disallow_in_maintenance
 def android_client_get_ics(resource_type, identifier, semester):
     """
     android client get a student or teacher's ics file
@@ -171,6 +177,7 @@ def android_client_get_ics(resource_type, identifier, semester):
 
 
 @cal_blueprint.route('/<student_id>-<semester_str>.ics')
+@disallow_in_maintenance
 def legacy_get_ics(student_id, semester_str):
     """
     legacy iCalendar endpoint
