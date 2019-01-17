@@ -1,7 +1,7 @@
 import os
 import time
 
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, Response, jsonify, redirect, render_template, request, url_for
 
 from everyclass.server.config import get_config
 
@@ -60,23 +60,35 @@ def health_check():
 @main_blueprint.route("/_maintenance")
 def enter_maintenance():
     config = get_config()
-    username, password = request.authorization
-    if username and username in config.MAINTENANCE_CREDENTIALS and config.MAINTENANCE_CREDENTIALS[username] == password:
+    auth = request.authorization
+    if auth \
+            and auth.username in config.MAINTENANCE_CREDENTIALS \
+            and config.MAINTENANCE_CREDENTIALS[auth.username] == auth.password:
         open(config.MAINTENANCE_FILE, "w+").close()  # maintenance file
         open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
+        return 'success'
     else:
-        abort(401)
+        return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to login with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
 @main_blueprint.route("/_exitMaintenance")
 def exit_maintenance():
     config = get_config()
-    username, password = request.authorization
-    if username and username in config.MAINTENANCE_CREDENTIALS and config.MAINTENANCE_CREDENTIALS[username] == password:
+    auth = request.authorization
+    if auth \
+            and auth.username in config.MAINTENANCE_CREDENTIALS \
+            and config.MAINTENANCE_CREDENTIALS[auth.username] == auth.password:
         os.remove(config.MAINTENANCE_FILE)  # remove maintenance file
         open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
+        return 'success'
     else:
-        abort(401)
+        return Response(
+                'Could not verify your access level for that URL.\n'
+                'You have to login with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
 @main_blueprint.app_errorhandler(404)
