@@ -65,7 +65,7 @@ def enter_maintenance():
         open(config.MAINTENANCE_FILE, "w+").close()  # maintenance file
         open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
     else:
-        abort(404)
+        abort(401)
 
 
 @main_blueprint.route("/_exitMaintenance")
@@ -76,7 +76,7 @@ def exit_maintenance():
         os.remove(config.MAINTENANCE_FILE)  # remove maintenance file
         open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
     else:
-        abort(404)
+        abort(401)
 
 
 @main_blueprint.app_errorhandler(404)
