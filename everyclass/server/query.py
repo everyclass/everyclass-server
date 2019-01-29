@@ -57,6 +57,7 @@ def query():
         # classroom
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
+        api_response['room'][0]['semester'].sort()
         return redirect('/classroom/{}/{}'.format(api_response['room'][0]['rid'],
                                                   api_response['room'][0]['semester'][-1]))
     elif len(api_response['student']) == 1 and len(api_response['teacher']) == 0:
@@ -65,6 +66,7 @@ def query():
         if len(api_response['student'][0]['semester']) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
+        api_response['student'][0]['semester'].sort()
         return redirect('/student/{}/{}'.format(api_response['student'][0]['sid'],
                                                 api_response['student'][0]['semester'][-1]))
     elif len(api_response['teacher']) == 1 and len(api_response['student']) == 0:
@@ -73,6 +75,7 @@ def query():
         if len(api_response['teacher'][0]['semester']) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
+        api_response['teacher'][0]['semester'].sort()
         return redirect('/teacher/{}/{}'.format(api_response['teacher'][0]['tid'],
                                                 api_response['teacher'][0]['semester'][-1]))
     elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
