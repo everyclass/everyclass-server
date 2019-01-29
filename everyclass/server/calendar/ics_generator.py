@@ -101,17 +101,18 @@ def __get_datetime(week, day, time, semester) -> datetime:
                   tzinfo=pytz.timezone("Asia/Shanghai")
                   ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
-    ymd = (dt.year, dt.month, dt.day)
-    adjustments = config.AVAILABLE_SEMESTERS[semester]['adjustments']
-    if ymd in adjustments:
-        if adjustments[ymd]['to']:
-            # time adjusted
-            dt = dt.replace(year=adjustments[ymd]['to'][0],
-                            month=adjustments[ymd]['to'][1],
-                            day=adjustments[ymd]['to'][2])
-        else:
-            # course canceled
-            dt = dt.replace(year=1984)
+    if 'adjustments' in config.AVAILABLE_SEMESTERS[semester]:
+        ymd = (dt.year, dt.month, dt.day)
+        adjustments = config.AVAILABLE_SEMESTERS[semester]['adjustments']
+        if ymd in adjustments:
+            if adjustments[ymd]['to']:
+                # time adjusted
+                dt = dt.replace(year=adjustments[ymd]['to'][0],
+                                month=adjustments[ymd]['to'][1],
+                                day=adjustments[ymd]['to'][2])
+            else:
+                # course canceled
+                dt = dt.replace(year=1984)
 
     return dt
 
