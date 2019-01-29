@@ -81,7 +81,10 @@ def exit_maintenance():
     if auth \
             and auth.username in config.MAINTENANCE_CREDENTIALS \
             and config.MAINTENANCE_CREDENTIALS[auth.username] == auth.password:
-        os.remove(config.MAINTENANCE_FILE)  # remove maintenance file
+        try:
+            os.remove(config.MAINTENANCE_FILE)  # remove maintenance file
+        except OSError:
+            return 'Not in maintenance mode. Ignore command.'
         open(os.path.join(os.getcwd(), 'reload'), "w+").close()  # uwsgi reload
         return 'success'
     else:
