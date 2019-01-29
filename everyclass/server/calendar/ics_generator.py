@@ -60,6 +60,10 @@ def generate(student_name: str, courses, semester_string: str, semester, ics_tok
 
                         dtstart = __get_datetime(dur_starting_week, day, get_time(time)[0], semester)
                         dtend = __get_datetime(dur_starting_week, day, get_time(time)[1], semester)
+
+                        if dtstart.year == 1984:
+                            continue
+
                         # 参数：
                         # 课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID
                         cal.add_component(
@@ -91,10 +95,25 @@ def __get_datetime(week, day, time, semester) -> datetime:
     :param semester: 学期
     :return: datetime 类型的时间
     """
-    return datetime(*get_config().AVAILABLE_SEMESTERS.get(semester)['start'],
-                    *time,
-                    tzinfo=pytz.timezone("Asia/Shanghai")
-                    ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
+    config = get_config()
+    dt = datetime(*config.AVAILABLE_SEMESTERS[semester]['start'],
+                  *time,
+                  tzinfo=pytz.timezone("Asia/Shanghai")
+                  ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
+
+    ymd = (dt.year, dt.month, dt.day)
+    adjustments = config.AVAILABLE_SEMESTERS[semester]['adjustments']
+    if ymd in adjustments:
+        if adjustments[ymd]['to']:
+            # time adjusted
+            dt = dt.replace(year=adjustments[ymd]['to'][0],
+                            month=adjustments[ymd]['to'][1],
+                            day=adjustments[ymd]['to'][2])
+        else:
+            # course canceled
+            dt = dt.replace(year=1984)
+
+    return dt
 
 
 def __add_event(course_name, times, classroom, teacher, current_week, week_string, cid) -> Event:
