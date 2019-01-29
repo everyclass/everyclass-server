@@ -66,9 +66,10 @@ class Config(object):
     }
 
     # define available environments for logs, APM and error tracking
-    SENTRY_AVAILABLE_IN = ['production', 'staging', 'testing']
-    APM_AVAILABLE_IN = ['production', 'staging', 'testing']
-    LOGSTASH_AVAILABLE_IN = ['production', 'staging', 'testing']
+    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
 
     """
     维护模式

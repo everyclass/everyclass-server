@@ -146,7 +146,11 @@ def create_app(outside_container=False) -> Flask:
     https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
     - stack 默认是 False
     """
-    stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: r.level < 13)
+    if app.config['CONFIG_NAME'] in app.config['DEBUG_LOG_AVAILABLE_IN']:
+        stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: r.level < 13)
+    else:
+        # ignore debug when not in debug
+        stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: 10 < r.level < 13)
     stdout_handler.format_string = LOG_FORMAT_STRING
     logger.handlers.append(stdout_handler)
 
