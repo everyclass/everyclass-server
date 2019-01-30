@@ -100,7 +100,7 @@ try:
 
             __first_spawn = False
 except ModuleNotFoundError:
-    print('ModuleNotFound when importing uWSGI-decorators. Ignore this if you are not launched from uWSGI.')
+    pass
 
 
 def create_app(outside_container=False) -> Flask:
