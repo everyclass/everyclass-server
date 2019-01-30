@@ -284,7 +284,7 @@ def get_course(url_cid: str, url_semester: str):
         students.append([each['name'], each['sid'], each['deputy'], each['class']])
 
     # 给“文化素质类”等加上“课”后缀
-    if api_response['type'][-1] != '课':
+    if api_response['type'] and api_response['type'][-1] != '课':
         api_response['type'] = api_response['type'] + '课'
 
     # 合班名称为数字时不展示合班名称
