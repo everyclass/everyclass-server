@@ -121,11 +121,11 @@ def android_client_get_semester(identifier):
     if len(api_response['student']) == 1:
         return jsonify({'type'     : 'student',
                         'sid'      : api_response['student'][0]['sid'],
-                        'semesters': api_response['student'][0]['semester']})
+                        'semesters': sorted(api_response['student'][0]['semester'])})
     if len(api_response['teacher']) == 1:
         return jsonify({'type'     : 'teacher',
                         'tid'      : api_response['student'][0]['tid'],
-                        'semesters': api_response['teacher'][0]['semester']})
+                        'semesters': sorted(api_response['teacher'][0]['semester'])})
     return "Bad request (got multiple people)", 400
 
 
