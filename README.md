@@ -1,7 +1,7 @@
 # EveryClass-server
 
 ![status](https://img.shields.io/badge/status-stable-green.svg)
-![python version](https://img.shields.io/badge/python-3.6-blue.svg)
+![python version](https://img.shields.io/badge/python-3.7-blue.svg)
 ![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
 [![Build Status](https://travis-ci.org/fr0der1c/EveryClass-server.svg?branch=develop)](https://travis-ci.org/fr0der1c/EveryClass-server)
 ![works-on](https://img.shields.io/badge/works%20on-my%20computer-brightgreen.svg)
@@ -21,15 +21,14 @@ To discuss questions regarding the project, I suggest you join our [forum](https
 
 - uWSGI: the gateway between programme itself and Nginx reverse proxy
 - Flask: the micro Python web framework
-- MySQL: database
+- MongoDB: database
 
 
 ### Using the source
 
-1. Set a Python 3.6.0 virtualenv, and install required packages in ``requirements.txt``
-2. Copy `everyclass/config/default.py`. Rename it `development.py` and change some settings for local development
-3. Import database. Structure can be found [here](https://github.com/fr0der1c/EveryClass-collector/tree/master/sql), but you need to dummy some content yourself.
-4. set the environment variable `MODE` to `DEVELOPMENT`, then run `ec_server.py`
+1. Use ``pipenv sync`` to build a virtualenv with dependencies installed
+2. Copy `everyclass/api_server/config/default.py` and name it `development.py`. Change settings to adjust to your local development environment
+4. Set the environment variable `MODE` to `DEVELOPMENT`, then run `server.py`
 
 ### Contributions, Bug Reports, Feature Requests
 
@@ -37,11 +36,9 @@ This is an open source project and we would be happy to see contributors who rep
 
 ### Branch Policy
 
-Please get familiar with **git-flow** before you start contributing. It's a work flow to make source code better to manage.
-
-We have the following branches :
-- **development**: All development goes on in this branch. If you're making a contribution, please make a pull request to development. PRs to must pass a build check and a unit-test check on Travis.
-- **master**: This is the actual code running on the [server](https://every.admirable.one). After significant features/bug-fixes are accumulated on development, we make a version update, and make a release.
+- All your development goes on **feature/feature-name** branch. When you are done, make a pull request or just merge to `master` branch if you have permission
+- Tagged commits following the pattern `vX.X.X` will be watched by Travis, our continuous integration tool, which runs unit-test check, builds Docker image, pushes the image to our private registry and updates services in `staging` environment. Tags following the pattern `vX.X.X_testing` will upgrade the `testing` environment.
+- Commits should be tested in staging environment first before they are deployed to production environment.
 
 
 ### Contributions Best Practices
