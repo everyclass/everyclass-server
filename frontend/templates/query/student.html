@@ -18,7 +18,9 @@
         </form>
 
         <h4 class="text-muted">
-            <a href="{{ url_for('user.login') }}">登陆</a> &nbsp;
+            {% if config.FEATURE_GATING['user'] %}
+                <a href="{{ url_for('user.login') }}">登陆</a> &nbsp;
+            {% endif %}
             <a
                     href="{{ url_for('calendar.cal_page', resource_type="student", resource_identifier=sid, url_semester=current_semester) }}"
                     onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a></h4>
