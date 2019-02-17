@@ -1,10 +1,11 @@
 import elasticapm
-from flask import current_app as app, flash, redirect, render_template, session, url_for
+from flask import Blueprint, current_app as app, flash, redirect, render_template, session, url_for
 from werkzeug.wrappers import Response
 
 from everyclass.server.db.dao import UserDAO
-from everyclass.server.user import user_bp
 from everyclass.server.utils.rpc import HttpRpc
+
+user_bp = Blueprint('user', __name__)
 
 
 @user_bp.route('/login')

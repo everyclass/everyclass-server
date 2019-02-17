@@ -125,7 +125,6 @@ def create_app(outside_container=False) -> Flask:
     import everyclass.server.db.mongodb
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
-    from everyclass.server.user import user_bp
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -136,8 +135,6 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.config import get_config
     _config = get_config()
     app.config.from_object(_config)
-
-    app.register_blueprint(user_bp, url_prefix='/user')
 
     """
     每课统一日志机制
@@ -196,9 +193,13 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.calendar.views import cal_blueprint
     from everyclass.server.query import query_blueprint
     from everyclass.server.views import main_blueprint as main_blueprint
+    from everyclass.server.user.views import user_bp
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(query_blueprint)
     app.register_blueprint(main_blueprint)
+
+    if app.config['FEATURE_GATING']['user']:  # user feature gating
+        app.register_blueprint(user_bp, url_prefix='/user')
 
     @app.before_request
     def set_user_id():
