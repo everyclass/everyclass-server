@@ -1,7 +1,6 @@
 """
 日历相关函数
 """
-
 import elasticapm
 from flask import Blueprint
 
@@ -41,7 +40,8 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
 
     return render_template('calendar_subscribe.html',
                            ics_url=ics_url,
-                           ics_webcal=ics_webcal)
+                           ics_webcal=ics_webcal,
+                           android_client_url=app.config['ANDROID_CLIENT_URL'])
 
 
 @cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
