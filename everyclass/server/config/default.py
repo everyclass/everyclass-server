@@ -2,7 +2,6 @@ import json
 import os
 
 import git
-import requests
 
 
 class Config(object):
@@ -135,9 +134,8 @@ class Config(object):
             }
         }
     }
-    _android_manifest = json.loads(requests.get("https://everyclass.cdn.admirable.pro/android/manifest.json").content)
-    _android_ver = _android_manifest['latestVersions']['mainstream']['versionCode']
-    ANDROID_CLIENT_URL = _android_manifest['releases'][_android_ver]['url']
+
+    ANDROID_CLIENT_URL = ''
 
     # other micro-services
     API_SERVER = 'http://localhost:8008'
