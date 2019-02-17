@@ -6,7 +6,7 @@ ENV FLASK_ENV production
 ENV PIPENV_VENV_IN_PROJECT 1
 # ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8"
 
-WORKDIR /var/everyclass-server
+WORKDIR /var/app
 
 # build uWSGI and Python plugin for current python version
 # reference on how to build uwsgi python plugin: https://bradenmacdonald.com/blog/2015/uwsgi-emperor-multiple-python
@@ -30,7 +30,7 @@ RUN cd / \
     && tar xzf gor_0.16.1_x64.tar.gz \
     && rm gor_0.16.1_x64.tar.gz
 
-COPY . /var/everyclass-server
+COPY . /var/app
 
 # install Python dependencies
 RUN pip3 install --upgrade pip \

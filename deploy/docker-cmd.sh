@@ -15,4 +15,4 @@ then
         > /gor/goreplay.log &
 fi
 
-uwsgi --ini "/var/everyclass-server/deploy/uwsgi.ini"
+uwsgi --ini "/var/app/deploy/uwsgi.ini"
