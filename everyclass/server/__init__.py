@@ -104,6 +104,11 @@ try:
 
     @uwsgidecorators.postfork
     def get_android_download_link():
+        """
+        It's not possible to make a HTTP request during `create_app` since the urllib2 is patched by gevent
+        and the gevent engine is not started yet (controlled by uWSGI). So we can only do the initialization
+        here.
+        """
         android_manifest = requests.get("https://everyclass.cdn.admirable.pro/android/manifest.json").content
         android_manifest = json.loads(android_manifest)
         android_ver = android_manifest['latestVersions']['mainstream']['versionCode']
