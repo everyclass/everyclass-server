@@ -19,7 +19,7 @@
 
         <h4 class="text-muted">
             {% if config.FEATURE_GATING['user'] %}
-                <a href="{{ url_for('user.login') }}">登陆</a> &nbsp;
+                <a href="{{ url_for('user.login', sid=sid) }}">登陆</a> &nbsp;
             {% endif %}
             <a
                     href="{{ url_for('calendar.cal_page', resource_type="student", resource_identifier=sid, url_semester=current_semester) }}"
