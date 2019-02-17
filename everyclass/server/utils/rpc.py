@@ -11,7 +11,7 @@ class HttpRpc:
     @staticmethod
     def _status_code_raise(response: requests.Response):
         """
-        check HTTP RPC status code and raise exception if it's 4xx or 5xx
+        raise exception if HTTP status code is 4xx or 5xx
 
         :param response: a `Response` object
         """
@@ -26,33 +26,42 @@ class HttpRpc:
             raise RpcClientException(status_code, response.text)
 
     @staticmethod
-    def _flash_and_redirect(info: str):
+    def _flash_and_redirect(message: str):
         """flash message and return to main page"""
-        flash(info)
+        flash(message)
         return redirect(url_for('main.main'))
 
     @staticmethod
-    def call(url, params=None):
-        """call HTTP API. if server returns 4xx or 500 status code, raise exceptions."""
+    def call(url, params=None, retry=False):
+        """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
+        @:param params: parameters when calling RPC
+        @:param retry: if set to True, will automatically retry
+        """
         api_session = requests.sessions.session()
-        try:
-            with gevent.Timeout(5):
-                logger.debug('RPC GET {}'.format(url))
-                api_response = api_session.get(url, params=params)
+        trial_total = 5 if retry else 1
+        trial = 0
+        while trial < trial_total:
+            try:
+                with gevent.Timeout(5):
+                    logger.debug('RPC GET {}'.format(url))
+                    api_response = api_session.get(url, params=params)
+            except gevent.timeout.Timeout:
+                trial += 1
+                continue
             HttpRpc._status_code_raise(api_response)
-        except gevent.timeout.Timeout:
-            raise RpcTimeoutException('timeout when calling {}'.format(url))
-        logger.debug('RPC result: {}'.format(api_response.text))
-        api_response = api_response.json()
-        return api_response
+            logger.debug('RPC result: {}'.format(api_response.text))
+            api_response = api_response.json()
+            return api_response
+        raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
+
 
     @staticmethod
-    def call_with_handle_flash(url, params=None):
+    def call_with_handle_flash(url, params=None, retry=False):
         """call API and handle exceptions.
         if exception, flash a message and redirect to main page.
         """
         try:
-            api_response = HttpRpc.call(url, params=params)
+            api_response = HttpRpc.call(url, params=params, retry=retry)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
             return HttpRpc._flash_and_redirect('请求超时，请稍候再试')
@@ -74,12 +83,12 @@ class HttpRpc:
         return api_response
 
     @staticmethod
-    def call_with_handle_message(url, params=None):
+    def call_with_handle_message(url, params=None, retry=False):
         """call API and handle exceptions.
         if exception, return a message
         """
         try:
-            api_response = HttpRpc.call(url, params=params)
+            api_response = HttpRpc.call(url, params=params, retry=retry)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
             return "Backend timeout", 408
