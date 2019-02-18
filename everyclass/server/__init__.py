@@ -136,9 +136,7 @@ def create_app(outside_container=False) -> Flask:
     # load app config
     from everyclass.server.config import get_config
     _config = get_config()
-    print("Get config...")
     app.config.from_object(_config)
-    print("Loaded app config")
 
     """
     每课统一日志机制
@@ -190,7 +188,7 @@ def create_app(outside_container=False) -> Flask:
         need_to_check = ['CALENDAR_UUID_NAMESPACE', 'SECRET_KEY']
         for each_key in need_to_check:
             if app.config[each_key] == getattr(DefaultConfig, each_key):
-                print("{} must be overwritten in production environment. Exit.".format(each_key))
+                logger.critical("{} must be overwritten in production environment. Exit.".format(each_key))
                 exit(1)
 
     # 导入并注册 blueprints
