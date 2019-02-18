@@ -46,9 +46,9 @@ def register():
     # if registered, redirect to login page
     if UserDAO.exist(request.args.get('sid')):
         flash('你已经注册了，请直接登录。')
-        return redirect('user.login')
+        return redirect('user.login?sid={sid}'.format(sid=request.args.get('sid')))
 
-    return render_template('user/register.html', sid=request.args.get('sid'))  # todo register page
+    return render_template('user/registerChoice.html', sid=request.args.get('sid'))
 
 
 @user_bp.route('/register/byEmail', methods=['GET'])
