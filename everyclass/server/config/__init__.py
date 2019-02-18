@@ -42,7 +42,7 @@ def get_config():
                 logger.error('No valid MODE environment variable specified. Default config will be used.')
         except ImportError:
             logger.critical('ImportError when importing configuration file')
-            exit(1)
+            exit(2)
 
         for key in dir(_override_config):
             if key.isupper():
