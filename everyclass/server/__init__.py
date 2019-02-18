@@ -136,6 +136,7 @@ def create_app(outside_container=False) -> Flask:
     # load app config
     from everyclass.server.config import get_config
     _config = get_config()
+    print("Get config...")
     app.config.from_object(_config)
     print("Loaded app config")
 
