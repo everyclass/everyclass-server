@@ -102,7 +102,6 @@ try:
 
             __first_spawn = False
 
-
     @uwsgidecorators.postfork
     def get_android_download_link():
         """
