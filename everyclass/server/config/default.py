@@ -6,10 +6,30 @@ import git
 
 class Config(object):
     """
-    Basic Configurations
+    the base class for configuration. all keys must define here.
     """
     DEBUG = True
     SECRET_KEY = 'development_key'
+
+    """
+    Git Hash
+    """
+    _git_repo = git.Repo(search_parent_directories=True)
+    GIT_HASH = _git_repo.head.object.hexsha
+    try:
+        GIT_BRANCH_NAME = _git_repo.active_branch.name
+    except TypeError:
+        GIT_BRANCH_NAME = 'detached'
+    _describe_raw = _git_repo.git.describe(tags=True).split("-")  # like `v0.8.0-1-g000000`
+    GIT_DESCRIBE = _describe_raw[0]  # actual tag name like `v0.8.0`
+    if len(_describe_raw) > 1:
+        GIT_DESCRIBE += "." + _describe_raw[1]  # tag 之后的 commit 计数，代表小版本
+        # 最终结果类似于：v0.8.0.1
+
+    """
+    Connection settings
+    """
+    # database
     MYSQL_CONFIG = {
         'host'          : 'mysql',
         'port'          : 3306,
@@ -28,24 +48,7 @@ class Config(object):
     }
     MONGO_DB = 'everyclass_server'
 
-    """
-    Git Hash
-    """
-    _git_repo = git.Repo(search_parent_directories=True)
-    GIT_HASH = _git_repo.head.object.hexsha
-    try:
-        GIT_BRANCH_NAME = _git_repo.active_branch.name
-    except TypeError:
-        GIT_BRANCH_NAME = 'detached'
-    _describe_raw = _git_repo.git.describe(tags=True).split("-")  # like `v0.8.0-1-g000000`
-    GIT_DESCRIBE = _describe_raw[0]  # actual tag name like `v0.8.0`
-    if len(_describe_raw) > 1:
-        GIT_DESCRIBE += "." + _describe_raw[1]  # tag 之后的 commit 计数，代表小版本
-        # 最终结果类似于：v0.8.0.1
-
-    """
-    APM and error tracking platforms
-    """
+    # Sentry, APM and logstash
     SENTRY_CONFIG = {
         'dsn'    : '',
         'release': '',
@@ -65,11 +68,8 @@ class Config(object):
         'PORT': 8888
     }
 
-    # define available environments for logs, APM and error tracking
-    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing',)
-    APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
-    LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
-    DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
+    # other micro-services
+    API_SERVER = 'http://localhost:8008'
 
     """
     维护模式
@@ -120,10 +120,10 @@ class Config(object):
             }
         },
         (2018, 2019, 2): {
-            'start'      : (2019, 2, 25),
+            'start'      : (2019, 2, 25),  # 学期开始日
             'adjustments': {
                 (2019, 4, 5): {
-                    'to': None
+                    'to': None  # 调整到 None 表示这天直接放掉，而非调休
                 },
                 (2019, 5, 1): {
                     'to': None
@@ -136,11 +136,14 @@ class Config(object):
     }
     CALENDAR_UUID_NAMESPACE = '12345678123456781234567812345678'  # calendar token base uuid
 
-    ANDROID_CLIENT_URL = ''
-
-    # other micro-services
-    API_SERVER = 'http://localhost:8008'
+    ANDROID_CLIENT_URL = ''  # apk file for android client, leave it blank and it will dynamically fetched when starting
 
     FEATURE_GATING = {
         'user': False
     }
+
+    # define available environments for logs, APM and error tracking
+    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
