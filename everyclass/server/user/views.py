@@ -66,6 +66,10 @@ def register_by_email():
         api_response = rpc_result
 
     sid_orig = api_response['sid']
+
+    if UserDAO.exist(sid_orig):
+        return render_template("common/error.html", message="您已经注册过了，请勿重复注册。")
+
     request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_NOT_SENT)
 
     # call everyclass-auth to send email
