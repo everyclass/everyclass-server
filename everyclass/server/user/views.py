@@ -17,7 +17,7 @@ def login():
     判断学生是否未注册，若已经注册，渲染登陆页。否则跳转到注册页面。
     """
     if not request.args.get('sid'):
-        return render_template('common/badRequest.html')
+        return render_template('common/error.html', message=MSG_400)
 
     # contact api-server to get original sid
     with elasticapm.capture_span('rpc_query_student'):
@@ -41,7 +41,7 @@ def register():
     from flask import flash
 
     if not request.args.get('sid'):
-        return render_template('common/badRequest.html')
+        return render_template('common/error.html', message=MSG_400)
 
     # if registered, redirect to login page
     if UserDAO.exist(request.args.get('sid')):
@@ -55,7 +55,7 @@ def register():
 def register_by_email():
     """学生注册-邮件"""
     if not request.args.get('sid'):
-        return render_template('common/badRequest.html')
+        return render_template('common/error.html', message=MSG_400)
 
     # contact api-server to get original sid
     with elasticapm.capture_span('rpc_query_student'):
