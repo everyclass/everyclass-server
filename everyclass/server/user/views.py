@@ -21,7 +21,7 @@ def login():
 
     # contact api-server to get original sid
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                               request.args.get('sid')))
         if isinstance(rpc_result, Response):
             return rpc_result

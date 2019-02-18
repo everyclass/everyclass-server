@@ -69,7 +69,8 @@ class Config(object):
     }
 
     # other micro-services
-    API_SERVER = 'http://localhost:8008'
+    API_SERVER_BASE_URL = 'http://localhost:8008'
+    AUTH_BASE_URL = 'http://localhost:8009'
 
     """
     维护模式

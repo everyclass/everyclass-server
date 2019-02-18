@@ -24,7 +24,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
         return redirect(url_for('main.main'))
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                             resource_type,
                                                                             resource_identifier,
                                                                             url_semester))
@@ -65,7 +65,7 @@ def ics_download(calendar_token):
         return 'invalid calendar token', 404
 
     with elasticapm.capture_span('rpc_find_people'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER_BASE_URL'],
                                                                             result['type'],
                                                                             result['sid'] if result['type'] == 'student'
                                                                             else result['tid'],
@@ -112,7 +112,7 @@ def android_client_get_semester(identifier):
     from everyclass.server.utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_message('{}/v1/search/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_message('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                                identifier))
         if isinstance(rpc_result, tuple):
             return rpc_result
@@ -148,7 +148,7 @@ def android_client_get_ics(resource_type, identifier, semester):
         return "Unknown resource type", 400
 
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_message('{}/v1/{}/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_message('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                               resource_type,
                                                                               identifier,
                                                                               semester))
@@ -202,7 +202,7 @@ def legacy_get_ics(student_id, semester_str):
     semester = Semester(semester_str)
 
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                              student_id))
         if isinstance(rpc_result, Response):
             return rpc_result

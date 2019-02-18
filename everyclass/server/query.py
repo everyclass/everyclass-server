@@ -46,7 +46,7 @@ def query():
 
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                              to_search))
         if isinstance(rpc_result, Response):
             return rpc_result
@@ -103,7 +103,7 @@ def get_student(url_sid, url_semester):
     from everyclass.server.utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                                  url_sid,
                                                                                  url_semester),
                                                     params={'week_string': 'true', 'other_semester': 'true'})
@@ -168,7 +168,7 @@ def get_teacher(url_tid, url_semester):
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                                  url_tid,
                                                                                  url_semester),
                                                     params={'week_string': 'true', 'other_semester': 'true'})
@@ -215,7 +215,7 @@ def get_classroom(url_rid, url_semester):
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_room'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/room/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                               url_rid,
                                                                               url_semester),
                                                     params={'week_string': 'true', 'other_semester': 'true'})
@@ -268,7 +268,7 @@ def get_course(url_cid: str, url_semester: str):
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_course'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/course/{}/{}'.format(app.config['API_SERVER'],
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                                 url_cid,
                                                                                 url_semester),
                                                     params={'week_string': 'true'})
