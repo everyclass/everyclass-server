@@ -1,9 +1,9 @@
 import elasticapm
-from flask import Blueprint, current_app as app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app as app, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
 from everyclass.server import logger
-from everyclass.server.db.dao import UserDAO
+from everyclass.server.db.dao import IdentityVerificationDAO, UserDAO
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -17,8 +17,7 @@ def login():
     判断学生是否未注册，若已经注册，渲染登陆页。否则跳转到注册页面。
     """
     if not request.args.get('sid'):
-        flash('请求异常，请重新发起查询再登陆')
-        return redirect('main.main')
+        return render_template('common/badRequest.html')
 
     # contact api-server to get original sid
     with elasticapm.capture_span('rpc_query_student'):
@@ -38,20 +37,33 @@ def login():
 
 @user_bp.route('/register')
 def register():
-    """学生注册"""
+    """学生注册页面"""
     from flask import flash
 
     if not request.args.get('sid'):
-        flash('请求异常，请重新发起查询再登陆')
-        return redirect('main.main')
+        return render_template('common/badRequest.html')
 
     # if registered, redirect to login page
     if UserDAO.exist(request.args.get('sid')):
         flash('你已经注册了，请直接登录。')
         return redirect('user.login')
 
-    return render_template('user/register.html',
-                           viewing_sid=request.args.get('viewing_sid'))
+    return render_template('user/register.html', sid=request.args.get('sid'))  # todo register page
+
+
+@user_bp.route('/register/byEmail', methods=['GET'])
+def register_by_email():
+    """学生注册-邮件"""
+    if not request.args.get('sid'):
+        return render_template('common/badRequest.html')
+    # todo
+
+
+@user_bp.route('/register/byPassword', methods=['GET'])
+def register_by_email():
+    """学生注册-密码"""
+    pass
+    # todo
 
 
 @user_bp.route('/emailVerification')
@@ -69,5 +81,10 @@ def email_verification():
     api_response = rpc_result
 
     if api_response['success']:
-        return 'success'
-    return {'success': "false"}
+        # email verification passed
+        IdentityVerificationDAO.email_token_mark_passed(api_response['request_id'])
+        return render_template('user/emailVerificationProceed.html', request_id=api_response['request_id'])
+    else:
+        # token invalid
+        # todo token invalid page
+        return {'success': "false"}
