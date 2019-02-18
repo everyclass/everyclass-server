@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}错误页 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">噢，这真是太糟糕了...</h1>
+
+        <br><br>
+        <h4 class="text-muted">{{ message }}</h4>
+        <br>
+        <h4 class="text-muted"><a href="{{ url_for("main.main") }}">回到首页</a></h4>
+    </div>
+
+
+{% endblock %}

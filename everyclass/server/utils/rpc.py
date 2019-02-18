@@ -1,10 +1,10 @@
 import gevent
 import requests
-from flask import flash, redirect, url_for
+from flask import flash, redirect, render_template, url_for
 
 from everyclass.server import logger
-from everyclass.server.exceptions import RpcBadRequestException, RpcClientException, RpcResourceNotFoundException, \
-    RpcServerException, RpcTimeoutException
+from everyclass.server.exceptions import MSG_400, MSG_404, MSG_INTERNAL_ERROR, MSG_TIMEOUT, RpcBadRequestException, \
+    RpcClientException, RpcResourceNotFoundException, RpcServerException, RpcTimeoutException
 
 
 class HttpRpc:
@@ -63,22 +63,22 @@ class HttpRpc:
             api_response = HttpRpc.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
-            return HttpRpc._flash_and_redirect('请求超时，请稍候再试')
+            return render_template('common/error.html', message=MSG_TIMEOUT)
         except RpcResourceNotFoundException as e:
-            logger.info(repr(e))
-            return HttpRpc._flash_and_redirect('资源不存在（404）')
+            logger.warn(repr(e))
+            return render_template('common/error.html', message=MSG_404)
         except RpcBadRequestException as e:
-            logger.info(repr(e))
-            return HttpRpc._flash_and_redirect('请求异常（400）')
+            logger.warn(repr(e))
+            return render_template('common/error.html', message=MSG_400)
         except RpcClientException as e:
             logger.error(repr(e))
-            return HttpRpc._flash_and_redirect('请求错误')
+            return render_template('common/error.html', message=MSG_400)
         except RpcServerException as e:
             logger.error(repr(e))
-            return HttpRpc._flash_and_redirect('服务器内部错误（500）。已经通知管理员，抱歉引起不便。')
+            return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
         except Exception as e:
             logger.error('RPC exception: {}'.format(repr(e)))
-            return HttpRpc._flash_and_redirect('服务器内部错误。已经通知管理员，抱歉引起不便。')
+            return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
         return api_response
 
     @staticmethod
