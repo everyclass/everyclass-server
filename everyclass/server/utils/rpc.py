@@ -54,7 +54,6 @@ class HttpRpc:
             return api_response
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
 
-
     @staticmethod
     def call_with_handle_flash(url, params=None, retry=False):
         """call API and handle exceptions.
