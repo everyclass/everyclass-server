@@ -3,8 +3,6 @@ import os
 from everyclass.server import logger
 from everyclass.server.config.default import Config as DefaultConfig
 
-_config = None
-
 
 class MixedConfig(DefaultConfig):
     inited = False
