@@ -2,6 +2,10 @@ body, button, input, select, textarea, h1, h2, h3, h4, h5, h6 {
     font-family: "PingFang SC", "Hiragino Sans GB", Microsoft YaHei, '宋体', Tahoma, Helvetica, Arial, sans-serif;
 }
 
+.row-clickable {
+    cursor: pointer;
+}
+
 .swag-line-special:before {
     background: linear-gradient(45deg, #56e9ff, #30ccff) !important;
 }
