@@ -2,9 +2,8 @@ import elasticapm
 from flask import Blueprint, current_app as app, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
-from everyclass.server import logger
-from everyclass.server.db.dao import IdentityVerificationDAO, UserDAO
-from everyclass.server.exceptions import MSG_INTERNAL_ERROR
+from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, UserDAO
+from everyclass.server.exceptions import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -52,7 +51,7 @@ def register():
     return render_template('user/registerChoice.html', sid=request.args.get('sid'))
 
 
-@user_bp.route('/register/byEmail', methods=['GET'])
+@user_bp.route('/register/byEmail')
 def register_by_email():
     """学生注册-邮件"""
     if not request.args.get('sid'):
@@ -67,7 +66,7 @@ def register_by_email():
         api_response = rpc_result
 
     sid_orig = api_response['sid']
-    request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email")
+    request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_NOT_SENT)
 
     # call everyclass-auth to send email
     with elasticapm.capture_span('rpc_query_student'):
@@ -78,6 +77,8 @@ def register_by_email():
         if isinstance(rpc_result, Response):
             return rpc_result
         api_response = rpc_result
+
+    # todo v2.1: 这里当前是骗用户发送成功了，其实有没有成功不知道。前端应该JS来刷新，从“正在发送”变成“已发送”
 
     if api_response['acknowledged']:
         return render_template('user/emailSent.html', request_id=request_id)
@@ -96,8 +97,7 @@ def register_by_password():
 def email_verification():
     """邮箱验证"""
     if not request.args.get("token"):
-        logger.warn("Email verification with no token.")
-        return redirect("main.main")
+        return render_template("common/error.html", message=MSG_400)
 
     rpc_result = HttpRpc.call_with_handle_flash('{}/verify_email_token'.format(app.config['AUTH_BASE_URL'],
                                                                                request.args.get('token')),
@@ -111,6 +111,4 @@ def email_verification():
         IdentityVerificationDAO.email_token_mark_passed(api_response['request_id'])
         return render_template('user/emailVerificationProceed.html', request_id=api_response['request_id'])
     else:
-        # token invalid
-        # todo token invalid page
-        return {'success': "false"}
+        return render_template("common/error.html", message=MSG_TOKEN_INVALID)

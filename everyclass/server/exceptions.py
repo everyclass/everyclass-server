@@ -32,3 +32,4 @@ MSG_INTERNAL_ERROR = "抱歉。遇到了一个内部错误，请稍后重试或�
 MSG_TIMEOUT = "请求超时，请稍后重试。"
 MSG_404 = "资源不存在。"
 MSG_400 = "请求异常，请回到首页。"
+MSG_TOKEN_INVALID = "令牌无效或已过期，请重新开始注册流程。"

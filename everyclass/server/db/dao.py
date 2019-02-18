@@ -123,7 +123,8 @@ class UserDAO:
         return False
 
 
-IDENTITY_STATUS_ETP = "EMAIL_TOKEN_PASSED"
+ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
+ID_STATUS_NOT_SENT = "EMAIL_NOT_SENT"
 
 
 class IdentityVerificationDAO:
@@ -147,7 +148,7 @@ class IdentityVerificationDAO:
         return result
 
     @classmethod
-    def new_register_request(cls, sid_orig: str, verification_method: str):
+    def new_register_request(cls, sid_orig: str, verification_method: str, status: str):
         """
         add a new register request
 
@@ -160,7 +161,8 @@ class IdentityVerificationDAO:
         db = get_mongodb()
         doc = {"request_id"         : uuid.uuid4(),
                "sid_orig"           : sid_orig,
-               "verification_method": verification_method}
+               "verification_method": verification_method,
+               "status"             : status}
         db.verification.insert(doc)
         return doc["request_id"]
 
@@ -168,5 +170,5 @@ class IdentityVerificationDAO:
     def email_token_mark_passed(cls, request_id):
         db = get_mongodb()
         query = {"request_id": request_id}
-        new_values = {"$set": {"status": IDENTITY_STATUS_ETP}}
+        new_values = {"$set": {"status": ID_STATUS_TKN_PASSED}}
         db.verification.update_one(query, new_values)
