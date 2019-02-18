@@ -4,6 +4,7 @@ from werkzeug.wrappers import Response
 
 from everyclass.server import logger
 from everyclass.server.db.dao import IdentityVerificationDAO, UserDAO
+from everyclass.server.exceptions import MSG_INTERNAL_ERROR
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -56,7 +57,32 @@ def register_by_email():
     """学生注册-邮件"""
     if not request.args.get('sid'):
         return render_template('common/badRequest.html')
-    # todo
+
+    # contact api-server to get original sid
+    with elasticapm.capture_span('rpc_query_student'):
+        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                              request.args.get('sid')))
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
+
+    sid_orig = api_response['sid']
+    request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email")
+
+    # call everyclass-auth to send email
+    with elasticapm.capture_span('rpc_query_student'):
+        rpc_result = HttpRpc.call_with_handle_flash('{}/register_by_email'.format(app.config['AUTH_BASE_URL'],
+                                                                                  request.args.get('sid')),
+                                                    data={'request_id': request_id,
+                                                          'student_id': sid_orig})
+        if isinstance(rpc_result, Response):
+            return rpc_result
+        api_response = rpc_result
+
+    if api_response['acknowledged']:
+        return render_template('user/emailSent.html', request_id=request_id)
+    else:
+        return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
 
 
 @user_bp.route('/register/byPassword', methods=['GET'])
