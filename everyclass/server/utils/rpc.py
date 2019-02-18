@@ -32,7 +32,7 @@ class HttpRpc:
         return redirect(url_for('main.main'))
 
     @staticmethod
-    def call(url, params=None, retry=False):
+    def call(url, params=None, retry=False, data=None):
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
         @:param params: parameters when calling RPC
         @:param retry: if set to True, will automatically retry
@@ -44,7 +44,7 @@ class HttpRpc:
             try:
                 with gevent.Timeout(5):
                     logger.debug('RPC GET {}'.format(url))
-                    api_response = api_session.get(url, params=params)
+                    api_response = api_session.get(url, params=params, data=data)
             except gevent.timeout.Timeout:
                 trial += 1
                 continue
@@ -55,12 +55,12 @@ class HttpRpc:
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
 
     @staticmethod
-    def call_with_handle_flash(url, params=None, retry=False):
+    def call_with_handle_flash(url, params=None, retry=False, data=None):
         """call API and handle exceptions.
         if exception, flash a message and redirect to main page.
         """
         try:
-            api_response = HttpRpc.call(url, params=params, retry=retry)
+            api_response = HttpRpc.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
             return HttpRpc._flash_and_redirect('请求超时，请稍候再试')
@@ -82,12 +82,12 @@ class HttpRpc:
         return api_response
 
     @staticmethod
-    def call_with_handle_message(url, params=None, retry=False):
+    def call_with_handle_message(url, params=None, retry=False, data=None):
         """call API and handle exceptions.
         if exception, return a message
         """
         try:
-            api_response = HttpRpc.call(url, params=params, retry=retry)
+            api_response = HttpRpc.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
             return "Backend timeout", 408

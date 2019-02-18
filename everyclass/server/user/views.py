@@ -2,6 +2,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, flash, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
+from everyclass.server import logger
 from everyclass.server.db.dao import UserDAO
 from everyclass.server.utils.rpc import HttpRpc
 
@@ -51,3 +52,22 @@ def register():
 
     return render_template('user/register.html',
                            viewing_sid=request.args.get('viewing_sid'))
+
+
+@user_bp.route('/emailVerification')
+def email_verification():
+    """邮箱验证"""
+    if not request.args.get("token"):
+        logger.warn("Email verification with no token.")
+        return redirect("main.main")
+
+    rpc_result = HttpRpc.call_with_handle_flash('{}/verify_email_token'.format(app.config['AUTH_BASE_URL'],
+                                                                               request.args.get('token')),
+                                                data={"email_token": request.args.get("token")})
+    if isinstance(rpc_result, Response):
+        return rpc_result
+    api_response = rpc_result
+
+    if api_response['success']:
+        return 'success'
+    return {'success': "false"}
