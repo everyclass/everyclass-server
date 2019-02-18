@@ -2,7 +2,7 @@ import os
 
 from everyclass.server.config.default import Config as DefaultConfig
 
-_config_inited = True
+_config_inited = False
 
 
 class MixedConfig(DefaultConfig):
@@ -14,7 +14,7 @@ def get_config():
     单例配置加载
     :return: Config 类的实例
     """
-
+    global _config_inited
     if _config_inited:
         return MixedConfig
     else:
@@ -54,6 +54,6 @@ def get_config():
                 else:
                     # 其他类型的值直接覆盖
                     setattr(MixedConfig, key, getattr(_override_config, key))
-        global _config_inited
+
         _config_inited = True
         return MixedConfig
