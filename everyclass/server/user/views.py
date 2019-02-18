@@ -60,7 +60,7 @@ def register_by_email():
 
 
 @user_bp.route('/register/byPassword', methods=['GET'])
-def register_by_email():
+def register_by_password():
     """学生注册-密码"""
     pass
     # todo
