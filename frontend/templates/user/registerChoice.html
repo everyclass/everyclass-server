@@ -14,13 +14,13 @@
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered table-hover">
                         <tbody>
-                        <tr class="row-clickable" data-href="{{ url_for("user.register_by_password") }}">
+                        <tr class="row-clickable" data-href="{{ url_for("user.register_by_password", sid=sid) }}">
                             <td><b>使用教务密码验证（快，推荐）</b><br>
                                 您可以提供您的教务密码，我们会模拟您登陆以检测您的学生身份。请放心，我们不会保存您的密码。
                             </td>
                         </tr>
-                        <tr class="row-clickable" data-href="{{ url_for("user.register_by_email") }}">
-                            <td><b>使用@csu.edu.cn邮箱验证</b><br>
+                        <tr class="row-clickable" data-href="{{ url_for("user.register_by_email", sid=sid) }}">
+                            <td><b>使用 @csu.edu.cn 邮箱验证</b><br>
                                 如果您不希望提供教务密码、但您正在使用学校的邮箱，可以通过接收邮件验证码的方式来验证。不过由于学校邮箱系统接收邮件较慢，您可能需要等待较长时间才能收到邮件。
                             </td>
                         </tr>
