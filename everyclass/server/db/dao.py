@@ -121,3 +121,52 @@ class UserDAO:
         if result:
             return True
         return False
+
+
+IDENTITY_STATUS_ETP = "EMAIL_TOKEN_PASSED"
+
+
+class IdentityVerificationDAO:
+    """
+    identity verification related manipulations
+
+    The documents stored in MongoDB is like:
+    {
+        "request_id": "",                         # UUID request id
+        "sid_orig": "",                           # the original sid (not encoded by api server)
+        "verification_method":"password",         # "password" or "email"
+        "email_token": "token",                   # UUID token if it's a email verification
+        "status": ""                              # a status constant
+    }
+    """
+
+    @classmethod
+    def get_register_request_by_email_token(cls, email_token):
+        db = get_mongodb()
+        result = db.verification.find_one({'email_token': email_token})
+        return result
+
+    @classmethod
+    def new_register_request(cls, sid_orig: str, verification_method: str):
+        """
+        add a new register request
+
+        :param sid_orig: original sid
+        :param verification_method: password or email
+        :return: the `request_id`
+        """
+        if verification_method not in ("email", "password"):
+            raise ValueError("verification_method must be one of email, password")
+        db = get_mongodb()
+        doc = {"request_id"         : uuid.uuid4(),
+               "sid_orig"           : sid_orig,
+               "verification_method": verification_method}
+        db.verification.insert(doc)
+        return doc["request_id"]
+
+    @classmethod
+    def email_token_mark_passed(cls, request_id):
+        db = get_mongodb()
+        query = {"request_id": request_id}
+        new_values = {"$set": {"status": IDENTITY_STATUS_ETP}}
+        db.verification.update_one(query, new_values)
