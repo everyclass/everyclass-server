@@ -1,8 +1,10 @@
 import copy
 import gc
+import json
 import sys
 
 import logbook
+import requests
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
 from htmlmin import minify
@@ -100,17 +102,18 @@ try:
 
             __first_spawn = False
 
-    # @uwsgidecorators.postfork
-    # def get_android_download_link():
-    #     """
-    #     It's not possible to make a HTTP request during `create_app` since the urllib2 is patched by gevent
-    #     and the gevent engine is not started yet (controlled by uWSGI). So we can only do the initialization
-    #     here.
-    #     """
-    #     android_manifest = requests.get("https://everyclass.cdn.admirable.pro/android/manifest.json").content
-    #     android_manifest = json.loads(android_manifest)
-    #     android_ver = android_manifest['latestVersions']['mainstream']['versionCode']
-    #     __app.config['ANDROID_CLIENT_URL'] = android_manifest['releases'][android_ver]['url']
+
+    @uwsgidecorators.postfork
+    def get_android_download_link():
+        """
+        It's not possible to make a HTTP request during `create_app` since the urllib2 is patched by gevent
+        and the gevent engine is not started yet (controlled by uWSGI). So we can only do the initialization
+        here.
+        """
+        android_manifest = requests.get("https://everyclass.cdn.admirable.pro/android/manifest.json").content
+        android_manifest = json.loads(android_manifest)
+        android_ver = android_manifest['latestVersions']['mainstream']['versionCode']
+        __app.config['ANDROID_CLIENT_URL'] = android_manifest['releases'][android_ver]['url']
 except ModuleNotFoundError:
     pass
 
@@ -124,6 +127,8 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
 
+    print("Creating app...")
+
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
                 static_url_path='',
@@ -133,6 +138,7 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.config import get_config
     _config = get_config()
     app.config.from_object(_config)
+    print("Loaded app config")
 
     """
     每课统一日志机制
