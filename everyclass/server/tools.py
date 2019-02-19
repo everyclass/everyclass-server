@@ -134,7 +134,6 @@ def contains_chinese(word):
     :param word: 待判断字符串
     :return: True:包含中文  False:不包含中文
     """
-    word = word.decode()
     global zh_pattern
     match = zh_pattern.search(word)
 
