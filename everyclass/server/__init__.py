@@ -50,14 +50,6 @@ try:
 
         global __app, __first_spawn, __sentry_available
 
-        # Sentry
-        if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
-            sentry.init_app(app=__app)
-            sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
-            logger.handlers.append(sentry_handler)
-            __sentry_available = True
-            logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
-
         # Elastic APM
         if __app.config['CONFIG_NAME'] in __app.config['APM_AVAILABLE_IN']:
             ElasticAPM(__app)
@@ -73,6 +65,14 @@ try:
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
             logger.info('You are in {} mode, so LogstashHandler is inited.'.format(__app.config['CONFIG_NAME']))
+
+        # Sentry
+        if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
+            sentry.init_app(app=__app)
+            sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
+            logger.handlers.append(sentry_handler)
+            __sentry_available = True
+            logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
 
         # print current configuration
         import uwsgi
