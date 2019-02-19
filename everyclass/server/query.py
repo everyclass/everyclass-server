@@ -20,8 +20,8 @@ def query():
     正常情况应该是 post 方法，但是也兼容 get 防止意外情况，提高用户体验
 
     埋点：
-    - `query_resource_type`, 查询的资源类型: classroom, single_student, single_teacher, multiple_people, or nothing.
-    - `query_type`, 查询方式（姓名、学工号）: by_name, by_id
+    - `query_resource_type`, 查询的资源类型: classroom, single_student, single_teacher, multiple_people, or not_exist.
+    - `query_type`, 查询方式（姓名、学工号）: by_name, by_id, other
     """
     import re
     from everyclass.server.utils.rpc import HttpRpc
@@ -101,7 +101,7 @@ def query():
                                teachers_count=len(api_response['teacher']),
                                teachers=api_response['teacher'])
     else:
-        elasticapm.tag(query_resource_type='nothing')
+        elasticapm.tag(query_resource_type='not_exist')
         elasticapm.tag(query_type='other')
         flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
         return redirect(url_for('main.main'))
