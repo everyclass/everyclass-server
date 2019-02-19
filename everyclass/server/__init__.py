@@ -188,7 +188,7 @@ def create_app(outside_container=False) -> Flask:
         need_to_check = ['CALENDAR_UUID_NAMESPACE', 'SECRET_KEY']
         for each_key in need_to_check:
             if app.config[each_key] == getattr(DefaultConfig, each_key):
-                logger.critical("{} must be overwritten in production environment. Exit.".format(each_key))
+                print("{} must be overwritten in production environment. Exit.".format(each_key))
                 exit(1)
 
     # 导入并注册 blueprints
