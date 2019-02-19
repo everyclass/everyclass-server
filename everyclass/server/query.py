@@ -57,6 +57,7 @@ def query():
         # classroom
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
+        elasticapm.tag(query_type='by_name')
         api_response['room'][0]['semester'].sort()
         return redirect('/classroom/{}/{}'.format(api_response['room'][0]['rid'],
                                                   api_response['room'][0]['semester'][-1]))
