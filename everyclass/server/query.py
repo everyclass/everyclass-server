@@ -6,7 +6,7 @@ from flask import Blueprint, current_app as app, escape, flash, redirect, render
 from werkzeug.wrappers import Response
 
 from everyclass.server import logger
-from everyclass.server.tools import disallow_in_maintenance
+from everyclass.server.tools import contains_chinese, disallow_in_maintenance
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -20,11 +20,11 @@ def query():
     正常情况应该是 post 方法，但是也兼容 get 防止意外情况，提高用户体验
 
     埋点：
-    - `query_resource_type`, 查询类型: classroom, single_student, single_teacher, people, or nothing.
-    - `query_type`（原 `ec_query_method`）, 查询方式: by_name, by_student_id, by_teacher_id, by_room_name, other
+    - `query_resource_type`, 查询的资源类型: classroom, single_student, single_teacher, multiple_people, or nothing.
+    - `query_type`, 查询方式（姓名、学工号）: by_name, by_id
     """
     import re
-    from .utils.rpc import HttpRpc
+    from everyclass.server.utils.rpc import HttpRpc
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -63,6 +63,10 @@ def query():
     elif len(api_response['student']) == 1 and len(api_response['teacher']) == 0:
         # only one student
         elasticapm.tag(query_resource_type='single_student')
+        if contains_chinese(to_search):
+            elasticapm.tag(query_type='by_name')
+        else:
+            elasticapm.tag(query_type='by_id')
         if len(api_response['student'][0]['semester']) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
@@ -72,6 +76,10 @@ def query():
     elif len(api_response['teacher']) == 1 and len(api_response['student']) == 0:
         # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
+        if contains_chinese(to_search):
+            elasticapm.tag(query_type='by_name')
+        else:
+            elasticapm.tag(query_type='by_id')
         if len(api_response['teacher'][0]['semester']) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
@@ -81,6 +89,10 @@ def query():
     elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='multiple_people')
+        if contains_chinese(to_search):
+            elasticapm.tag(query_type='by_name')
+        else:
+            elasticapm.tag(query_type='by_id')
         return render_template('query/people_same_name.html',
                                name=to_search,
                                students_count=len(api_response['student']),
@@ -89,6 +101,7 @@ def query():
                                teachers=api_response['teacher'])
     else:
         elasticapm.tag(query_resource_type='nothing')
+        elasticapm.tag(query_type='other')
         flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
         return redirect(url_for('main.main'))
 
