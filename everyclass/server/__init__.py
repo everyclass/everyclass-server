@@ -91,7 +91,7 @@ try:
                     if key == 'SENTRY_CONFIG':
                         value['dsn'] = '[secret]'
                     if key == 'MYSQL_CONFIG':
-                        value['passwd'] = '[secret]'
+                        value['password'] = '[secret]'
                     if key == 'ELASTIC_APM':
                         value['SECRET_TOKEN'] = '[secret]'
                     if key == 'MAINTENANCE_CREDENTIALS':
