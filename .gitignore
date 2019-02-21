@@ -14,6 +14,7 @@ __pycache__/
 
 # Other related to this project
 /fabfile.py
+deploy/uwsgi-local.ini
 
 # Frontend
 /frontend/node_modules
