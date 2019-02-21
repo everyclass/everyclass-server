@@ -239,7 +239,7 @@ def create_app(outside_container=False) -> Flask:
     def internal_server_error(error):
         global sentry_available
         if sentry_available:
-            return render_template('500.html',
+            return render_template('common/error.html',
                                    event_id=g.sentry_event_id,
                                    public_dsn=sentry.client.get_public_dsn('https'))
         return "<h4>500 Error: {}</h4><br>You are seeing this page because Sentry is not available.".format(repr(error))
