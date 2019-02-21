@@ -67,23 +67,17 @@ class HttpRpc:
         """
         try:
             api_response = cls.call(url, params=params, retry=retry, data=data)
-        except RpcTimeoutException as e:
-            logger.warn(repr(e))
+        except RpcTimeoutException:
             return cls._error_page(MSG_TIMEOUT)
-        except RpcResourceNotFoundException as e:
-            logger.warn(repr(e))
+        except RpcResourceNotFoundException:
             return cls._error_page(MSG_404)
-        except RpcBadRequestException as e:
-            logger.warn(repr(e))
+        except RpcBadRequestException:
             return cls._error_page(MSG_400)
-        except RpcClientException as e:
-            logger.error(repr(e))
+        except RpcClientException:
             return cls._error_page(MSG_400)
-        except RpcServerException as e:
-            logger.error(repr(e))
+        except RpcServerException:
             return cls._error_page(MSG_INTERNAL_ERROR)
-        except Exception as e:
-            logger.error('RPC exception: {}'.format(repr(e)))
+        except Exception:
             return cls._error_page(MSG_INTERNAL_ERROR)
 
         return api_response
