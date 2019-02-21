@@ -4,7 +4,7 @@
 import elasticapm
 from flask import Blueprint
 
-from everyclass.server.tools import disallow_in_maintenance
+from everyclass.server.utils import disallow_in_maintenance
 
 cal_blueprint = Blueprint('calendar', __name__)
 
@@ -56,7 +56,9 @@ def ics_download(calendar_token):
     from everyclass.server.db.model import Semester
     from everyclass.server.calendar import ics_generator
     from everyclass.server.utils.rpc import HttpRpc
-    from everyclass.server.tools import lesson_string_to_dict, teacher_list_fix, teacher_list_to_str
+    from everyclass.server.utils import teacher_list_fix
+    from everyclass.server.utils import teacher_list_to_str
+    from everyclass.server.utils import lesson_string_to_dict
 
     result = CalendarTokenDAO.find_calendar_token(token=calendar_token)
     if not result:

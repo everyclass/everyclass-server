@@ -5,7 +5,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
 
 from everyclass.server import logger
-from everyclass.server.tools import contains_chinese, disallow_in_maintenance
+from everyclass.server.utils import contains_chinese, disallow_in_maintenance
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -111,8 +111,9 @@ def query():
 def get_student(url_sid, url_semester):
     """学生查询"""
     from everyclass.server.db.dao import get_privacy_settings
-    from everyclass.server.tools import lesson_string_to_dict
-    from everyclass.server.tools import semester_calculate, teacher_list_fix
+    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import teacher_list_fix
+    from everyclass.server.utils import semester_calculate
     from everyclass.server.utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
@@ -176,8 +177,8 @@ def get_student(url_sid, url_semester):
 @disallow_in_maintenance
 def get_teacher(url_tid, url_semester):
     """老师查询"""
-    from everyclass.server.tools import lesson_string_to_dict
-    from everyclass.server.tools import semester_calculate
+    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import semester_calculate
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
@@ -223,8 +224,9 @@ def get_teacher(url_tid, url_semester):
 @disallow_in_maintenance
 def get_classroom(url_rid, url_semester):
     """教室查询"""
-    from everyclass.server.tools import lesson_string_to_dict
-    from everyclass.server.tools import semester_calculate, teacher_list_fix
+    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import teacher_list_fix
+    from everyclass.server.utils import semester_calculate
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_room'):
@@ -276,8 +278,11 @@ def get_classroom(url_rid, url_semester):
 def get_course(url_cid: str, url_semester: str):
     """课程查询"""
 
-    from everyclass.server.tools import get_time_chinese, get_day_chinese, lesson_string_to_dict, teacher_list_to_str
-    from everyclass.server.tools import teacher_list_fix
+    from everyclass.server.utils import teacher_list_to_str
+    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import get_time_chinese
+    from everyclass.server.utils import get_day_chinese
+    from everyclass.server.utils import teacher_list_fix
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_course'):

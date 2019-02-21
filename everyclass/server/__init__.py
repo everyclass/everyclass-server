@@ -124,7 +124,7 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
     from everyclass.server.exceptions import MSG_INTERNAL_ERROR
-    from everyclass.server.tools import plugin_availability
+    from everyclass.server.utils import plugin_availability
 
     print("Creating app...")
 

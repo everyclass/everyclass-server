@@ -9,7 +9,7 @@ import pytz
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.server.config import get_config
-from everyclass.server.tools import get_time
+from everyclass.server.utils import get_time
 
 
 def generate(student_name: str, courses, semester_string: str, semester, ics_token=None):
