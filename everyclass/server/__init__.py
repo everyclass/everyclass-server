@@ -15,7 +15,6 @@ logger = logbook.Logger(__name__)
 sentry = Sentry()
 __app = None
 __first_spawn = True
-sentry_available = False
 
 try:
     import uwsgidecorators
@@ -48,7 +47,7 @@ try:
         from everyclass.server.utils import monkey_patch
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
-        global __app, __first_spawn, sentry_available
+        global __app, __first_spawn
 
         # Elastic APM
         if __app.config['CONFIG_NAME'] in __app.config['APM_AVAILABLE_IN']:
@@ -71,7 +70,6 @@ try:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
             logger.handlers.append(sentry_handler)
-            sentry_available = True
             logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
 
         # print current configuration
@@ -126,6 +124,7 @@ def create_app(outside_container=False) -> Flask:
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
     from everyclass.server.exceptions import MSG_INTERNAL_ERROR
+    from everyclass.server.tools import plugin_availability
 
     print("Creating app...")
 
@@ -183,15 +182,6 @@ def create_app(outside_container=False) -> Flask:
         everyclass.server.db.mysql.init_pool(app)
         everyclass.server.db.mongodb.init_pool(app)
 
-    # security check in production environment
-    if app.config['CONFIG_NAME'] == 'production':
-        from everyclass.server.config.default import Config as DefaultConfig
-        need_to_check = ['CALENDAR_UUID_NAMESPACE', 'SECRET_KEY']
-        for each_key in need_to_check:
-            if app.config[each_key] == getattr(DefaultConfig, each_key):
-                print("{} must be overwritten in production environment. Exit.".format(each_key))
-                exit(1)
-
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
     from everyclass.server.query import query_blueprint
@@ -238,8 +228,7 @@ def create_app(outside_container=False) -> Flask:
 
     @app.errorhandler(500)
     def internal_server_error(error):
-        global sentry_available
-        if sentry_available:
+        if plugin_availability("sentry"):
             return render_template('common/error.html',
                                    message=MSG_INTERNAL_ERROR,
                                    event_id=g.sentry_event_id,

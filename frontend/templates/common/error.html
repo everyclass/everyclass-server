@@ -11,7 +11,7 @@
         <br><br>
         <h4 class="text-muted">{{ message }}。{% if event_id %}如果您愿意，可以
             <a onclick="Raven.showReportDialog({eventId: '{{ event_id }}',dsn: '{{ public_dsn }}'});">反馈问题发生的原因</a>
-            ，这只需要半分钟的时间{% endif %}</h4>
+            ，这只需要花费半分钟的时间。{% endif %}</h4>
         <br>
         <h4 class="text-muted"><a href="{{ url_for("main.main") }}">回到首页</a></h4>
     </div>

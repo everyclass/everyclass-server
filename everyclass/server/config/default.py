@@ -148,3 +148,5 @@ class Config(object):
     APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
     LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
     DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
+
+    PRODUCTION_SECURE_FIELDS = ('CALENDAR_UUID_NAMESPACE', 'SECRET_KEY')

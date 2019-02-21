@@ -55,5 +55,12 @@ def get_config():
                     # 其他类型的值直接覆盖
                     setattr(MixedConfig, key, getattr(_override_config, key))
 
+        # production safety check
+        if mode == 'PRODUCTION':
+            for each_key in getattr(MixedConfig, "PRODUCTION_SECURE_FIELDS"):
+                if getattr(MixedConfig, each_key) == getattr(DefaultConfig, each_key):
+                    print("{} must be overwritten in production environment. Exit.".format(each_key))
+                    exit(1)
+
         _config_inited = True
         return MixedConfig

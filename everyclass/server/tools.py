@@ -1,4 +1,5 @@
 import functools
+import os
 import re
 
 import elasticapm
@@ -138,3 +139,9 @@ def contains_chinese(word):
     match = zh_pattern.search(word)
 
     return match
+
+
+def plugin_availability(plugin_name: str):
+    """check if a plugin (Sentry, apm, logstash) is available in the current environment."""
+    config = get_config()
+    return os.environ.get("MODE").lower() in getattr(config, "{}_AVAILABLE_IN".format(plugin_name).upper())
