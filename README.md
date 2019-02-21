@@ -14,7 +14,7 @@ This is the web server part of [EveryClass](https://github.com/fr0der1c/EveryCla
 
 If you found any problem of the code, please open an issue here and make sure you provided much information.
 
-To discuss questions regarding the project, I suggest you join our [forum](https://base.admirable.one/c/everyclass) (Chinese).
+To discuss questions regarding the project, I suggest you join our [forum](https://base.admirable.pro/c/everyclass) (Chinese).
 
 
 ### Technology stack
