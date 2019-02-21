@@ -13,7 +13,6 @@ cal_blueprint = Blueprint('calendar', __name__)
 @disallow_in_maintenance
 def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
-    from werkzeug.wrappers import Response
     from flask import current_app as app, render_template, url_for, flash, redirect
 
     from everyclass.server.utils.rpc import HttpRpc
@@ -28,7 +27,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
                                                                             resource_type,
                                                                             resource_identifier,
                                                                             url_semester))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
 
     token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
@@ -52,7 +51,6 @@ def ics_download(calendar_token):
 
     因为课表会更新，所以 ics 文件只能在这里动态生成，不能在日历订阅页面就生成
     """
-    from werkzeug.wrappers import Response
     from flask import send_from_directory, current_app
     from everyclass.server.db.dao import CalendarTokenDAO
     from everyclass.server.db.model import Semester
@@ -71,7 +69,7 @@ def ics_download(calendar_token):
                                                                             else result['tid'],
                                                                             result['semester']),
                                                     params={'week_string': 'true'})
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -187,7 +185,6 @@ def legacy_get_ics(student_id, semester_str):
     this route is bad. however, many users have already been using it. breaking experience is bad. so we have
     to keep the route here for now. and (maybe) remove it in the future.
     """
-    from werkzeug.wrappers import Response
     from flask import current_app as app, abort, redirect, url_for
 
     from everyclass.server.db.dao import get_privacy_settings, CalendarTokenDAO
@@ -204,7 +201,7 @@ def legacy_get_ics(student_id, semester_str):
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                              student_id))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 

@@ -1,15 +1,15 @@
 import gevent
 import requests
-from flask import flash, redirect, render_template, url_for
+from flask import g, render_template
 
-from everyclass.server import logger
+from everyclass.server import logger, sentry, sentry_available
 from everyclass.server.exceptions import MSG_400, MSG_404, MSG_INTERNAL_ERROR, MSG_TIMEOUT, RpcBadRequestException, \
     RpcClientException, RpcResourceNotFoundException, RpcServerException, RpcTimeoutException
 
 
 class HttpRpc:
-    @staticmethod
-    def _status_code_raise(response: requests.Response):
+    @classmethod
+    def _status_code_raise(cls, response: requests.Response):
         """
         raise exception if HTTP status code is 4xx or 5xx
 
@@ -25,14 +25,18 @@ class HttpRpc:
                 raise RpcBadRequestException(status_code, response.text)
             raise RpcClientException(status_code, response.text)
 
-    @staticmethod
-    def _flash_and_redirect(message: str):
-        """flash message and return to main page"""
-        flash(message)
-        return redirect(url_for('main.main'))
+    @classmethod
+    def _error_page(cls, message: str):
+        """return a error page with a message. if sentry is available, tell user that they can report the problem."""
+        sentry_param = {}
+        if sentry_available:
+            sentry_param.update({"event_id"  : g.sentry_event_id,
+                                 "public_dsn": sentry.client.get_public_dsn('https')
+                                 })
+        return render_template('common/error.html', message=message, **sentry_param)
 
-    @staticmethod
-    def call(url, params=None, retry=False, data=None):
+    @classmethod
+    def call(cls, url, params=None, retry=False, data=None):
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
         @:param params: parameters when calling RPC
         @:param retry: if set to True, will automatically retry
@@ -48,46 +52,47 @@ class HttpRpc:
             except gevent.timeout.Timeout:
                 trial += 1
                 continue
-            HttpRpc._status_code_raise(api_response)
+            cls._status_code_raise(api_response)
             logger.debug('RPC result: {}'.format(api_response.text))
             api_response = api_response.json()
             return api_response
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
 
-    @staticmethod
-    def call_with_handle_flash(url, params=None, retry=False, data=None):
+    @classmethod
+    def call_with_handle_flash(cls, url, params=None, retry=False, data=None):
         """call API and handle exceptions.
         if exception, flash a message and redirect to main page.
         """
         try:
-            api_response = HttpRpc.call(url, params=params, retry=retry, data=data)
+            api_response = cls.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
-            return render_template('common/error.html', message=MSG_TIMEOUT)
+            return cls._error_page(MSG_TIMEOUT)
         except RpcResourceNotFoundException as e:
             logger.warn(repr(e))
-            return render_template('common/error.html', message=MSG_404)
+            return cls._error_page(MSG_404)
         except RpcBadRequestException as e:
             logger.warn(repr(e))
-            return render_template('common/error.html', message=MSG_400)
+            return cls._error_page(MSG_400)
         except RpcClientException as e:
             logger.error(repr(e))
-            return render_template('common/error.html', message=MSG_400)
+            return cls._error_page(MSG_400)
         except RpcServerException as e:
             logger.error(repr(e))
-            return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
+            return cls._error_page(MSG_INTERNAL_ERROR)
         except Exception as e:
             logger.error('RPC exception: {}'.format(repr(e)))
-            return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
+            return cls._error_page(MSG_INTERNAL_ERROR)
+
         return api_response
 
-    @staticmethod
-    def call_with_handle_message(url, params=None, retry=False, data=None):
+    @classmethod
+    def call_with_handle_message(cls, url, params=None, retry=False, data=None):
         """call API and handle exceptions.
         if exception, return a message
         """
         try:
-            api_response = HttpRpc.call(url, params=params, retry=retry, data=data)
+            api_response = cls.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException as e:
             logger.warn(repr(e))
             return "Backend timeout", 408

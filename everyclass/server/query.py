@@ -3,7 +3,6 @@
 """
 import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
-from werkzeug.wrappers import Response
 
 from everyclass.server import logger
 from everyclass.server.tools import contains_chinese, disallow_in_maintenance
@@ -48,7 +47,7 @@ def query():
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                              to_search))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -121,7 +120,7 @@ def get_student(url_sid, url_semester):
                                                                                  url_sid,
                                                                                  url_semester),
                                                     params={'week_string': 'true', 'other_semester': 'true'})
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -186,7 +185,7 @@ def get_teacher(url_tid, url_semester):
                                                                                  url_tid,
                                                                                  url_semester),
                                                     params={'week_string': 'true', 'other_semester': 'true'})
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -233,7 +232,7 @@ def get_classroom(url_rid, url_semester):
                                                                               url_rid,
                                                                               url_semester),
                                                     params={'week_string': 'true', 'other_semester': 'true'})
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -286,7 +285,7 @@ def get_course(url_cid: str, url_semester: str):
                                                                                 url_cid,
                                                                                 url_semester),
                                                     params={'week_string': 'true'})
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 

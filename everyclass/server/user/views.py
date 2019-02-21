@@ -1,6 +1,5 @@
 import elasticapm
 from flask import Blueprint, current_app as app, redirect, render_template, request, url_for
-from werkzeug.wrappers import Response
 
 from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, UserDAO
 from everyclass.server.exceptions import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID
@@ -23,7 +22,7 @@ def login():
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                               request.args.get('sid')))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -61,7 +60,7 @@ def register_by_email():
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                               request.args.get('sid')))
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -78,7 +77,7 @@ def register_by_email():
                                                                                   request.args.get('sid')),
                                                     data={'request_id': request_id,
                                                           'student_id': sid_orig})
-        if isinstance(rpc_result, Response):
+        if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
 
@@ -106,7 +105,7 @@ def email_verification():
     rpc_result = HttpRpc.call_with_handle_flash('{}/verify_email_token'.format(app.config['AUTH_BASE_URL'],
                                                                                request.args.get('token')),
                                                 data={"email_token": request.args.get("token")})
-    if isinstance(rpc_result, Response):
+    if isinstance(rpc_result, str):
         return rpc_result
     api_response = rpc_result
 

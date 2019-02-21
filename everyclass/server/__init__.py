@@ -15,7 +15,7 @@ logger = logbook.Logger(__name__)
 sentry = Sentry()
 __app = None
 __first_spawn = True
-__sentry_available = False
+sentry_available = False
 
 try:
     import uwsgidecorators
@@ -48,7 +48,7 @@ try:
         from everyclass.server.utils import monkey_patch
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
-        global __app, __first_spawn, __sentry_available
+        global __app, __first_spawn, sentry_available
 
         # Elastic APM
         if __app.config['CONFIG_NAME'] in __app.config['APM_AVAILABLE_IN']:
@@ -71,7 +71,7 @@ try:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='WARNING')  # Sentry 只处理 WARNING 以上的
             logger.handlers.append(sentry_handler)
-            __sentry_available = True
+            sentry_available = True
             logger.info('You are in {} mode, so Sentry is inited.'.format(__app.config['CONFIG_NAME']))
 
         # print current configuration
@@ -237,8 +237,8 @@ def create_app(outside_container=False) -> Flask:
 
     @app.errorhandler(500)
     def internal_server_error(error):
-        global __sentry_available
-        if __sentry_available:
+        global sentry_available
+        if sentry_available:
             return render_template('500.html',
                                    event_id=g.sentry_event_id,
                                    public_dsn=sentry.client.get_public_dsn('https'))
