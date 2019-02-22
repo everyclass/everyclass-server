@@ -41,17 +41,17 @@ class Config(object):
         'maxcached'     : 1000,
         'maxconnections': 2000
     }
-    MONGO = {
+    MONGODB = {
         'host'              : 'mongodb',
         'port'              : 12306,
         'uuidRepresentation': 'standard'
     }
-    MONGO_DB = 'everyclass_server'
+    MONGODB_DB = 'everyclass_server'
 
     # server side session
     SESSION_TYPE = 'mongodb'
     SESSION_MONGODB = None  # lazy init after fork
-    SESSION_MONGODB_DB = MONGO_DB
+    SESSION_MONGODB_DB = MONGODB_DB
     SESSION_MONGODB_COLLECT = 'session'
 
     # Sentry, APM and logstash
