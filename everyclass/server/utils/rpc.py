@@ -27,14 +27,16 @@ class HttpRpc:
             raise RpcClientException(status_code, response.text)
 
     @classmethod
-    def _error_page(cls, message: str, capture=False):
+    def _error_page(cls, message: str, sentry_capture=False, log_capture=False, log=None):
         """return a error page with a message. if sentry is available, tell user that they can report the problem."""
         sentry_param = {}
-        if capture and plugin_available("sentry"):
+        if sentry_capture and plugin_available("sentry"):
             sentry.captureException()
             sentry_param.update({"event_id"  : g.sentry_event_id,
                                  "public_dsn": sentry.client.get_public_dsn('https')
                                  })
+        if log_capture:
+            logger.info(log)
         return render_template('common/error.html', message=message, **sentry_param)
 
     @classmethod
@@ -68,17 +70,20 @@ class HttpRpc:
         try:
             api_response = cls.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException:
-            return cls._error_page(MSG_TIMEOUT, capture=True)
+            return cls._error_page(MSG_TIMEOUT, sentry_capture=True)
         except RpcResourceNotFoundException:
-            return cls._error_page(MSG_404, capture=True)
-        except RpcBadRequestException:
-            return cls._error_page(MSG_400, capture=True)
+            return cls._error_page(MSG_404, sentry_capture=True)
+        except RpcBadRequestException as e:
+            return cls._error_page(MSG_400,
+                                   log_capture=True,
+                                   log="Got bad request, upstream returned status code {} with message {}."
+                                   .format(*e.args))
         except RpcClientException:
-            return cls._error_page(MSG_400, capture=True)
+            return cls._error_page(MSG_400, sentry_capture=True)
         except RpcServerException:
-            return cls._error_page(MSG_INTERNAL_ERROR, capture=True)
+            return cls._error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
         except Exception:
-            return cls._error_page(MSG_INTERNAL_ERROR, capture=True)
+            return cls._error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
 
         return api_response
 
