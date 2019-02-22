@@ -40,7 +40,6 @@ try:
         everyclass.server.db.mysql.init_pool(__app)
         everyclass.server.db.mongodb.init_pool(__app)
 
-
     @uwsgidecorators.postfork
     def init_session():
         """init server-side session"""
