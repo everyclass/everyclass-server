@@ -1,4 +1,3 @@
-import copy
 import gc
 import json
 import sys
@@ -53,6 +52,7 @@ try:
         from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
         from everyclass.server.utils import monkey_patch
+        from everyclass.server.config import print_config
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
         global __app, __first_spawn
@@ -86,26 +86,7 @@ try:
             # set to warning level because we want to monitor restarts
             logger.warning('App (re)started in `{0}` environment'
                            .format(__app.config['CONFIG_NAME']), stack=False)
-
-            logger.info('Below are configurations we are using:')
-            logger.info('================================================================')
-            for key, value in __app.config.items():
-                if key not in ('SECRET_KEY',):
-                    value = copy.copy(value)
-
-                    # 敏感内容抹去
-                    if key == 'SENTRY_CONFIG':
-                        value['dsn'] = '[secret]'
-                    if key == 'MYSQL_CONFIG':
-                        value['password'] = '[secret]'
-                    if key == 'ELASTIC_APM':
-                        value['SECRET_TOKEN'] = '[secret]'
-                    if key == 'MAINTENANCE_CREDENTIALS':
-                        value = '[secret]'
-
-                    logger.info('{}: {}'.format(key, value))
-            logger.info('================================================================')
-
+            print_config(__app, logger)
             __first_spawn = False
 
     @uwsgidecorators.postfork

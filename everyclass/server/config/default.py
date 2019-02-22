@@ -143,7 +143,7 @@ class Config(object):
     }
     CALENDAR_UUID_NAMESPACE = '12345678123456781234567812345678'  # calendar token base uuid
 
-    ANDROID_CLIENT_URL = ''  # apk file for android client, leave it blank and it will dynamically fetched when starting
+    ANDROID_CLIENT_URL = ''  # apk file for android client, dynamically fetched when starting
 
     FEATURE_GATING = {
         'user': False
@@ -155,4 +155,15 @@ class Config(object):
     LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
     DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
 
-    PRODUCTION_SECURE_FIELDS = ('CALENDAR_UUID_NAMESPACE', 'SECRET_KEY')
+    # fields that should be overwritten in production environment
+    PRODUCTION_OVERWRITE_FIELDS = ('CALENDAR_UUID_NAMESPACE', 'SECRET_KEY')
+
+    # fields that should not be in log
+    PRODUCTION_SECURE_FIELDS = ("SENTRY_CONFIG.dsn",
+                                "MYSQL_CONFIG.password",
+                                "MYSQL_CONFIG.passwd",
+                                "ELASTIC_APM.SECRET_TOKEN",
+                                "MAINTENANCE_CREDENTIALS",
+                                "SECRET_KEY",
+                                "SESSION_MONGODB"
+                                )

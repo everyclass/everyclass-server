@@ -27,7 +27,7 @@ class HttpRpc:
             raise RpcClientException(status_code, response.text)
 
     @classmethod
-    def _error_page(cls, message: str, sentry_capture=False, log_capture=False, log=None):
+    def _error_page(cls, message: str, sentry_capture=False, log=None):
         """return a error page with a message. if sentry is available, tell user that they can report the problem."""
         sentry_param = {}
         if sentry_capture and plugin_available("sentry"):
@@ -35,7 +35,7 @@ class HttpRpc:
             sentry_param.update({"event_id"  : g.sentry_event_id,
                                  "public_dsn": sentry.client.get_public_dsn('https')
                                  })
-        if log_capture:
+        if log:
             logger.info(log)
         return render_template('common/error.html', message=message, **sentry_param)
 
@@ -75,7 +75,6 @@ class HttpRpc:
             return cls._error_page(MSG_404, sentry_capture=True)
         except RpcBadRequestException as e:
             return cls._error_page(MSG_400,
-                                   log_capture=True,
                                    log="Got bad request, upstream returned status code {} with message {}."
                                    .format(*e.args))
         except RpcClientException:
