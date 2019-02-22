@@ -50,7 +50,7 @@ try:
 
     @uwsgidecorators.postfork
     def init_log_handlers():
-        """init log handlers"""
+        """init log handlers and print current configuration to log"""
         from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
         from everyclass.server.utils import monkey_patch
