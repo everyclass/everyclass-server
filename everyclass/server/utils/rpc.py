@@ -27,10 +27,10 @@ class HttpRpc:
             raise RpcClientException(status_code, response.text)
 
     @classmethod
-    def _error_page(cls, message: str):
+    def _error_page(cls, message: str, capture=False):
         """return a error page with a message. if sentry is available, tell user that they can report the problem."""
         sentry_param = {}
-        if plugin_available("sentry"):
+        if capture and plugin_available("sentry"):
             sentry.captureException()
             sentry_param.update({"event_id"  : g.sentry_event_id,
                                  "public_dsn": sentry.client.get_public_dsn('https')
@@ -68,17 +68,17 @@ class HttpRpc:
         try:
             api_response = cls.call(url, params=params, retry=retry, data=data)
         except RpcTimeoutException:
-            return cls._error_page(MSG_TIMEOUT)
+            return cls._error_page(MSG_TIMEOUT, capture=True)
         except RpcResourceNotFoundException:
-            return cls._error_page(MSG_404)
+            return cls._error_page(MSG_404, capture=True)
         except RpcBadRequestException:
-            return cls._error_page(MSG_400)
+            return cls._error_page(MSG_400, capture=True)
         except RpcClientException:
-            return cls._error_page(MSG_400)
+            return cls._error_page(MSG_400, capture=True)
         except RpcServerException:
-            return cls._error_page(MSG_INTERNAL_ERROR)
+            return cls._error_page(MSG_INTERNAL_ERROR, capture=True)
         except Exception:
-            return cls._error_page(MSG_INTERNAL_ERROR)
+            return cls._error_page(MSG_INTERNAL_ERROR, capture=True)
 
         return api_response
 
