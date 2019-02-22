@@ -2,6 +2,7 @@ import json
 import os
 
 import git
+import redis
 
 
 class Config(object):
@@ -47,6 +48,13 @@ class Config(object):
         'uuidRepresentation': 'standard'
     }
     MONGO_DB = 'everyclass_server'
+    REDIS = {
+        "host": '127.0.0.1',
+        "db"  : 1
+    }
+    SESSION_TYPE = 'redis'
+    SESSION_KEY_PREFIX = "server:session:"
+    SESSION_REDIS = redis.Redis(**REDIS)
 
     # Sentry, APM and logstash
     SENTRY_CONFIG = {

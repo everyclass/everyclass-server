@@ -7,6 +7,7 @@ import logbook
 import requests
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
+from flask_session import Session
 from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
@@ -115,12 +116,8 @@ except ModuleNotFoundError:
     pass
 
 
-def create_app(outside_container=False) -> Flask:
-    """创建 flask app
-    @param outside_container: 是否不在容器内运行
-    """
-    import everyclass.server.db.mysql
-    import everyclass.server.db.mongodb
+def create_app() -> Flask:
+    """创建 flask app"""
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
     from everyclass.server.exceptions import MSG_INTERNAL_ERROR
@@ -177,10 +174,8 @@ def create_app(outside_container=False) -> Flask:
     # CDN
     CDN(app)
 
-    # 容器外运行（无 uWSGI）时初始化数据库
-    if outside_container and (app.config['CONFIG_NAME'] == "development"):
-        everyclass.server.db.mysql.init_pool(app)
-        everyclass.server.db.mongodb.init_pool(app)
+    # server-side session
+    Session(app)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
@@ -191,7 +186,8 @@ def create_app(outside_container=False) -> Flask:
     app.register_blueprint(query_blueprint)
     app.register_blueprint(main_blueprint)
 
-    if app.config['FEATURE_GATING']['user']:  # user feature gating
+    # user feature gating
+    if app.config['FEATURE_GATING']['user']:
         app.register_blueprint(user_bp, url_prefix='/user')
 
     @app.before_request

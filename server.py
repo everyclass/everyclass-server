@@ -3,7 +3,6 @@ from gevent import monkey
 monkey.patch_all()
 
 import gc
-import gevent.pywsgi
 from everyclass.server import create_app
 
 app = create_app()
@@ -22,8 +21,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app = create_app(outside_container=True)
-    # app.run()
-
-    gevent_server = gevent.pywsgi.WSGIServer(('', 80), app)
-    gevent_server.serve_forever()
+    print("You should not run this file. Instead, run `uwsgi --ini deploy/uwsgi-local.ini` for consistent behaviour.")
