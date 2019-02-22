@@ -56,6 +56,17 @@ def get_config():
                     # 其他类型的值直接覆盖
                     setattr(MixedConfig, key, getattr(_override_config, key))
 
+        # lazy reference type linking
+        try:
+            from everyclass.server.config.default import LazyRefType
+        except ImportError:
+            pass
+        else:
+            for key in dir(MixedConfig):
+                value = getattr(MixedConfig, key)
+                if isinstance(value, LazyRefType):
+                    setattr(MixedConfig, key, getattr(MixedConfig, value.var_name))
+
         # production safety check
         if mode == 'PRODUCTION':
             for each_key in getattr(MixedConfig, "PRODUCTION_OVERWRITE_FIELDS"):

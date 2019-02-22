@@ -4,6 +4,16 @@ import os
 import git
 
 
+class LazyRefType:
+    """Lazy reference type."""
+
+    def __init__(self, var_name):
+        self.var_name = var_name
+
+    def get_ref(self):
+        return self.var_name
+
+
 class Config(object):
     """
     the base class for configuration. all keys must define here.
@@ -51,7 +61,7 @@ class Config(object):
     # server side session
     SESSION_TYPE = 'mongodb'
     SESSION_MONGODB = None  # lazy init after fork
-    SESSION_MONGODB_DB = MONGODB_DB
+    SESSION_MONGODB_DB = LazyRefType("MONGODB_DB")
     SESSION_MONGODB_COLLECT = 'session'
 
     # Sentry, APM and logstash
@@ -165,5 +175,5 @@ class Config(object):
                                 "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
-                                "SESSION_MONGODB"
+                                # "SESSION_MONGODB"
                                 )
