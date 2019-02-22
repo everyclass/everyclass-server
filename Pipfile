@@ -22,6 +22,8 @@ requests = "~=2.0"
 uwsgidecorators = "*"
 gevent = "*"
 pymongo = "~=3.7"
+flask-session = "*"
+redis = "*"
 
 [dev-packages]
 coverage = "==4.4.2"
