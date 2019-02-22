@@ -40,6 +40,14 @@ try:
         everyclass.server.db.mysql.init_pool(__app)
         everyclass.server.db.mongodb.init_pool(__app)
 
+
+    @uwsgidecorators.postfork
+    def init_session():
+        """init server-side session"""
+        global __app
+        __app.config['SESSION_MONGODB'] = __app.mongo
+        Session(__app)
+
     @uwsgidecorators.postfork
     def init_log_handlers():
         """init log handlers"""
@@ -173,9 +181,6 @@ def create_app() -> Flask:
 
     # CDN
     CDN(app)
-
-    # server-side session
-    Session(app)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
