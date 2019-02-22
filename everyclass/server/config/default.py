@@ -5,13 +5,37 @@ import git
 
 
 class LazyRefType:
-    """Lazy reference type."""
+    """
+    The great lazy reference type.
+
+    Sometimes you want a field to reference another field (i.e., `FIELD1 = FIELD2`). However, if you do this in
+    base class and the referenced field is overwritten in subclass, the FIELD1 will still be associated with the
+    base class. This is not what we want.
+
+    For example, you have a field called `MONGODB_DB` which defines the database name you use in your business
+    logic. However, the Flask-session extension requires a field called `SESSION_MONGODB_DB` which defines the
+    database name that stores the session. Both of them need to be defined in base `Config` class. So you
+    define:
+
+    MONGODB_DB = "everyclass-db"
+    SESSION_MONGODB_DB = MONGODB_DB
+
+    Things go pretty well until you change `MONGODB_DB` in ProductionConfig. The `SESSION_MONGODB_DB` will still
+    be "everyclass-db". So the "reference" is not really a reference now.
+
+    If you do `SESSION_MONGODB_DB = LazyRefType("MONGODB_DB")` and call `LazyRefType.link(MixedConfig)` at last,
+    the reference will be correctly linked.
+    """
 
     def __init__(self, var_name):
         self.var_name = var_name
 
-    def get_ref(self):
-        return self.var_name
+    @classmethod
+    def link(cls, final_config):
+        for key in dir(final_config):
+            value = getattr(final_config, key)
+            if isinstance(value, cls):
+                setattr(final_config, key, getattr(final_config, value.var_name))
 
 
 class Config(object):
