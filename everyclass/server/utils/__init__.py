@@ -141,7 +141,7 @@ def contains_chinese(word):
     return match
 
 
-def plugin_availability(plugin_name: str):
+def plugin_available(plugin_name: str):
     """check if a plugin (Sentry, apm, logstash) is available in the current environment."""
     config = get_config()
     return os.environ.get("MODE").lower() in getattr(config, "{}_AVAILABLE_IN".format(plugin_name).upper())

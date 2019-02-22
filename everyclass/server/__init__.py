@@ -129,7 +129,7 @@ def create_app() -> Flask:
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
     from everyclass.server.exceptions import MSG_INTERNAL_ERROR
-    from everyclass.server.utils import plugin_availability
+    from everyclass.server.utils import plugin_available
 
     print("Creating app...")
 
@@ -229,7 +229,7 @@ def create_app() -> Flask:
 
     @app.errorhandler(500)
     def internal_server_error(error):
-        if plugin_availability("sentry"):
+        if plugin_available("sentry"):
             return render_template('common/error.html',
                                    message=MSG_INTERNAL_ERROR,
                                    event_id=g.sentry_event_id,

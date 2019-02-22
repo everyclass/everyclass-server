@@ -5,7 +5,7 @@ from flask import g, render_template
 from everyclass.server import logger, sentry
 from everyclass.server.exceptions import MSG_400, MSG_404, MSG_INTERNAL_ERROR, MSG_TIMEOUT, RpcBadRequestException, \
     RpcClientException, RpcResourceNotFoundException, RpcServerException, RpcTimeoutException
-from everyclass.server.utils import plugin_availability
+from everyclass.server.utils import plugin_available
 
 
 class HttpRpc:
@@ -30,7 +30,7 @@ class HttpRpc:
     def _error_page(cls, message: str):
         """return a error page with a message. if sentry is available, tell user that they can report the problem."""
         sentry_param = {}
-        if plugin_availability("sentry"):
+        if plugin_available("sentry"):
             sentry.captureException()
             sentry_param.update({"event_id"  : g.sentry_event_id,
                                  "public_dsn": sentry.client.get_public_dsn('https')
