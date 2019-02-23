@@ -94,7 +94,7 @@ def query():
             elasticapm.tag(query_type='by_name')
         else:
             elasticapm.tag(query_type='by_id')
-        return render_template('query/people_same_name.html',
+        return render_template('query/peopleWithSameName.html',
                                name=to_search,
                                students_count=len(api_response['student']),
                                students=api_response['student'],
@@ -154,7 +154,7 @@ def get_student(url_sid, url_semester):
 
     # privacy on
     if "show_table_on_page" in privacy_settings:
-        return render_template('query/student_blocked.html',
+        return render_template('query/studentBlocked.html',
                                name=api_response['name'],
                                falculty=api_response['deputy'],
                                class_name=api_response['class'],

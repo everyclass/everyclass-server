@@ -37,7 +37,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
     ics_webcal = ics_url.replace('https', 'webcal').replace('http', 'webcal')
 
-    return render_template('calendar_subscribe.html',
+    return render_template('calendarSubscribe.html',
                            ics_url=ics_url,
                            ics_webcal=ics_webcal,
                            android_client_url=app.config['ANDROID_CLIENT_URL'])
