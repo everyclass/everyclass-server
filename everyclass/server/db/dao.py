@@ -122,6 +122,13 @@ class UserDAO:
             return True
         return False
 
+    @classmethod
+    def check_password(cls, sid_orig: str, password: str):
+        """verify a user's password"""
+        db = get_mongodb()
+        doc = db.user.find_one({'sid_orig': sid_orig})
+        return doc['password'] == password
+
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
 ID_STATUS_NOT_SENT = "EMAIL_NOT_SENT"

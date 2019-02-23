@@ -9,7 +9,7 @@ from everyclass.server.utils.rpc import HttpRpc
 user_bp = Blueprint('user', __name__)
 
 
-@user_bp.route('/login')
+@user_bp.route('/login', methods=["GET", "POST"])
 def login():
     """
     登录页
@@ -18,12 +18,21 @@ def login():
     """
     if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
         return render_template('common/error.html', message=MSG_400)
+    if request.method == 'GET':
+        # if not registered, redirect to register page
+        if not UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
+            return redirect(url_for('user.register'))
 
-    # if not registered, redirect to register page
-    if not UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
-        return redirect(url_for('user.register'))
-
-    return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
+        return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
+    else:
+        if request.form.get("password", None):
+            success = UserDAO.check_password(session[SESSION_LAST_VIEWED_STUDENT].sid_orig, request.form["password"])
+            if success:
+                session[SESSION_CURRENT_USER] = session[SESSION_LAST_VIEWED_STUDENT]
+                return redirect(url_for("user.main"))
+            else:
+                flash("密码错误，请重试。")
+                return redirect(url_for("user.login"))
 
 
 @user_bp.route('/register')
@@ -110,15 +119,16 @@ def email_verification():
 
 
 @user_bp.route('/main')
-def user_main_page():
+def main():
     """用户主页"""
     if not session.get(SESSION_CURRENT_USER, None):
         return render_template('common/error.html', message=MSG_NOT_LOGGED_IN)
-    return render_template('user/main.html')
+
+    return render_template('user/main.html', name=session[SESSION_CURRENT_USER].name)
 
 
 @user_bp.route('/logout')
-def user_logout():
+def logout():
     """用户退出登录"""
     if session.get(SESSION_CURRENT_USER, None):
         del session[SESSION_CURRENT_USER]

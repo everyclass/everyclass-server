@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}用户主页 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">你好，{{ name }}</h1>
+        <h4 class="text-muted">登录成功。<a href="{{ url_for("user.logout") }}">退出登录</a>
+        </h4>
+
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12 col-md-6 col-md-offset-3">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+{% endblock %}
