@@ -16,7 +16,7 @@ def login():
 
     判断学生是否未注册，若已经注册，渲染登陆页。否则跳转到注册页面。
     """
-    if not session[SESSION_LAST_VIEWED_STUDENT]:
+    if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
         return render_template('common/error.html', message=MSG_400)
 
     # if not registered, redirect to register page
@@ -31,7 +31,7 @@ def register():
     """学生注册页面"""
     from flask import flash
 
-    if not session[SESSION_LAST_VIEWED_STUDENT]:
+    if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
         return render_template('common/error.html', message=MSG_400)
 
     # if registered, redirect to login page
@@ -112,7 +112,7 @@ def email_verification():
 @user_bp.route('/main')
 def user_main_page():
     """用户主页"""
-    if not session[SESSION_CURRENT_USER]:
+    if not session.get(SESSION_CURRENT_USER, None):
         return render_template('common/error.html', message=MSG_NOT_LOGGED_IN)
     return render_template('user/main.html')
 
@@ -120,7 +120,7 @@ def user_main_page():
 @user_bp.route('/logout')
 def user_logout():
     """用户退出登录"""
-    if session[SESSION_CURRENT_USER]:
+    if session.get(SESSION_CURRENT_USER, None):
         del session[SESSION_CURRENT_USER]
         flash("退出登录成功。")
     return redirect(url_for('main.main'))
