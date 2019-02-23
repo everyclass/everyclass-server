@@ -1,4 +1,5 @@
 import re
+from collections import namedtuple
 
 
 class Semester(object):
@@ -63,3 +64,6 @@ class Semester(object):
         获取用于数据表命名的学期，如 16_17_2
         """
         return self.to_str(simplify=True).replace('-', '_')
+
+
+Student = namedtuple("Student", ("sid_orig", "sid", "name"))

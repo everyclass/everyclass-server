@@ -2,9 +2,10 @@
 查询相关函数
 """
 import elasticapm
-from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.server import logger
+from everyclass.server.db.model import Student
 from everyclass.server.utils import contains_chinese, disallow_in_maintenance
 
 query_blueprint = Blueprint('query', __name__)
@@ -115,6 +116,7 @@ def get_student(url_sid, url_semester):
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
     from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -137,6 +139,9 @@ def get_student(url_sid, url_semester):
                                              classroom=each_class['room'],
                                              classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
+
+    # save sid_orig to session for verifying purpose
+    session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=api_response['sid'], sid=url_sid, name=api_response['name'])
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
