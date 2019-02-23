@@ -6,14 +6,16 @@
         <script src="https://cdn.ravenjs.com/2.3.0/raven.min.js"></script>
     {% endif %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">出现了一点小问题...</h1>
+        <h1 class="hero-header">这里有一点小问题...</h1>
 
         <br><br>
         <h4 class="text-muted">{{ message }}。{% if event_id %}如果您愿意，可以<a href="javascript:"
                                                                          onclick="Raven.showReportDialog({eventId: '{{ event_id }}',dsn: '{{ public_dsn }}'});">反馈问题发生的原因</a>
             ，这只需要花费半分钟的时间。{% endif %}</h4>
         <br>
-        <h4 class="text-muted"><a href="{{ url_for("main.main") }}">回到首页</a></h4>
+        <h4 class="text-muted"><a href="{{ url_for("main.main") }}">回到首页</a> 或 <a href="javascript:"
+                                                                                  onclick="history.go(-1)">回到上一页</a>
+        </h4>
     </div>
 
 
