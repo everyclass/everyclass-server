@@ -108,7 +108,7 @@ def create_app() -> Flask:
     """创建 flask app"""
     from everyclass.server.db.dao import new_user_id_sequence
     from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
-    from everyclass.server.exceptions import MSG_INTERNAL_ERROR
+    from everyclass.server.consts import MSG_INTERNAL_ERROR
     from everyclass.server.utils import plugin_available
 
     print("Creating app...")

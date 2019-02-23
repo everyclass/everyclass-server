@@ -1,9 +1,8 @@
 import elasticapm
 from flask import Blueprint, current_app as app, redirect, render_template, request, session, url_for
 
-from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT
+from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, UserDAO
-from everyclass.server.exceptions import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
