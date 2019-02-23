@@ -1,7 +1,8 @@
 import elasticapm
-from flask import Blueprint, current_app as app, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app as app, flash, redirect, render_template, request, session, url_for
 
-from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID, SESSION_LAST_VIEWED_STUDENT
+from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_NOT_LOGGED_IN, MSG_TOKEN_INVALID, \
+    SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, UserDAO
 from everyclass.server.utils.rpc import HttpRpc
 
@@ -106,3 +107,20 @@ def email_verification():
         return render_template('user/emailVerificationProceed.html', request_id=api_response['request_id'])
     else:
         return render_template("common/error.html", message=MSG_TOKEN_INVALID)
+
+
+@user_bp.route('/main')
+def user_main_page():
+    """用户主页"""
+    if not session[SESSION_CURRENT_USER]:
+        return render_template('common/error.html', message=MSG_NOT_LOGGED_IN)
+    return render_template('user/main.html')
+
+
+@user_bp.route('/logout')
+def user_logout():
+    """用户退出登录"""
+    if session[SESSION_CURRENT_USER]:
+        del session[SESSION_CURRENT_USER]
+        flash("退出登录成功。")
+    return redirect(url_for('main.main'))
