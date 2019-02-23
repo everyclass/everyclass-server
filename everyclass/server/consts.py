@@ -1,4 +1,8 @@
 """
+This file defines consts, such as session keys and return messages.
+"""
+
+"""
 Session keys
 
 All session keys should be defined here
