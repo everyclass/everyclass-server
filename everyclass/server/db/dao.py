@@ -147,6 +147,8 @@ class UserDAO:
     def add_user(cls, sid_orig, password):
         """add a user"""
         db = get_mongodb()
+        if db[cls.collection_name].find_one({"sid_orig": sid_orig}):
+            raise ValueError("sid_orig repeated")
         db.user.insert({"sid_orig"   : sid_orig,
                         "create_time": datetime.datetime.now(),
                         "password"   : generate_password_hash(password)})
