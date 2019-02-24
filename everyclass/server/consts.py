@@ -9,6 +9,7 @@ All session keys should be defined here
 """
 SESSION_LAST_VIEWED_STUDENT = "last_viewed_student"  # a everyclass.server.db.model.Student type
 SESSION_CURRENT_USER = "current_logged_in_user"  # a everyclass.server.db.model.Student type marking the logged in user
+SESSION_EMAIL_VER_TOKEN = "email_ver_token"  # email token for registration
 
 """
 Return messages
@@ -18,4 +19,4 @@ MSG_NOT_LOGGED_IN = "您还没有登录，请先登录"
 MSG_TIMEOUT = "请求超时，请稍后重试"
 MSG_404 = "资源不存在"
 MSG_400 = "你发起了一个异常的请求，请回到首页"
-MSG_TOKEN_INVALID = "令牌无效或已过期，请重新开始注册流程"
+MSG_TOKEN_INVALID = "令牌无效或已过期，请重新注册"

@@ -158,10 +158,10 @@ class IdentityVerificationDAO:
     """
 
     @classmethod
-    def get_register_request_by_email_token(cls, email_token):
+    def get_sid_orig_by_email_token(cls, email_token):
         db = get_mongodb()
         result = db.verification.find_one({'email_token': email_token})
-        return result
+        return result["sid_orig"]
 
     @classmethod
     def new_register_request(cls, sid_orig: str, verification_method: str, status: str):
@@ -170,6 +170,7 @@ class IdentityVerificationDAO:
 
         :param sid_orig: original sid
         :param verification_method: password or email
+        :param status: status of the request
         :return: the `request_id`
         """
         if verification_method not in ("email", "password"):
@@ -184,6 +185,7 @@ class IdentityVerificationDAO:
 
     @classmethod
     def email_token_mark_passed(cls, request_id):
+        """mark a verification request's status as email token passed"""
         db = get_mongodb()
         query = {"request_id": request_id}
         new_values = {"$set": {"status": ID_STATUS_TKN_PASSED}}
