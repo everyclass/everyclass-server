@@ -8,6 +8,7 @@ from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_NOT_LOGGED
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
+from everyclass.server.db.model import Student
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -121,13 +122,19 @@ def email_verification():
         IdentityVerificationDAO.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
         flash("注册成功，请牢记你的密码。")
 
-        if session[SESSION_LAST_VIEWED_STUDENT].sid_orig == sid_orig:
-            # it's difficult to get a student's basic information with api-server at the moment.
-            # when api-server implemented GET /student/xxx, this redirect part could be improved.
-            session[SESSION_CURRENT_USER] = session[SESSION_LAST_VIEWED_STUDENT]
-            return redirect(url_for("user.main"))
-        else:
-            return redirect(url_for("main.main"))
+        # fetch student basic information from api-server
+        with elasticapm.capture_span('rpc_get_student_info'):
+            rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                               sid_orig))
+            if isinstance(rpc_result, str):
+                return rpc_result
+            api_response = rpc_result
+
+        # write login state to session
+        session[SESSION_CURRENT_USER] = Student(sid_orig=api_response["student"][0]["sid_orig"],
+                                                sid=api_response["student"][0]["sid"],
+                                                name=api_response["student"][0]["name"])
+        return redirect(url_for("user.main"))
     else:
         # 设置密码页面
         if not session.get(SESSION_VER_REQ_ID, None):
@@ -164,7 +171,7 @@ def register_by_password():
                                                                   "password",
                                                                   ID_STATUS_WAIT_VERIFY,
                                                                   password=generate_password_hash(
-                                                                          request.form["password"]))
+                                                                          request.form["jwPassword"]))
 
         # call everyclass-auth to send email
         with elasticapm.capture_span('rpc_submit_auth'):
@@ -186,7 +193,7 @@ def register_by_password():
         return render_template("user/passwordRegistration.html", name=session[SESSION_LAST_VIEWED_STUDENT].name)
 
 
-@user_bp.route('/register/byPassword/status')
+@user_bp.route('/register/byPassword/statusRefresh')
 def register_by_password_status():
     if not request.args.get("request", None) or not isinstance(request.args["request"], str):
         return "Invalid request"
@@ -206,11 +213,36 @@ def register_by_password_status():
 
     if api_response['success']:
         IdentityVerificationDAO.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
-        return jsonify({"message": "success"})
+        return jsonify({"message": "SUCCESS"})
     elif api_response["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
-        return jsonify({"message": "failed"})
+        return jsonify({"message": api_response["message"]})
     else:
         return jsonify({"message": "next-time"})
+
+
+@user_bp.route('/register/byPassword/success')
+def register_by_password_success():
+    """redirect to user main page"""
+    if not request.args.get("request", None):
+        return "Invalid request"
+    req = IdentityVerificationDAO.get_request_by_id(request.args.get("request"))
+    if not req or req["status"] != ID_STATUS_PWD_SUCCESS:
+        return "Invalid request"
+
+    # fetch student basic information from api-server
+    with elasticapm.capture_span('rpc_get_student_info'):
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                           req["sid_orig"]))
+        if isinstance(rpc_result, str):
+            return rpc_result
+        api_response = rpc_result
+
+    # write login state to session
+    flash("注册成功，请牢记你的密码。")
+    session[SESSION_CURRENT_USER] = Student(sid_orig=api_response["student"][0]["sid_orig"],
+                                            sid=api_response["student"][0]["sid"],
+                                            name=api_response["student"][0]["name"])
+    return redirect(url_for("user.main"))
 
 
 @user_bp.route('/main')
