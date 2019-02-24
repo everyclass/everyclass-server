@@ -9,7 +9,7 @@ All session keys should be defined here
 """
 SESSION_LAST_VIEWED_STUDENT = "last_viewed_student"  # a everyclass.server.db.model.Student type
 SESSION_CURRENT_USER = "current_logged_in_user"  # a everyclass.server.db.model.Student type marking the logged in user
-SESSION_EMAIL_VER_TOKEN = "email_ver_token"  # email token for registration
+SESSION_VER_REQ_ID = "verification_req_id"  # current verification req id
 
 """
 Return messages

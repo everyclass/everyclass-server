@@ -46,8 +46,8 @@ def query():
 
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                             to_search))
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                           to_search))
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -119,10 +119,10 @@ def get_student(url_sid, url_semester):
     from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/student/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                                 url_sid,
-                                                                                 url_semester),
-                                                    params={'week_string': 'true', 'other_semester': 'true'})
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/student/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                               url_sid,
+                                                                               url_semester),
+                                                  params={'week_string': 'true', 'other_semester': 'true'})
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -187,10 +187,10 @@ def get_teacher(url_tid, url_semester):
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                                 url_tid,
-                                                                                 url_semester),
-                                                    params={'week_string': 'true', 'other_semester': 'true'})
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                               url_tid,
+                                                                               url_semester),
+                                                  params={'week_string': 'true', 'other_semester': 'true'})
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -235,10 +235,10 @@ def get_classroom(url_rid, url_semester):
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_room'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                              url_rid,
-                                                                              url_semester),
-                                                    params={'week_string': 'true', 'other_semester': 'true'})
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                            url_rid,
+                                                                            url_semester),
+                                                  params={'week_string': 'true', 'other_semester': 'true'})
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -291,10 +291,10 @@ def get_course(url_cid: str, url_semester: str):
     from .utils.rpc import HttpRpc
 
     with elasticapm.capture_span('rpc_query_course'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                                url_cid,
-                                                                                url_semester),
-                                                    params={'week_string': 'true'})
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                              url_cid,
+                                                                              url_semester),
+                                                  params={'week_string': 'true'})
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result

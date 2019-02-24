@@ -3,8 +3,9 @@ from flask import Blueprint, current_app as app, flash, redirect, render_templat
 from zxcvbn import zxcvbn
 
 from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_NOT_LOGGED_IN, MSG_TOKEN_INVALID, \
-    SESSION_CURRENT_USER, SESSION_EMAIL_VER_TOKEN, SESSION_LAST_VIEWED_STUDENT
-from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
+    SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
+from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_SENT, ID_STATUS_TKN_PASSED, \
+    IdentityVerificationDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -34,6 +35,7 @@ def login():
             else:
                 flash("密码错误，请重试。")
                 return redirect(url_for("user.login"))
+        return render_template('common/error.html', message=MSG_400)
 
 
 @user_bp.route('/register')
@@ -49,7 +51,7 @@ def register():
         flash('你已经注册了，请直接登录。')
         return redirect(url_for('user.login'))
 
-    return render_template('user/registerChoice.html', sid=session[SESSION_LAST_VIEWED_STUDENT].sid)
+    return render_template('user/registerChoice.html')
 
 
 @user_bp.route('/register/byEmail')
@@ -63,14 +65,14 @@ def register_by_email():
     if UserDAO.exist(sid_orig):
         return render_template("common/error.html", message="您已经注册过了，请勿重复注册。")
 
-    request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_NOT_SENT)
+    request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_SENT)
 
     # call everyclass-auth to send email
     with elasticapm.capture_span('rpc_send_email'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/register_by_email'.format(app.config['AUTH_BASE_URL'],
-                                                                                  request.args.get('sid')),
-                                                    data={'request_id': request_id,
-                                                          'student_id': sid_orig})
+        rpc_result = HttpRpc.call_with_error_page('{}/register_by_email'.format(app.config['AUTH_BASE_URL']),
+                                                  data={'request_id': str(request_id),
+                                                        'student_id': sid_orig},
+                                                  method='POST')
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -87,13 +89,22 @@ def register_by_email():
 def email_verification():
     """邮箱验证"""
     if request.method == 'POST':
-        if not session.get(SESSION_EMAIL_VER_TOKEN, None):  # email token must be set in session
+        if not session.get(SESSION_VER_REQ_ID, None):
             return render_template("common/error.html", message=MSG_400)
+
+        req = IdentityVerificationDAO.get_request_by_id(session[SESSION_VER_REQ_ID])
+        if not req:
+            return render_template("common/error.html", message=MSG_TOKEN_INVALID)
+
+        # password already set
+        if req["status"] == ID_STATUS_PASSWORD_SET:
+            return render_template("common/error.html", message=MSG_TOKEN_INVALID)
+
         if not request.form.get("password", None):  # check if empty password
             flash("请输入密码")
             return redirect(url_for("user.email_verification"))
 
-        sid_orig = IdentityVerificationDAO.get_sid_orig_by_email_token(session[SESSION_EMAIL_VER_TOKEN])
+        sid_orig = req['sid_orig']
 
         # password strength check
         pwd_strength_report = zxcvbn(password=request.form["password"])
@@ -103,24 +114,38 @@ def email_verification():
             return redirect(url_for("user.email_verification"))
 
         UserDAO.add_user(sid_orig=sid_orig, password=request.form['password'])
-        del session[SESSION_EMAIL_VER_TOKEN]
-    else:
-        if not request.args.get("token", None) and not session.get(SESSION_EMAIL_VER_TOKEN, None):
-            return render_template("common/error.html", message=MSG_400)
-        rpc_result = HttpRpc.call_with_handle_flash('{}/verify_email_token'.format(app.config['AUTH_BASE_URL'],
-                                                                                   request.args.get('token')),
-                                                    data={"email_token": request.args.get("token")},
-                                                    method='POST')
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
+        del session[SESSION_VER_REQ_ID]
+        IdentityVerificationDAO.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
+        flash("注册成功，请牢记你的密码。")
 
-        if api_response['success']:
-            session[SESSION_EMAIL_VER_TOKEN] = request.args.get("token")
-            IdentityVerificationDAO.email_token_mark_passed(api_response['request_id'])
-            return render_template('user/emailVerificationProceed.html')
+        if session[SESSION_LAST_VIEWED_STUDENT].sid_orig == sid_orig:
+            # it's difficult to get a student's basic information with api-server at the moment.
+            # when api-server implemented GET /student/xxx, this redirect part could be improved.
+            session[SESSION_CURRENT_USER] = session[SESSION_LAST_VIEWED_STUDENT]
+            return redirect(url_for("user.main"))
         else:
-            return render_template("common/error.html", message=MSG_TOKEN_INVALID)
+            return redirect(url_for("main.main"))
+    else:
+        # GET
+        if not session.get(SESSION_VER_REQ_ID, None):
+            if not request.args.get("token", None):
+                return render_template("common/error.html", message=MSG_400)
+            rpc_result = HttpRpc.call_with_error_page('{}/verify_email_token'.format(app.config['AUTH_BASE_URL']),
+                                                      data={"email_token": request.args.get("token", None)},
+                                                      method='POST')
+            if isinstance(rpc_result, str):
+                return rpc_result
+            api_response = rpc_result
+
+            if api_response['success']:
+                session[SESSION_VER_REQ_ID] = api_response['request_id']
+                IdentityVerificationDAO.set_request_status(api_response['request_id'], ID_STATUS_TKN_PASSED)
+                return render_template('user/emailVerificationProceed.html')
+            else:
+                return render_template("common/error.html", message=MSG_TOKEN_INVALID)
+        else:
+            # have session
+            return render_template('user/emailVerificationProceed.html')
 
 
 @user_bp.route('/register/byPassword', methods=['GET'])

@@ -23,10 +23,10 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
         return redirect(url_for('main.main'))
 
     with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                            resource_type,
-                                                                            resource_identifier,
-                                                                            url_semester))
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                          resource_type,
+                                                                          resource_identifier,
+                                                                          url_semester))
         if isinstance(rpc_result, str):
             return rpc_result
 
@@ -65,12 +65,12 @@ def ics_download(calendar_token):
         return 'invalid calendar token', 404
 
     with elasticapm.capture_span('rpc_find_people'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER_BASE_URL'],
-                                                                            result['type'],
-                                                                            result['sid'] if result['type'] == 'student'
-                                                                            else result['tid'],
-                                                                            result['semester']),
-                                                    params={'week_string': 'true'})
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER_BASE_URL'],
+                                                                          result['type'],
+                                                                          result['sid'] if result['type'] == 'student'
+                                                                          else result['tid'],
+                                                                          result['semester']),
+                                                  params={'week_string': 'true'})
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -201,8 +201,8 @@ def legacy_get_ics(student_id, semester_str):
     semester = Semester(semester_str)
 
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_flash('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                             student_id))
+        rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                           student_id))
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result

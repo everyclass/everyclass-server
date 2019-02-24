@@ -1,3 +1,4 @@
+import datetime
 import json
 import uuid
 
@@ -117,6 +118,13 @@ class CalendarTokenDAO:
 
 
 class UserDAO:
+    """
+    {
+        "sid_orig": 390xxxxxx,
+        "create_time": 2019-02-24T13:33:05.123Z,
+        "password": ""
+    }
+    """
     collection_name = "user"
 
     @classmethod
@@ -139,12 +147,14 @@ class UserDAO:
     def add_user(cls, sid_orig, password):
         """add a user"""
         db = get_mongodb()
-        db.user.insert({"sid_orig": sid_orig,
-                        "password": generate_password_hash(password)})
+        db.user.insert({"sid_orig"   : sid_orig,
+                        "create_time": datetime.datetime.now(),
+                        "password"   : generate_password_hash(password)})
 
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
-ID_STATUS_NOT_SENT = "EMAIL_NOT_SENT"
+ID_STATUS_SENT = "EMAIL_SENT"  # email request sent to everyclass-auth(cannot make sure the email is really sent)
+ID_STATUS_PASSWORD_SET = "PASSWORD_SET"
 
 
 class IdentityVerificationDAO:
@@ -154,6 +164,7 @@ class IdentityVerificationDAO:
     The documents stored in MongoDB is like:
     {
         "request_id": "",                         # UUID request id
+        "create_time: 2019-02-24T13:33:05.123Z,   # create time
         "sid_orig": "",                           # the original sid (not encoded by api server)
         "verification_method":"password",         # "password" or "email"
         "email_token": "token",                   # UUID token if it's a email verification
@@ -163,10 +174,9 @@ class IdentityVerificationDAO:
     collection_name = "verification"
 
     @classmethod
-    def get_sid_orig_by_email_token(cls, email_token):
+    def get_request_by_id(cls, req_id: str):
         db = get_mongodb()
-        result = db.verification.find_one({'email_token': email_token})
-        return result["sid_orig"]
+        return db.verification.find_one({'request_id': uuid.UUID(req_id)})
 
     @classmethod
     def new_register_request(cls, sid_orig: str, verification_method: str, status: str):
@@ -182,6 +192,7 @@ class IdentityVerificationDAO:
             raise ValueError("verification_method must be one of email, password")
         db = get_mongodb()
         doc = {"request_id"         : uuid.uuid4(),
+               "create_time"        : datetime.datetime.now(),
                "sid_orig"           : sid_orig,
                "verification_method": verification_method,
                "status"             : status}
@@ -189,11 +200,11 @@ class IdentityVerificationDAO:
         return doc["request_id"]
 
     @classmethod
-    def email_token_mark_passed(cls, request_id):
+    def set_request_status(cls, request_id: str, status: str):
         """mark a verification request's status as email token passed"""
         db = get_mongodb()
-        query = {"request_id": request_id}
-        new_values = {"$set": {"status": ID_STATUS_TKN_PASSED}}
+        query = {"request_id": uuid.UUID(request_id)}
+        new_values = {"$set": {"status": status}}
         db.verification.update_one(query, new_values)
 
 
@@ -208,5 +219,5 @@ class SimplePasswordDAO:
     def new(cls, password, sid_orig):
         db = get_mongodb()
         db[cls.collection_name].insert({"sid_orig": sid_orig,
-                                        "time"    : 11,
+                                        "time"    : datetime.datetime.now(),
                                         "password": password})
