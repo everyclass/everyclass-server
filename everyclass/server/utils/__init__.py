@@ -99,7 +99,7 @@ def teacher_list_fix(teachers: list):
     """
     tids = []
     new_teachers = []
-    for index, teacher in enumerate(teachers):
+    for teacher in teachers:
         if teacher['title'] == '未定':
             teacher['title'] = ''
 

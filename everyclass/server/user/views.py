@@ -44,8 +44,6 @@ def login():
 @user_bp.route('/register')
 def register():
     """学生注册页面"""
-    from flask import flash
-
     if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
         return render_template('common/error.html', message=MSG_400)
 
