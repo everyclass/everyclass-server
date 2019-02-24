@@ -185,6 +185,7 @@ def register_by_password():
             api_response = rpc_result
 
         if api_response['acknowledged']:
+            session[SESSION_VER_REQ_ID] = request_id
             return render_template('user/passwordRegistrationPending.html', request_id=str(request_id))
         else:
             return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
@@ -223,7 +224,7 @@ def register_by_password_status():
 @user_bp.route('/register/byPassword/success')
 def register_by_password_success():
     """redirect to user main page"""
-    if not request.args.get("request", None):
+    if not session.get(SESSION_VER_REQ_ID, None):
         return "Invalid request"
     req = IdentityVerificationDAO.get_request_by_id(request.args.get("request"))
     if not req or req["status"] != ID_STATUS_PWD_SUCCESS:
@@ -239,6 +240,7 @@ def register_by_password_success():
 
     # write login state to session
     flash("注册成功，请牢记你的密码。")
+    del session[SESSION_VER_REQ_ID]
     session[SESSION_CURRENT_USER] = Student(sid_orig=api_response["student"][0]["sid_orig"],
                                             sid=api_response["student"][0]["sid"],
                                             name=api_response["student"][0]["name"])
