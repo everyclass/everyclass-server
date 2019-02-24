@@ -171,14 +171,14 @@ def register_by_password():
                                                                   "password",
                                                                   ID_STATUS_WAIT_VERIFY,
                                                                   password=generate_password_hash(
-                                                                          request.form["jwPassword"]))
+                                                                          request.form["password"]))
 
-        # call everyclass-auth to send email
+        # call everyclass-auth to verify password
         with elasticapm.capture_span('rpc_submit_auth'):
             rpc_result = HttpRpc.call_with_error_page('{}/register_by_password'.format(app.config['AUTH_BASE_URL']),
                                                       data={'request_id': str(request_id),
                                                             'student_id': session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
-                                                            'password'  : request.form["password"]},
+                                                            'password'  : request.form["jwPassword"]},
                                                       method='POST')
             if isinstance(rpc_result, str):
                 return rpc_result
