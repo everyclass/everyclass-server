@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}登陆 - 每课{% endblock %}
+{% block title %}{{ name }} - 每课{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
         <h1 class="hero-header">欢迎回来</h1>
@@ -22,7 +22,7 @@
                         </tr>
                         <tr>
                             <td>每课密码</td>
-                            <td><input name="password"></td>
+                            <td><input name="password" type="password"></td>
                         </tr>
                         <tr>
                             <td></td>

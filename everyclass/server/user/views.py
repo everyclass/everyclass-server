@@ -87,8 +87,9 @@ def register_by_email():
 
 @user_bp.route('/emailVerification', methods=['GET', 'POST'])
 def email_verification():
-    """邮箱验证"""
+    """邮箱验证及注册"""
     if request.method == 'POST':
+        # 设置密码表单提交
         if not session.get(SESSION_VER_REQ_ID, None):
             return render_template("common/error.html", message=MSG_400)
 
@@ -126,7 +127,7 @@ def email_verification():
         else:
             return redirect(url_for("main.main"))
     else:
-        # GET
+        # 设置密码页面
         if not session.get(SESSION_VER_REQ_ID, None):
             if not request.args.get("token", None):
                 return render_template("common/error.html", message=MSG_400)
