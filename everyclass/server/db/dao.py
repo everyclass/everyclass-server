@@ -155,6 +155,8 @@ class UserDAO:
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
 ID_STATUS_SENT = "EMAIL_SENT"  # email request sent to everyclass-auth(cannot make sure the email is really sent)
 ID_STATUS_PASSWORD_SET = "PASSWORD_SET"
+ID_STATUS_WAIT_VERIFY = "VERIFY_WAIT"  # wait everyclass-auth to verify
+ID_STATUS_PWD_SUCCESS = "PASSWORD_PASSED"
 
 
 class IdentityVerificationDAO:
@@ -171,21 +173,22 @@ class IdentityVerificationDAO:
         "status": ""                              # a status constant
     }
     """
-    collection_name = "verification"
+    collection_name = "verification_requests"
 
     @classmethod
     def get_request_by_id(cls, req_id: str):
         db = get_mongodb()
-        return db.verification.find_one({'request_id': uuid.UUID(req_id)})
+        return db[cls.collection_name].find_one({'request_id': uuid.UUID(req_id)})
 
     @classmethod
-    def new_register_request(cls, sid_orig: str, verification_method: str, status: str):
+    def new_register_request(cls, sid_orig: str, verification_method: str, status: str, password=None):
         """
         add a new register request
 
         :param sid_orig: original sid
         :param verification_method: password or email
         :param status: status of the request
+        :param password: if register by password, save everyclass password (not jw password) here
         :return: the `request_id`
         """
         if verification_method not in ("email", "password"):
@@ -196,7 +199,9 @@ class IdentityVerificationDAO:
                "sid_orig"           : sid_orig,
                "verification_method": verification_method,
                "status"             : status}
-        db.verification.insert(doc)
+        if password:
+            doc.update({"password": generate_password_hash(password)})
+        db[cls.collection_name].insert(doc)
         return doc["request_id"]
 
     @classmethod
@@ -205,7 +210,7 @@ class IdentityVerificationDAO:
         db = get_mongodb()
         query = {"request_id": uuid.UUID(request_id)}
         new_values = {"$set": {"status": status}}
-        db.verification.update_one(query, new_values)
+        db[cls.collection_name].update_one(query, new_values)
 
 
 class SimplePasswordDAO:

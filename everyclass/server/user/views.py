@@ -1,11 +1,13 @@
 import elasticapm
-from flask import Blueprint, current_app as app, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app as app, flash, jsonify, redirect, render_template, request, session, url_for
+from werkzeug.security import generate_password_hash
 from zxcvbn import zxcvbn
 
+from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_NOT_LOGGED_IN, MSG_TOKEN_INVALID, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
-from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_SENT, ID_STATUS_TKN_PASSED, \
-    IdentityVerificationDAO, SimplePasswordDAO, UserDAO
+from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
+    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -149,11 +151,66 @@ def email_verification():
             return render_template('user/emailVerificationProceed.html')
 
 
-@user_bp.route('/register/byPassword', methods=['GET'])
+@user_bp.route('/register/byPassword', methods=['GET', 'POST'])
 def register_by_password():
     """学生注册-密码"""
-    pass
-    # todo
+    if request.method == 'POST':
+        if any(map(lambda x: x not in request.form, ("password", "jwPassword"))) or not request.form["password"] or \
+                not request.form["jwPassword"]:
+            flash("请填写密码")
+            return redirect(url_for("user.register_by_password"))
+
+        request_id = IdentityVerificationDAO.new_register_request(session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
+                                                                  "password",
+                                                                  ID_STATUS_WAIT_VERIFY,
+                                                                  password=generate_password_hash(
+                                                                          request.form["password"]))
+
+        # call everyclass-auth to send email
+        with elasticapm.capture_span('rpc_submit_auth'):
+            rpc_result = HttpRpc.call_with_error_page('{}/register_by_password'.format(app.config['AUTH_BASE_URL']),
+                                                      data={'request_id': str(request_id),
+                                                            'student_id': session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
+                                                            'password'  : request.form["password"]},
+                                                      method='POST')
+            if isinstance(rpc_result, str):
+                return rpc_result
+            api_response = rpc_result
+
+        if api_response['acknowledged']:
+            return render_template('user/passwordRegistrationPending.html', request_id=str(request_id))
+        else:
+            return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
+    else:
+        # show password registration page
+        return render_template("user/passwordRegistration.html", name=session[SESSION_LAST_VIEWED_STUDENT].name)
+
+
+@user_bp.route('/register/byPassword/status')
+def register_by_password_status():
+    if not request.args.get("request", None) or not isinstance(request.args["request"], str):
+        return "Invalid request"
+    req = IdentityVerificationDAO.get_request_by_id(request.args.get("request"))
+    if not req:
+        return "Invalid request"
+    if req["verification_method"] != "password":
+        logger.warn("Non-password verification request is trying get status from password interface")
+        return "Invalid request"
+    # fetch status from everyclass-auth
+    with elasticapm.capture_span('rpc_get_auth_state'):
+        rpc_result = HttpRpc.call_with_error_page('{}/get_result'.format(app.config['AUTH_BASE_URL']),
+                                                  data={'request_id': str(request.args.get("request"))})
+        if isinstance(rpc_result, str):
+            return rpc_result
+        api_response = rpc_result
+
+    if api_response['success']:
+        IdentityVerificationDAO.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
+        return jsonify({"message": "success"})
+    elif api_response["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
+        return jsonify({"message": "failed"})
+    else:
+        return jsonify({"message": "next-time"})
 
 
 @user_bp.route('/main')
