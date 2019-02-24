@@ -1,42 +1,42 @@
-var gulp = require('gulp'),
-    concat = require('gulp-concat'),           //Concat CSS files
-    minifyCss = require('gulp-clean-css'),     //Compress CSS
-    uglify = require('gulp-uglify'),           //JS uglify
-    rename = require('gulp-rename'),           //File renaming
-    rev = require('gulp-rev'),                 //File revision
-    pump = require('pump');
+var gulp = require("gulp"),
+    concat = require("gulp-concat"),           //Concat CSS files
+    minifyCss = require("gulp-clean-css"),     //Compress CSS
+    uglify = require("gulp-uglify"),           //JS uglify
+    rename = require("gulp-rename"),           //File renaming
+    rev = require("gulp-rev"),                 //File revision
+    pump = require("pump");
 
 
 //CSS
-gulp.task('cssCompress', function () {
+gulp.task("cssCompress", function () {
     return gulp.src("./static/css/*-v1.css")
-    //.pipe(concat('style.min.css'))                 //Concat CSS files
+    //.pipe(concat("style.min.css"))                 //Concat CSS files
         .pipe(minifyCss())                           //Compress
         .pipe(rev())                                 //Revision
-        .pipe(gulp.dest('./dist/css'))               //Output
+        .pipe(gulp.dest("./dist/css"))               //Output
         .pipe(rev.manifest())                        //Generate rev-manifest.json
-        .pipe(gulp.dest('./'));                      //Save rev-manifest.json
+        .pipe(gulp.dest("./"));                      //Save rev-manifest.json
 });
-gulp.task('css', gulp.series('cssCompress'));
+gulp.task("css", gulp.series("cssCompress"));
 
 //JS
-gulp.task('jsMinify', function (cb) {
+gulp.task("jsMinify", function (cb) {
     pump([
-            gulp.src(['./static/js/*.js', '!./static/js/*.min.js', '!./static/js/*_min.js']),
+            gulp.src(["./static/js/*.js", "!./static/js/*.min.js", "!./static/js/*_min.js"]),
             uglify(),
-            rename({suffix: '.min'}),
-            gulp.dest('./dist/js')
+            rename({suffix: ".min"}),
+            gulp.dest("./dist/js")
         ],
         cb
     );
 });
-gulp.task("js", gulp.series('jsMinify'));
+gulp.task("js", gulp.series("jsMinify"));
 
 
 // 把 static 目录的其他文件拷贝到 dist 目录
-gulp.task('copyOtherFilesToDist', function () {
-    return gulp.src(['./static/**/*', '!./static/css', '!./static/js'])
-        .pipe(gulp.dest('./dist'));
+gulp.task("copyOtherFilesToDist", function () {
+    return gulp.src(["./static/**/*", "!./static/css", "!./static/js"])
+        .pipe(gulp.dest("./dist"));
 });
 
 
@@ -46,6 +46,6 @@ gulp.task("default", gulp.series("css", "js", "copyOtherFilesToDist"));
 
 
 //Watch tasks
-gulp.task('watch', function () {
-    return gulp.watch('./static/*', ['default']);
+gulp.task("watch", function () {
+    return gulp.watch("./static/*", ["default"]);
 });
