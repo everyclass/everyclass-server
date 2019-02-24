@@ -1,6 +1,8 @@
 import json
 import uuid
 
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.mysql import get_connection as get_mysql_connection
 
@@ -127,7 +129,14 @@ class UserDAO:
         """verify a user's password"""
         db = get_mongodb()
         doc = db.user.find_one({'sid_orig': sid_orig})
-        return doc['password'] == password
+        return check_password_hash(doc['password'], password)
+
+    @classmethod
+    def add_user(cls, sid_orig, password):
+        """add a user"""
+        db = get_mongodb()
+        db.user.insert({"sid_orig": sid_orig,
+                        "password": generate_password_hash(password)})
 
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
