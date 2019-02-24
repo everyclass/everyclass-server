@@ -54,6 +54,8 @@ def new_user_id_sequence() -> int:
 
 
 class CalendarTokenDAO:
+    collection_name = "calendar_token"
+
     @classmethod
     def insert_calendar_token(cls, resource_type: str, semester: str, sid=None, tid=None):
         """generate a calendar token, record to database and return str(token)"""
@@ -115,6 +117,8 @@ class CalendarTokenDAO:
 
 
 class UserDAO:
+    collection_name = "user"
+
     @classmethod
     def exist(cls, sid_orig):
         """check if a student has registered"""
@@ -156,6 +160,7 @@ class IdentityVerificationDAO:
         "status": ""                              # a status constant
     }
     """
+    collection_name = "verification"
 
     @classmethod
     def get_sid_orig_by_email_token(cls, email_token):
@@ -190,3 +195,18 @@ class IdentityVerificationDAO:
         query = {"request_id": request_id}
         new_values = {"$set": {"status": ID_STATUS_TKN_PASSED}}
         db.verification.update_one(query, new_values)
+
+
+class SimplePasswordDAO:
+    """
+    Simple passwords will be rejected when registering. However, it's fun to know what kind of simple passwords are
+    being used.
+    """
+    collection_name = "simple_passwords"
+
+    @classmethod
+    def new(cls, password, sid_orig):
+        db = get_mongodb()
+        db[cls.collection_name].insert({"sid_orig": sid_orig,
+                                        "time"    : 11,
+                                        "password": password})

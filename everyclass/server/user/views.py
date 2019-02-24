@@ -1,9 +1,10 @@
 import elasticapm
 from flask import Blueprint, current_app as app, flash, redirect, render_template, request, session, url_for
+from zxcvbn import zxcvbn
 
 from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_NOT_LOGGED_IN, MSG_TOKEN_INVALID, \
     SESSION_CURRENT_USER, SESSION_EMAIL_VER_TOKEN, SESSION_LAST_VIEWED_STUDENT
-from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, UserDAO
+from everyclass.server.db.dao import ID_STATUS_NOT_SENT, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -91,9 +92,16 @@ def email_verification():
         if not request.form.get("password", None):  # check if empty password
             flash("请输入密码")
             return redirect(url_for("user.email_verification"))
-        # password strength check
 
         sid_orig = IdentityVerificationDAO.get_sid_orig_by_email_token(session[SESSION_EMAIL_VER_TOKEN])
+
+        # password strength check
+        pwd_strength_report = zxcvbn(password=request.form["password"])
+        if pwd_strength_report['score'] < 3:
+            SimplePasswordDAO.new(password=request.form["password"], sid_orig=sid_orig)
+            flash("密码过于简单，请使用复杂一些的密码。")
+            return redirect(url_for("user.email_verification"))
+
         UserDAO.add_user(sid_orig=sid_orig, password=request.form['password'])
         del session[SESSION_EMAIL_VER_TOKEN]
     else:
