@@ -226,7 +226,7 @@ def register_by_password_success():
     """redirect to user main page"""
     if not session.get(SESSION_VER_REQ_ID, None):
         return "Invalid request"
-    req = IdentityVerificationDAO.get_request_by_id(request.args.get("request"))
+    req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
     if not req or req["status"] != ID_STATUS_PWD_SUCCESS:
         return "Invalid request"
 
