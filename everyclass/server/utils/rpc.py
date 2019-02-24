@@ -41,7 +41,7 @@ class HttpRpc:
         return render_template('common/error.html', message=message, **sentry_param)
 
     @classmethod
-    def call(cls, url, params=None, retry=False, data=None):
+    def call(cls, url, params=None, retry=False, data=None, method='GET'):
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
         @:param params: parameters when calling RPC
         @:param retry: if set to True, will automatically retry
@@ -53,7 +53,12 @@ class HttpRpc:
             try:
                 with gevent.Timeout(5):
                     logger.debug('RPC GET {}'.format(url))
-                    api_response = api_session.get(url, params=params, data=data)
+                    if method == 'GET':
+                        api_response = api_session.get(url, params=params, data=data)
+                    elif method == 'POST':
+                        api_response = api_session.post(url, params=params, data=data)
+                    else:
+                        raise NotImplementedError("Unsupported HTTP method {}".format(method))
             except gevent.timeout.Timeout:
                 trial += 1
                 continue
@@ -64,12 +69,12 @@ class HttpRpc:
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
 
     @classmethod
-    def call_with_handle_flash(cls, url, params=None, retry=False, data=None):
+    def call_with_handle_flash(cls, url, params=None, retry=False, data=None, method='GET'):
         """call API and handle exceptions.
         if exception, flash a message and redirect to main page.
         """
         try:
-            api_response = cls.call(url, params=params, retry=retry, data=data)
+            api_response = cls.call(url, params=params, retry=retry, data=data, method=method)
         except RpcTimeoutException:
             return cls._error_page(MSG_TIMEOUT, sentry_capture=True)
         except RpcResourceNotFoundException:
