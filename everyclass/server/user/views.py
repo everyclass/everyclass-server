@@ -4,11 +4,12 @@ from werkzeug.security import generate_password_hash
 from zxcvbn import zxcvbn
 
 from everyclass.server import logger
-from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_NOT_LOGGED_IN, MSG_TOKEN_INVALID, \
+from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.db.model import Student
+from everyclass.server.utils import login_required
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
@@ -222,14 +223,14 @@ def register_by_password_success():
     """redirect to user main page"""
     if not session.get(SESSION_VER_REQ_ID, None):
         return "Invalid request"
-    req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
-    if not req or req["status"] != ID_STATUS_PWD_SUCCESS:
+    verification_req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
+    if not verification_req or verification_req["status"] != ID_STATUS_PWD_SUCCESS:
         return "Invalid request"
 
     # fetch student basic information from api-server
     with elasticapm.capture_span('rpc_get_student_info'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           req["sid_orig"]))
+                                                                           verification_req["sid_orig"]))
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -244,18 +245,16 @@ def register_by_password_success():
 
 
 @user_bp.route('/main')
+@login_required
 def main():
     """用户主页"""
-    if not session.get(SESSION_CURRENT_USER, None):
-        return render_template('common/error.html', message=MSG_NOT_LOGGED_IN)
-
     return render_template('user/main.html', name=session[SESSION_CURRENT_USER].name)
 
 
 @user_bp.route('/logout')
+@login_required
 def logout():
     """用户退出登录"""
-    if session.get(SESSION_CURRENT_USER, None):
-        del session[SESSION_CURRENT_USER]
-        flash("退出登录成功。")
+    del session[SESSION_CURRENT_USER]
+    flash("退出登录成功。")
     return redirect(url_for('main.main'))
