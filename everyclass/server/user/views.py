@@ -78,8 +78,6 @@ def register_by_email():
             return rpc_result
         api_response = rpc_result
 
-    # todo v2.1: 这里当前是骗用户发送成功了，其实有没有成功不知道。前端应该JS来刷新，从“正在发送”变成“已发送”
-
     if api_response['acknowledged']:
         return render_template('user/emailSent.html', request_id=request_id)
     else:
