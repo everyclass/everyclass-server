@@ -21,7 +21,7 @@ WORKDIR /var/app
 RUN apt-get update \
     && apt-get install -y procps wget gcc libpcre3-dev git libffi-dev libssl-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
     && pip install uwsgi
 
 # install gor
