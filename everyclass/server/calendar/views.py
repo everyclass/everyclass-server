@@ -166,10 +166,10 @@ def android_client_get_ics(resource_type, identifier, semester):
             privacy_settings = get_privacy_settings(api_response['sid'])
         # legacy privacy setting, for disable a user's all operations
         if "show_table_on_page" in privacy_settings:
-            username, password = request.authorization
-            if not (0 == 1 and username and password):
-                # todo implement basic auth
+            if not request.authorization:
                 return "Unauthorized (privacy on)", 401
+            # todo implement basic auth
+            return "Not implemented"
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
                                                                resource_identifier=identifier,
                                                                semester=semester)
