@@ -7,7 +7,7 @@ from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
-    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
+    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.db.model import Student
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.rpc import HttpRpc
@@ -258,3 +258,18 @@ def logout():
     del session[SESSION_CURRENT_USER]
     flash("退出登录成功。")
     return redirect(url_for('main.main'))
+
+
+@user_bp.route('/setPreference', methods=["POST"])
+@login_required
+def js_set_preference():
+    """AJAX更新偏好设置"""
+    if request.args.get("privacyLevel", None):
+        # update privacy level
+        if request.args["privacyLevel"] not in (0, 1, 2):
+            logger.warn("Received malformed set preference request. privacyLevel value not valid.")
+            return jsonify({"acknowledged": False,
+                            "message"     : "Invalid value"})
+
+        PrivacySettingsDAO.set_level(session[SESSION_CURRENT_USER], request.args["privacyLevel"])
+    return jsonify({"acknowledged": True})

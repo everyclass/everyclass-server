@@ -26,7 +26,8 @@ def new_user_id_sequence() -> int:
 class PrivacySettingsDAO:
     """
     {
-        "level": 0       # 0: public, 1: half-public, 2: private
+        "sid_orig": "390xx"       # original sid
+        "level": 0                # 0: public, 1: half-public, 2: private
     }
     """
     collection_name = "privacy_settings"
@@ -37,6 +38,13 @@ class PrivacySettingsDAO:
         db = get_mongodb()
         doc = db[cls.collection_name].find_one({"sid_orig": sid_orig})
         return doc["level"] if doc else 0
+
+    @classmethod
+    def set_level(cls, sid_orig: str, new_level: int):
+        """Set privacy level for a student"""
+        db = get_mongodb()
+        db[cls.collection_name].update_one({"sid_orig": sid_orig},
+                                           {"$set": {"level": new_level}})
 
 
 class CalendarTokenDAO:
