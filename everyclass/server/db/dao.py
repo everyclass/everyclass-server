@@ -135,7 +135,7 @@ class UserDAO:
 
     @classmethod
     def check_password(cls, sid_orig: str, password: str):
-        """verify a user's password"""
+        """verify a user's password. Return True if password is correct, otherwise return False."""
         db = get_mongodb()
         doc = db.user.find_one({'sid_orig': sid_orig})
         return check_password_hash(doc['password'], password)

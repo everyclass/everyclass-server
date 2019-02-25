@@ -142,7 +142,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     from flask import current_app as app, redirect, url_for, request
 
     from everyclass.server.utils.rpc import HttpRpc
-    from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
+    from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO, UserDAO
 
     if resource_type not in ('student', 'teacher'):
         return "Unknown resource type", 400
@@ -162,13 +162,18 @@ def android_client_get_ics(resource_type, identifier, semester):
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:
+        # student
         with elasticapm.capture_span('get_privacy_settings'):
             privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
+
+        # get authorization from HTTP header and verify password if privacy is on
         if privacy_level != 0:
             if not request.authorization:
                 return "Unauthorized (privacy on)", 401
-            # todo implement basic auth
-            return "Not implemented"
+            username, password = request.authorization
+            if not UserDAO.check_password(username, password):
+                return "Unauthorized (password wrong)", 401
+
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
                                                                resource_identifier=identifier,
                                                                semester=semester)
