@@ -47,7 +47,7 @@ def query():
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           to_search))
+                                                                           to_search.replace("/", "")))
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
