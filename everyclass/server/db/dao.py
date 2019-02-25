@@ -231,3 +231,31 @@ class SimplePasswordDAO:
         db[cls.collection_name].insert({"sid_orig": sid_orig,
                                         "time"    : datetime.datetime.now(),
                                         "password": password})
+
+
+class VisitorDAO:
+    """
+    If privacy level is 1, logged-in users can view each other's schedule with their visiting track saved.
+
+    {
+        "host": "390xxx",                      # original sid of host
+        "visitor": "390xxx",                   # original sid of visitor
+        "last_time": 2019-02-24T13:33:05.123Z  # last visit time
+    }
+    """
+    collection_name = "visitor_track"
+
+    @classmethod
+    def update_track(cls, host, visitor):
+        """
+        Update time of visit. If this is first time visit, add a new document.
+
+        @:param host: original sid of host
+        @:param visitor: original sid of visitor
+        @:return None
+        """
+        db = get_mongodb()
+        criteria = {"host"   : host,
+                    "visitor": visitor}
+        new_val = {"$set": {"last_time": datetime.datetime.now()}}
+        db[cls.collection_name].update(criteria, new_val, True)  # upsert
