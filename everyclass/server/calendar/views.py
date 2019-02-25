@@ -4,7 +4,7 @@
 import elasticapm
 from flask import Blueprint
 
-from everyclass.server.utils import disallow_in_maintenance
+from everyclass.server.utils.decorators import disallow_in_maintenance
 
 cal_blueprint = Blueprint('calendar', __name__)
 

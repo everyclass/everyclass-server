@@ -9,7 +9,7 @@ from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVA
 from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.db.model import Student
-from everyclass.server.utils import login_required
+from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)

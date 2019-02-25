@@ -6,7 +6,8 @@ from flask import Blueprint, current_app as app, escape, flash, redirect, render
 
 from everyclass.server import logger
 from everyclass.server.db.model import Student
-from everyclass.server.utils import contains_chinese, disallow_in_maintenance
+from everyclass.server.utils import contains_chinese
+from everyclass.server.utils.decorators import disallow_in_maintenance
 
 query_blueprint = Blueprint('query', __name__)
 
