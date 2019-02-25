@@ -111,7 +111,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid, url_semester):
     """学生查询"""
-    from everyclass.server.db.dao import PrivacySettingsDAO
+    from everyclass.server.db.dao import PrivacySettingsDAO, VisitorDAO
     from everyclass.server.utils import lesson_string_to_dict
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
@@ -161,13 +161,15 @@ def get_student(url_sid, url_semester):
                                              classroom=each_class['room'],
                                              classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
+        empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
+        available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
 
     # save sid_orig to session for verifying purpose
     session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=api_response['sid'], sid=url_sid, name=api_response['name'])
 
-    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
-
-    available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
+    # leave track if this is a inter-visit mode
+    if privacy_level == 1:
+        VisitorDAO.update_track(host=api_response['sid'], visitor=session[SESSION_CURRENT_USER].sid_orig)
 
     return render_template('query/student.html',
                            name=api_response['name'],
