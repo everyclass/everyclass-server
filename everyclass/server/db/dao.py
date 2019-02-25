@@ -216,6 +216,12 @@ class SimplePasswordDAO:
     """
     Simple passwords will be rejected when registering. However, it's fun to know what kind of simple passwords are
     being used.
+
+    {
+        "sid_orig": 390xxxx,                   # original sid, str type
+        "time": 2019-02-24T13:33:05.123Z,      # time of trial, datetime type
+        "password": "1234"                     # simple password
+    }
     """
     collection_name = "simple_passwords"
 
