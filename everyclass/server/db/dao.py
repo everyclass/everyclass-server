@@ -70,15 +70,17 @@ class CalendarTokenDAO:
 
         db = get_mongodb()
         if resource_type == 'student':
-            db.calendar_token.insert({'type'    : 'student',
-                                      'sid'     : sid,
-                                      'semester': semester,
-                                      'token'   : token})
+            db[cls.collection_name].insert({'type'       : 'student',
+                                            "create_time": datetime.datetime.now(),
+                                            'sid'        : sid,
+                                            'semester'   : semester,
+                                            'token'      : token})
         elif resource_type == 'teacher':
-            db.calendar_token.insert({'type'    : 'teacher',
-                                      'tid'     : tid,
-                                      'semester': semester,
-                                      'token'   : token})
+            db[cls.collection_name].insert({'type'       : 'teacher',
+                                            "create_time": datetime.datetime.now(),
+                                            'tid'        : tid,
+                                            'semester'   : semester,
+                                            'token'      : token})
         return str(token)
 
     @classmethod
@@ -86,14 +88,14 @@ class CalendarTokenDAO:
         """query a token document by token or (sid, semester)"""
         db = get_mongodb()
         if token:
-            return db.calendar_token.find_one({'token': uuid.UUID(token)})
+            return db[cls.collection_name].find_one({'token': uuid.UUID(token)})
         else:
             if tid:
-                return db.calendar_token.find_one({'tid'     : tid,
-                                                   'semester': semester})
+                return db[cls.collection_name].find_one({'tid'     : tid,
+                                                         'semester': semester})
             if sid:
-                return db.calendar_token.find_one({'sid'     : sid,
-                                                   'semester': semester})
+                return db[cls.collection_name].find_one({'sid'     : sid,
+                                                         'semester': semester})
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type, resource_identifier, semester):
