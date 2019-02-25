@@ -1,41 +1,10 @@
 import datetime
-import json
 import uuid
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.mysql import get_connection as get_mysql_connection
-
-
-def get_privacy_settings(student_id: str) -> list:
-    """
-    获得隐私设定
-
-    :param student_id: 学生学号
-    :return: 隐私要求列表
-    """
-    # todo migrate privacy settings to api-server
-    db = get_mysql_connection()
-    cursor = db.cursor()
-
-    mysql_query = "SELECT privacy FROM ec_students WHERE xh=%s"
-    cursor.execute(mysql_query, (student_id,))
-    result = cursor.fetchall()
-    if not result:
-        # No such student
-        cursor.close()
-        db.close()
-        return []
-    else:
-        if not result[0][0]:
-            # No privacy settings
-            cursor.close()
-            db.close()
-            return []
-        cursor.close()
-        db.close()
-        return json.loads(result[0][0])
 
 
 def new_user_id_sequence() -> int:
@@ -54,7 +23,33 @@ def new_user_id_sequence() -> int:
     return last_row_id
 
 
+class PrivacySettingsDAO:
+    """
+    {
+        "level": 0       # 0: public, 1: half-public, 2: private
+    }
+    """
+    collection_name = "privacy_settings"
+
+    @classmethod
+    def get_level(cls, sid_orig: str):
+        """Get a student's privacy level. Public by default."""
+        db = get_mongodb()
+        doc = db[cls.collection_name].find_one({"sid_orig": sid_orig})
+        return doc["level"] if doc else 0
+
+
 class CalendarTokenDAO:
+    """
+    {
+        "type": "student",                          # "student" or "teacher"
+        "create_time": 2019-02-24T13:33:05.123Z,    # token create time (added later)
+        "sid": "390XXX",                            # student id if this is a student
+        "tid": "390XXX",                            # teacher id if this is a teacher
+        "semester": "2018-2019-1",                  # semester
+        "token": ""                                 # calendar token, uuid type (not string!)
+    }
+    """
     collection_name = "calendar_token"
 
     @classmethod

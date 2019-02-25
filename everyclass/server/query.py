@@ -111,7 +111,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid, url_semester):
     """学生查询"""
-    from everyclass.server.db.dao import get_privacy_settings
+    from everyclass.server.db.dao import PrivacySettingsDAO
     from everyclass.server.utils import lesson_string_to_dict
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
@@ -149,33 +149,33 @@ def get_student(url_sid, url_semester):
 
     # 隐私设定
     # Available privacy settings: "show_table_on_page", "import_to_calender", "major"
-    with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
-        privacy_settings = get_privacy_settings(api_response['sid'])
+    with elasticapm.capture_span('get_privacy_settings'):
+        privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
 
-    # privacy on
-    if "show_table_on_page" in privacy_settings:
+    # todo privacy_level==1
+    if privacy_level == 2:
+        # privacy on
         return render_template('query/studentBlocked.html',
                                name=api_response['name'],
                                falculty=api_response['deputy'],
                                class_name=api_response['class'],
                                sid=url_sid,
                                available_semesters=available_semesters,
-                               no_import_to_calender=True if "import_to_calender" in privacy_settings else False,
+                               no_import_to_calender=True if "import_to_calender" in privacy_level else False,
                                current_semester=url_semester)
-
-    # privacy off
-    return render_template('query/student.html',
-                           name=api_response['name'],
-                           falculty=api_response['deputy'],
-                           class_name=api_response['class'],
-                           sid=url_sid,
-                           classes=courses,
-                           empty_sat=empty_sat,
-                           empty_sun=empty_sun,
-                           empty_6=empty_6,
-                           empty_5=empty_5,
-                           available_semesters=available_semesters,
-                           current_semester=url_semester)
+    else:
+        return render_template('query/student.html',
+                               name=api_response['name'],
+                               falculty=api_response['deputy'],
+                               class_name=api_response['class'],
+                               sid=url_sid,
+                               classes=courses,
+                               empty_sat=empty_sat,
+                               empty_sun=empty_sun,
+                               empty_6=empty_6,
+                               empty_5=empty_5,
+                               available_semesters=available_semesters,
+                               current_semester=url_semester)
 
 
 @query_blueprint.route('/teacher/<string:url_tid>/<string:url_semester>')

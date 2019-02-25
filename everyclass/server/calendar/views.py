@@ -142,7 +142,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     from flask import current_app as app, redirect, url_for, request
 
     from everyclass.server.utils.rpc import HttpRpc
-    from everyclass.server.db.dao import get_privacy_settings, CalendarTokenDAO
+    from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
 
     if resource_type not in ('student', 'teacher'):
         return "Unknown resource type", 400
@@ -162,10 +162,9 @@ def android_client_get_ics(resource_type, identifier, semester):
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:
-        with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
-            privacy_settings = get_privacy_settings(api_response['sid'])
-        # legacy privacy setting, for disable a user's all operations
-        if "show_table_on_page" in privacy_settings:
+        with elasticapm.capture_span('get_privacy_settings'):
+            privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
+        if privacy_level != 0:
             if not request.authorization:
                 return "Unauthorized (privacy on)", 401
             # todo implement basic auth
@@ -189,7 +188,7 @@ def legacy_get_ics(student_id, semester_str):
     """
     from flask import current_app as app, abort, redirect, url_for
 
-    from everyclass.server.db.dao import get_privacy_settings, CalendarTokenDAO
+    from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.db.model import Semester
 
@@ -214,13 +213,14 @@ def legacy_get_ics(student_id, semester_str):
     if semester.to_str() not in api_response['student'][0]['semester']:
         return abort(400)
 
-    with elasticapm.capture_span('get_privacy_settings', span_type='db.mysql'):
-        privacy_settings = get_privacy_settings(api_response['student'][0]['sid_orig'])
-        # legacy privacy setting, for disable a user's all operations
-        if "show_table_on_page" in privacy_settings:
-            return "Visit {} to get your calendar".format(url_for("main.main")), 401
+    with elasticapm.capture_span('get_privacy_settings'):
+        privacy_settings = PrivacySettingsDAO.get_level(api_response['student'][0]['sid_orig'])
 
-    token = CalendarTokenDAO.get_or_set_calendar_token(resource_type='student',
-                                                       resource_identifier=api_response['student'][0]['sid'],
-                                                       semester=semester.to_str())
-    return redirect(url_for('calendar.ics_download', calendar_token=token))
+    if privacy_settings != 0:
+        # force user to get a calendar token when the user is privacy-protected but accessed through legacy interface
+        return "Visit {} to get your calendar".format(url_for("main.main")), 401
+    else:
+        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type='student',
+                                                           resource_identifier=api_response['student'][0]['sid'],
+                                                           semester=semester.to_str())
+        return redirect(url_for('calendar.ics_download', calendar_token=token))
