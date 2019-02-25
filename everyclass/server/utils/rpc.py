@@ -41,6 +41,14 @@ class HttpRpc:
         return render_template('common/error.html', message=message, **sentry_param)
 
     @classmethod
+    def _return_string(cls, status_code, string, sentry_capture=False, log=None):
+        if sentry_capture and plugin_available("sentry"):
+            sentry.captureException()
+        if log:
+            logger.info(log)
+        return string, status_code
+
+    @classmethod
     def call(cls, method, url, params=None, retry=False, data=None):
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
         @:param params: parameters when calling RPC
@@ -99,22 +107,16 @@ class HttpRpc:
         """
         try:
             api_response = cls.call("GET", url, params=params, retry=retry, data=data)
-        except RpcTimeoutException as e:
-            logger.warn(repr(e))
-            return "Backend timeout", 408
-        except RpcResourceNotFoundException as e:
-            logger.info(repr(e))
-            return "Resource not found", 404
-        except RpcBadRequestException as e:
-            logger.info(repr(e))
-            return "Bad request", 400
-        except RpcClientException as e:
-            logger.error(repr(e))
-            return "Bad request", 400
-        except RpcServerException as e:
-            logger.error(repr(e))
-            return "Server internal error", 500
-        except Exception as e:
-            logger.error('RPC exception: {}'.format(repr(e)))
-            return "Server internal error", 500
+        except RpcTimeoutException:
+            return cls._return_string(408, "Backend timeout", sentry_capture=True)
+        except RpcResourceNotFoundException:
+            return cls._return_string(404, "Resource not found", sentry_capture=True)
+        except RpcBadRequestException:
+            return cls._return_string(400, "Bad request", sentry_capture=True)
+        except RpcClientException:
+            return cls._return_string(400, "Bad request", sentry_capture=True)
+        except RpcServerException:
+            return cls._return_string(500, "Server internal error", sentry_capture=True)
+        except Exception:
+            return cls._return_string(500, "Server internal error", sentry_capture=True)
         return api_response
