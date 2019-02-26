@@ -32,7 +32,7 @@ def login():
         return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
     else:
         if not recaptcha.verify():
-            flash("验证码错误，请重试。")
+            flash("验证码未通过，请重试。")
             return redirect(url_for("user.login"))
         if request.form.get("password", None):
             success = UserDAO.check_password(session[SESSION_LAST_VIEWED_STUDENT].sid_orig, request.form["password"])
@@ -162,6 +162,10 @@ def email_verification():
 def register_by_password():
     """学生注册-密码"""
     if request.method == 'POST':
+        if not recaptcha.verify():
+            flash("验证码未通过，请重试。")
+            return redirect(url_for("user.email_verification"))
+
         if any(map(lambda x: x not in request.form, ("password", "jwPassword"))) or not request.form["password"] or \
                 not request.form["jwPassword"]:
             flash("请填写密码")
