@@ -173,6 +173,8 @@ def android_client_get_ics(resource_type, identifier, semester):
             username, password = request.authorization
             if not UserDAO.check_password(username, password):
                 return "Unauthorized (password wrong)", 401
+            if api_response['sid'] != username:
+                return "Unauthorized (username mismatch)", 401
 
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
                                                                resource_identifier=identifier,

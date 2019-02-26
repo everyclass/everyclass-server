@@ -52,8 +52,8 @@ class CalendarTokenDAO:
     {
         "type": "student",                          # "student" or "teacher"
         "create_time": 2019-02-24T13:33:05.123Z,    # token create time (added later)
-        "sid": "390XXX",                            # student id if this is a student
-        "tid": "390XXX",                            # teacher id if this is a teacher
+        "sid": "zp9ApTs9Ln2LO8T",                   # student id(not original) if this is a student
+        "tid": "zp9ApTs9Ln2LO8T",                   # teacher id(not original) if this is a teacher
         "semester": "2018-2019-1",                  # semester
         "token": ""                                 # calendar token, uuid type (not string!)
     }
