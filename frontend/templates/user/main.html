@@ -22,8 +22,7 @@
                                     <option value="1" {% if privacy_level==1 %}selected{% endif %}>实名互访</option>
                                     <option value="2" {% if privacy_level==2 %}selected{% endif %}>仅自己可见</option>
                                 </select>
-                                <p id="privacy-level-hidden"></p>
-                                <br>
+                                <div id="privacy-level-hidden"></div>
                                 <ul>
                                     <li><b>公开可见</b>：所有用户可以查看到你的课表（默认）</li>
                                     <li><b>实名互访</b>：已登录用户可以访问你的课表，访问时会留下访客记录</li>
@@ -46,7 +45,7 @@
             $.post('{{ url_for('user.js_set_preference') }}',
                 {'privacyLevel': $('select#privacy-level-select option:selected').val()},
                 function () {
-                    $("p#privacy-level-hidden").text("设置成功");
+                    $("div#privacy-level-hidden").text("设置成功");
                 });
         });
 
