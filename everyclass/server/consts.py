@@ -20,3 +20,10 @@ MSG_TIMEOUT = "请求超时，请稍后重试"
 MSG_404 = "资源不存在"
 MSG_400 = "你发起了一个异常的请求，请回到首页"
 MSG_TOKEN_INVALID = "令牌无效或已过期，请重新注册"
+
+"""
+提示信息
+"""
+MSG_WEAK_PASSWORD = "密码过于简单，请使用复杂一些的密码。"
+MSG_INVALID_CAPTCHA = "人类验证未通过，请重试。"
+MSG_WRONG_PASSWORD = "密码错误，请重试。"

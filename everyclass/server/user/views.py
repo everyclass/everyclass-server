@@ -4,8 +4,8 @@ from werkzeug.security import generate_password_hash
 from zxcvbn import zxcvbn
 
 from everyclass.server import logger, recaptcha
-from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID, \
-    SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
+from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, MSG_TOKEN_INVALID, \
+    MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.db.model import Student
@@ -32,7 +32,7 @@ def login():
         return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
     else:
         if not recaptcha.verify():
-            flash("验证码未通过，请重试。")
+            flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.login"))
         if request.form.get("password", None):
             success = UserDAO.check_password(session[SESSION_LAST_VIEWED_STUDENT].sid_orig, request.form["password"])
@@ -40,7 +40,7 @@ def login():
                 session[SESSION_CURRENT_USER] = session[SESSION_LAST_VIEWED_STUDENT]
                 return redirect(url_for("user.main"))
             else:
-                flash("密码错误，请重试。")
+                flash(MSG_WRONG_PASSWORD)
                 return redirect(url_for("user.login"))
         return render_template('common/error.html', message=MSG_400)
 
@@ -110,11 +110,11 @@ def email_verification():
 
         sid_orig = req['sid_orig']
 
-        # password strength check
+        # 密码强度检查
         pwd_strength_report = zxcvbn(password=request.form["password"])
         if pwd_strength_report['score'] < 3:
             SimplePasswordDAO.new(password=request.form["password"], sid_orig=sid_orig)
-            flash("密码过于简单，请使用复杂一些的密码。")
+            flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.email_verification"))
 
         UserDAO.add_user(sid_orig=sid_orig, password=request.form['password'])
@@ -163,12 +163,20 @@ def register_by_password():
     """学生注册-密码"""
     if request.method == 'POST':
         if not recaptcha.verify():
-            flash("验证码未通过，请重试。")
+            flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.register_by_password"))
 
         if any(map(lambda x: x not in request.form, ("password", "jwPassword"))) or not request.form["password"] or \
                 not request.form["jwPassword"]:
-            flash("请填写密码")
+            flash("密码不能为空，请重试。")
+            return redirect(url_for("user.register_by_password"))
+
+        # 密码强度检查
+        pwd_strength_report = zxcvbn(password=request.form["password"])
+        if pwd_strength_report['score'] < 3:
+            SimplePasswordDAO.new(password=request.form["password"],
+                                  sid_orig=session[SESSION_LAST_VIEWED_STUDENT].sid_orig)
+            flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.register_by_password"))
 
         request_id = IdentityVerificationDAO.new_register_request(session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
