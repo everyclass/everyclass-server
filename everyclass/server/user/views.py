@@ -101,7 +101,8 @@ def email_verification():
         if not req:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
 
-        # password already set
+        # 由于 SESSION_VER_REQ_ID 在密码验证和邮件验证两个验证方式中共享，当使用密码验证写入了 session 之后，如果马上在邮件验证页面
+        # POST，并且此处不做请求状态的判断，将会绕过验证过程直接设置密码
         if req["status"] != ID_STATUS_TKN_PASSED:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
 
@@ -131,7 +132,7 @@ def email_verification():
                 return rpc_result
             api_response = rpc_result
 
-        # write login state to session
+        # 登录态写入 session
         session[SESSION_CURRENT_USER] = Student(sid_orig=api_response["student"][0]["sid_orig"],
                                                 sid=api_response["student"][0]["sid"],
                                                 name=api_response["student"][0]["name"])
