@@ -43,15 +43,18 @@
                         <li>
                             <a href="/">首页</a>
                         </li>
+
                         <li>
                             <a href="{{ url_for('main.guide') }}">使用指南</a>
                         </li>
                         <li>
-                            <a href="{{ url_for('main.faq') }}">FAQ</a>
-                        </li>
-                        <li>
                             <a href="{{ url_for('main.about') }}">关于</a>
                         </li>
+                        {% if session.get("current_logged_in_user", None) %}
+                            <li>
+                                <a href="{{ url_for('user.main') }}">个人中心</a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -90,9 +93,6 @@
         </li>
         <li class="footer-list-item">
             <a class="footer-list-link" href="{{ url_for('main.guide') }}">使用指南</a>
-        </li>
-        <li class="footer-list-item">
-            <a class="footer-list-link" href="{{ url_for('main.faq') }}">常见问题</a>
         </li>
         <li class="footer-list-item">
             <a class="footer-list-link" href="https://base.admirable.pro/t/everyclass/227" target="_blank">服务协议</a>

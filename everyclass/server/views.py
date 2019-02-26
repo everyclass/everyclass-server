@@ -21,12 +21,6 @@ def sleep():
     return render_template('common/index.html')
 
 
-@main_blueprint.route('/faq')
-def faq():
-    """帮助页面"""
-    return render_template('common/faq.html')
-
-
 @main_blueprint.route('/about')
 def about():
     """关于页面"""
