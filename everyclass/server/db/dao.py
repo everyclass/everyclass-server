@@ -141,7 +141,7 @@ class UserDAO:
     collection_name = "user"
 
     @classmethod
-    def exist(cls, sid_orig):
+    def exist(cls, sid_orig: str):
         """check if a student has registered"""
         db = get_mongodb()
         result = db.user.find_one({'sid_orig': sid_orig})
@@ -157,7 +157,7 @@ class UserDAO:
         return check_password_hash(doc['password'], password)
 
     @classmethod
-    def add_user(cls, sid_orig, password):
+    def add_user(cls, sid_orig: str, password: str):
         """add a user"""
         db = get_mongodb()
         if db[cls.collection_name].find_one({"sid_orig": sid_orig}):
