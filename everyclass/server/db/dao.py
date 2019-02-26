@@ -185,7 +185,8 @@ class IdentityVerificationDAO:
         "sid_orig": "",                           # the original sid (not encoded by api server)
         "verification_method":"password",         # "password" or "email"
         "email_token": "token",                   # UUID token if it's a email verification
-        "status": ""                              # a status constant
+        "status": "",                             # a status constant
+        "password": "xxxx"                        # encrypted password if this is a password verification request
     }
     """
     collection_name = "verification_requests"

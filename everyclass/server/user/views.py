@@ -237,7 +237,7 @@ def register_by_password_status():
 
 @user_bp.route('/register/byPassword/success')
 def register_by_password_success():
-    """redirect to user main page"""
+    """验证成功后新增用户、写入登录态，然后跳转到用户首页"""
     if not session.get(SESSION_VER_REQ_ID, None):
         return "Invalid request"
     verification_req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
@@ -251,6 +251,8 @@ def register_by_password_success():
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
+
+    UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"])
 
     # write login state to session
     flash(MSG_REGISTER_SUCCESS)
