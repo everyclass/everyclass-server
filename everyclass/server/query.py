@@ -128,6 +128,10 @@ def get_student(url_sid, url_semester):
             return rpc_result
         api_response = rpc_result
 
+    # save sid_orig to session for verifying purpose
+    # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
+    session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=api_response['sid'], sid=url_sid, name=api_response['name'])
+
     # get privacy level, if current user has no permission to view, return now
     with elasticapm.capture_span('get_privacy_settings'):
         privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
@@ -164,9 +168,6 @@ def get_student(url_sid, url_semester):
                                              cid=each_class['cid']))
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
         available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
-
-    # save sid_orig to session for verifying purpose
-    session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=api_response['sid'], sid=url_sid, name=api_response['name'])
 
     # leave track if this is a inter-visit mode
     if privacy_level == 1:
