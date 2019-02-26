@@ -76,7 +76,6 @@ try:
             print_config(__app, logger)
             __first_spawn = False
 
-
     @uwsgidecorators.postfork
     def init_db():
         """init database connection"""
@@ -87,14 +86,12 @@ try:
         everyclass.server.db.mysql.init_pool(__app)
         everyclass.server.db.mongodb.init_pool(__app)
 
-
     @uwsgidecorators.postfork
     def init_session():
         """init server-side session"""
         global __app
         __app.config['SESSION_MONGODB'] = __app.mongo
         Session(__app)
-
 
     @uwsgidecorators.postfork
     def init_recaptcha():
