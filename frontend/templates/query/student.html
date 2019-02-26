@@ -5,9 +5,6 @@
         <h1 class="hero-header">{{ name }}</h1>
         <h4 class="text-muted">{{ falculty }} {{ class_name }}班
         </h4>
-        {% if sid == 'zp9ApTs9Ln2LO8T+OFijjd2mNoT-Rtmd5w63AX-ELoA=' %}
-            <h4 class="hero-header">为啥来查我的课表，你是不是喜欢我呀哈哈哈~</h4>
-        {% endif %}
         <form id="semester-choose-form">
             <select id="semester-select" name="semester">
                 {% for each_semester in available_semesters %}
@@ -94,17 +91,17 @@
 
 {% endblock %}
 {% block scripts %}
-    {% if sid == 'zp9ApTs9Ln2LO8T+OFijjd2mNoT-Rtmd5w63AX-ELoA=' %}
+    {% if sid == 'pfnLSeCnvqGOEgnBXHWcahIhoEY++iScO0Okq3AOajY=' %}
         <script type="text/javascript">
             function specialColor() {
                 //special pink color
                 $('.swag-line').addClass("swag-line-special");
 
-                $('.navbar-default .navbar-brand').animate({'color': '#71d4ff'});
-                $('.navbar-default .navbar-nav>li>a').animate({'color': '#4bbaff'});
+                $('.navbar-default .navbar-brand').animate({'color': '#eb6dff'});
+                $('.navbar-default .navbar-nav>li>a').animate({'color': '#dd67ff'});
 
-                $('.panel-floating').animate({'border-top-color': '#61e2ff'});
-                $('.template-index a').animate({'color': '#71d4ff'});
+                $('.panel-floating').animate({'border-top-color': '#ed5eff'});
+                $('.template-index a').animate({'color': '#f849ff'});
 
             }
 
