@@ -3,7 +3,7 @@ from flask import Blueprint, current_app as app, flash, jsonify, redirect, rende
 from werkzeug.security import generate_password_hash
 from zxcvbn import zxcvbn
 
-from everyclass.server import logger
+from everyclass.server import logger, recaptcha
 from everyclass.server.consts import MSG_400, MSG_INTERNAL_ERROR, MSG_TOKEN_INVALID, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
@@ -31,6 +31,9 @@ def login():
 
         return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
     else:
+        if not recaptcha.verify():
+            flash("验证码错误，请重试。")
+            return redirect(url_for("user.login"))
         if request.form.get("password", None):
             success = UserDAO.check_password(session[SESSION_LAST_VIEWED_STUDENT].sid_orig, request.form["password"])
             if success:

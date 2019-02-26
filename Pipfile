@@ -24,6 +24,7 @@ gevent = "*"
 pymongo = "~=3.7"
 flask-session = "*"
 zxcvbn = "*"
+flask-recaptcha = "*"
 
 [dev-packages]
 coverage = "==4.4.2"

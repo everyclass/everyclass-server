@@ -183,6 +183,10 @@ class Config(object):
         'user': False
     }
 
+    RECAPTCHA_ENABLED = True
+    RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+    RECAPTCHA_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+
     # define available environments for logs, APM and error tracking
     SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing',)
     APM_AVAILABLE_IN = ('production', 'staging', 'testing',)

@@ -6,15 +6,20 @@ import logbook
 import requests
 from flask import Flask, g, render_template, session
 from flask_cdn import CDN
+from flask_recaptcha import ReCaptcha
 from flask_session import Session
 from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
+from everyclass.server.utils import monkey_patch
+
 logger = logbook.Logger(__name__)
 sentry = Sentry()
 __app = None
 __first_spawn = True
+
+recaptcha = ReCaptcha()
 
 try:
     import uwsgidecorators
@@ -30,28 +35,10 @@ try:
         gc.set_threshold(700)
 
     @uwsgidecorators.postfork
-    def init_db():
-        """init database connection"""
-        import everyclass.server.db.mysql
-        import everyclass.server.db.mongodb
-
-        global __app
-        everyclass.server.db.mysql.init_pool(__app)
-        everyclass.server.db.mongodb.init_pool(__app)
-
-    @uwsgidecorators.postfork
-    def init_session():
-        """init server-side session"""
-        global __app
-        __app.config['SESSION_MONGODB'] = __app.mongo
-        Session(__app)
-
-    @uwsgidecorators.postfork
     def init_log_handlers():
         """init log handlers and print current configuration to log"""
         from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
-        from everyclass.server.utils import monkey_patch
         from everyclass.server.config import print_config
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
@@ -88,6 +75,33 @@ try:
                            .format(__app.config['CONFIG_NAME']), stack=False)
             print_config(__app, logger)
             __first_spawn = False
+
+
+    @uwsgidecorators.postfork
+    def init_db():
+        """init database connection"""
+        import everyclass.server.db.mysql
+        import everyclass.server.db.mongodb
+
+        global __app
+        everyclass.server.db.mysql.init_pool(__app)
+        everyclass.server.db.mongodb.init_pool(__app)
+
+
+    @uwsgidecorators.postfork
+    def init_session():
+        """init server-side session"""
+        global __app
+        __app.config['SESSION_MONGODB'] = __app.mongo
+        Session(__app)
+
+
+    @uwsgidecorators.postfork
+    def init_recaptcha():
+        """init reCaptcha"""
+        ReCaptcha.VERIFY_URL = "https://www.recaptcha.net/recaptcha/api/siteverify"
+        ReCaptcha.get_code = monkey_patch.ReCaptcha.get_code
+        recaptcha.init_app(__app)
 
     @uwsgidecorators.postfork
     def get_android_download_link():
