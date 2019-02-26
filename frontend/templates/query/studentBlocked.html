@@ -1,23 +1,23 @@
 {% extends "layout.html" %}
-{% block title %}{{ name }}的课表 - 每课{% endblock %}
+{% block title %}{{ name }} - 每课{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">{{ name }}的课表</h1>
+        <h1 class="hero-header">{{ name }}</h1>
         <h4 class="text-muted">{{ falculty }} {{ class_name }}班
         </h4>
 
         <h4 class="text-muted">
             {% if config.FEATURE_GATING['user'] %}
-                    <a href="{{ url_for('user.login') }}">登陆</a>
+                <a href="{{ url_for('user.login') }}">登录</a>
             {% endif %}
         </h4>
 
         <br><br>
         <h4 class="text-muted">
             {% if level==2 %}
-                该同学设置了课表仅自己可见，请登陆后查看。
+                该同学设置了课表仅自己可见，请登录后查看。
             {% elif level==1 %}
-                该同学设置了已登录用户可实名查看，请先登陆。
+                该同学设置了已登录用户可实名查看，请先登录。
             {% endif %}
         </h4>
     </div>
