@@ -1,12 +1,17 @@
-from flask import current_app as app
+from flask import current_app, has_app_context
 from pymongo import MongoClient
 
+from everyclass.server.config import get_config
 
-def init_pool(current_app):
+
+def init_pool(current_application):
     """创建连接池，保存在 app 的 mongo_pool 对象中"""
-    current_app.mongo = MongoClient(**current_app.config['MONGODB'])
+    current_application.mongo = MongoClient(**current_application.config['MONGODB'])
 
 
 def get_connection():
     """在连接池中获得连接"""
-    return app.mongo[app.config['MONGODB_DB']]
+    if not has_app_context():
+        config = get_config()
+        return MongoClient(**config.MONGODB)[config.MONGODB_DB]
+    return current_app.mongo[current_app.config['MONGODB_DB']]

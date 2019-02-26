@@ -26,8 +26,9 @@ def new_user_id_sequence() -> int:
 class PrivacySettingsDAO:
     """
     {
-        "sid_orig": "390xx"       # original sid
-        "level": 0                # 0: public, 1: half-public, 2: private
+        "create_time": 2019-02-24T13:33:05.123Z,     # create time
+        "sid_orig": "390xx",                         # original sid
+        "level": 0                                   # 0: public, 1: half-public, 2: private
     }
     """
     collection_name = "privacy_settings"
@@ -43,8 +44,15 @@ class PrivacySettingsDAO:
     def set_level(cls, sid_orig: str, new_level: int):
         """Set privacy level for a student"""
         db = get_mongodb()
-        db[cls.collection_name].update_one({"sid_orig": sid_orig},
-                                           {"$set": {"level": new_level}})
+        criteria = {"sid_orig": sid_orig}
+        doc = db[cls.collection_name].find_one(criteria)
+        if doc:
+            db[cls.collection_name].update_one(criteria,
+                                               {"$set": {"level": new_level}})
+        else:
+            db[cls.collection_name].insert({"create_time": datetime.datetime.now(),
+                                            "sid_orig"   : sid_orig,
+                                            "level"      : new_level})
 
 
 class CalendarTokenDAO:
