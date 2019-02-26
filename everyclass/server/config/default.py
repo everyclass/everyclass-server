@@ -203,5 +203,5 @@ class Config(object):
                                 "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
-                                # "SESSION_MONGODB"
+                                "RECAPTCHA_SECRET_KEY"
                                 )
