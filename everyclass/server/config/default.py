@@ -194,7 +194,11 @@ class Config(object):
     DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
 
     # fields that should be overwritten in production environment
-    PRODUCTION_OVERWRITE_FIELDS = ('CALENDAR_UUID_NAMESPACE', 'SECRET_KEY')
+    PRODUCTION_OVERWRITE_FIELDS = ('CALENDAR_UUID_NAMESPACE',
+                                   'SECRET_KEY',
+                                   'RECAPTCHA_SITE_KEY',
+                                   'RECAPTCHA_SECRET_KEY'
+                                   )
 
     # fields that should not be in log
     PRODUCTION_SECURE_FIELDS = ("SENTRY_CONFIG.dsn",
