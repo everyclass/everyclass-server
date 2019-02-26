@@ -248,7 +248,9 @@ def register_by_password_success():
 @login_required
 def main():
     """用户主页"""
-    return render_template('user/main.html', name=session[SESSION_CURRENT_USER].name)
+    return render_template('user/main.html',
+                           name=session[SESSION_CURRENT_USER].name,
+                           privacy_level=PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig))
 
 
 @user_bp.route('/logout')
@@ -264,12 +266,13 @@ def logout():
 @login_required
 def js_set_preference():
     """AJAX更新偏好设置"""
-    if request.args.get("privacyLevel", None):
+    if request.form.get("privacyLevel", None):
         # update privacy level
-        if request.args["privacyLevel"] not in (0, 1, 2):
+        privacy_level = int(request.form["privacyLevel"])
+        if privacy_level not in (0, 1, 2):
             logger.warn("Received malformed set preference request. privacyLevel value not valid.")
             return jsonify({"acknowledged": False,
                             "message"     : "Invalid value"})
 
-        PrivacySettingsDAO.set_level(session[SESSION_CURRENT_USER], request.args["privacyLevel"])
+        PrivacySettingsDAO.set_level(session[SESSION_CURRENT_USER].sid_orig, privacy_level)
     return jsonify({"acknowledged": True})

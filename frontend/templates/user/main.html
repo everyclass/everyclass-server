@@ -3,7 +3,7 @@
 {% block body %}
     <div class="hero hero-homepage">
         <h1 class="hero-header">你好，{{ name }}</h1>
-        <h4 class="text-muted">登录成功。<a href="{{ url_for("user.logout") }}">退出登录</a>
+        <h4 class="text-muted"><a href="{{ url_for("user.logout") }}">退出登录</a>
         </h4>
 
     </div>
@@ -11,7 +11,7 @@
     <div class="row row-backbordered">
         <div class="col-sm-12 col-md-6 col-md-offset-3">
             <div class="panel panel-default panel-floating panel-floating-inline">
-                <div class="table-responsive">
+
                     <table class="table table-striped table-bordered table-hover">
                         <tbody>
                         <tr>
@@ -19,21 +19,21 @@
                             <td>
                                 <select id="privacy-level-select">
                                     <option value="0" {% if privacy_level==0 %}selected{% endif %}>公开可见</option>
-                                    <option value="1" {% if privacy_level==0 %}selected{% endif %}>实名互访</option>
-                                    <option value="2" {% if privacy_level==0 %}selected{% endif %}>仅自己可见</option>
+                                    <option value="1" {% if privacy_level==1 %}selected{% endif %}>实名互访</option>
+                                    <option value="2" {% if privacy_level==2 %}selected{% endif %}>仅自己可见</option>
                                 </select>
                                 <p id="privacy-level-hidden"></p>
                                 <br>
-                                <ol>
+                                <ul>
                                     <li><b>公开可见</b>：所有用户可以查看到你的课表（默认）</li>
                                     <li><b>实名互访</b>：已登录用户可以访问你的课表，访问时会留下访客记录</li>
                                     <li><b>仅自己可见</b>：只有你自己可以看到自己的课表</li>
-                                </ol>
+                                </ul>
                             </td>
                         </tr>
                         </tbody>
                     </table>
-                </div>
+
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
             $.post('{{ url_for('user.js_set_preference') }}',
                 {'privacyLevel': $('select#privacy-level-select option:selected').val()},
                 function () {
-                    $("p#privacy-level-hidden").innerText = "设置成功";
+                    $("p#privacy-level-hidden").text("设置成功");
                 });
         });
 
