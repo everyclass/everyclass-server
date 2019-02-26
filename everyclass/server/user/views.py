@@ -164,7 +164,7 @@ def register_by_password():
     if request.method == 'POST':
         if not recaptcha.verify():
             flash("验证码未通过，请重试。")
-            return redirect(url_for("user.email_verification"))
+            return redirect(url_for("user.register_by_password"))
 
         if any(map(lambda x: x not in request.form, ("password", "jwPassword"))) or not request.form["password"] or \
                 not request.form["jwPassword"]:
