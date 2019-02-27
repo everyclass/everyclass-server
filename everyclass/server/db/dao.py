@@ -1,7 +1,7 @@
 import datetime
 import enum
 import uuid
-from typing import ClassVar
+from typing import ClassVar, Dict, Union
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -77,7 +77,7 @@ class CalendarTokenDAO:
 
     @classmethod
     def insert_calendar_token(cls, resource_type: ResourceType, semester: str, identifier: str) -> str:
-        """generate a calendar token, record to database and return str(token)"""
+        """生成日历令牌，写入数据库并返回字符串类型的令牌"""
         from everyclass.server.config import get_config
         uuid_ns = getattr(get_config(), 'CALENDAR_UUID_NAMESPACE')
 
@@ -102,38 +102,40 @@ class CalendarTokenDAO:
         return str(token)
 
     @classmethod
-    def find_calendar_token(cls, tid: str = None, sid: str = None, semester: str = None, token: str = None):
-        """query a token document by token or (sid, semester)"""
+    def find_calendar_token(cls, tid: str = None, sid: str = None, semester: str = None, token: str = None) \
+            -> Union[Dict, None]:
+        """通过 token 或者 sid/tid + 学期获得 token 文档"""
         db = get_mongodb()
         if token:
             return db[cls.collection_name].find_one({'token': uuid.UUID(token)})
+        elif tid and semester:
+            return db[cls.collection_name].find_one({'tid'     : tid,
+                                                     'semester': semester})
+        elif sid and semester:
+            return db[cls.collection_name].find_one({'sid'     : sid,
+                                                     'semester': semester})
         else:
-            if tid:
-                return db[cls.collection_name].find_one({'tid'     : tid,
-                                                         'semester': semester})
-            if sid:
-                return db[cls.collection_name].find_one({'sid'     : sid,
-                                                         'semester': semester})
+            raise ValueError("tid or sid together with semester or token must be given to search a token document")
 
     @classmethod
-    def get_or_set_calendar_token(cls, resource_type: ResourceType, resource_identifier: str, semester: str):
+    def get_or_set_calendar_token(cls, resource_type: ResourceType, identifier: str, semester: str) -> str:
         """find token by resource_type(student or teacher) first. if not found, generate one"""
-        if resource_type == 'student':
-            token = cls.find_calendar_token(sid=resource_identifier, semester=semester)
+        if resource_type == ResourceType.student:
+            token_doc = cls.find_calendar_token(sid=identifier, semester=semester)
         else:
-            token = cls.find_calendar_token(tid=resource_identifier, semester=semester)
+            token_doc = cls.find_calendar_token(tid=identifier, semester=semester)
 
-        if not token:
-            if resource_type == 'student':
+        if not token_doc:
+            if resource_type == ResourceType.student:
                 token = cls.insert_calendar_token(resource_type=ResourceType.student,
-                                                  identifier=resource_identifier,
+                                                  identifier=identifier,
                                                   semester=semester)
             else:
                 token = cls.insert_calendar_token(resource_type=ResourceType.teacher,
-                                                  identifier=resource_identifier,
+                                                  identifier=identifier,
                                                   semester=semester)
         else:
-            token = token['token']
+            token = token_doc['token']
         return token
 
 

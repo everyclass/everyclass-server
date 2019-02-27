@@ -33,7 +33,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
             return rpc_result
 
     token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                       resource_identifier=resource_identifier,
+                                                       identifier=resource_identifier,
                                                        semester=url_semester)
 
     ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
@@ -160,7 +160,7 @@ def android_client_get_ics(resource_type, identifier, semester):
 
     if resource_type == 'teacher':
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               resource_identifier=identifier,
+                                                               identifier=identifier,
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:
@@ -179,7 +179,7 @@ def android_client_get_ics(resource_type, identifier, semester):
                 return "Unauthorized (username mismatch)", 401
 
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               resource_identifier=identifier,
+                                                               identifier=identifier,
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
 
@@ -230,6 +230,6 @@ def legacy_get_ics(student_id, semester_str):
         return "Visit {} to get your calendar".format(url_for("main.main")), 401
     else:
         token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=ResourceType.student,
-                                                           resource_identifier=api_response['student'][0]['sid'],
+                                                           identifier=api_response['student'][0]['sid'],
                                                            semester=semester.to_str())
         return redirect(url_for('calendar.ics_download', calendar_token=token))
