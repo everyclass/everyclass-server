@@ -1,6 +1,8 @@
 """
 查询相关函数
 """
+from typing import Tuple
+
 import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
@@ -341,7 +343,7 @@ def get_course(url_cid: str, url_semester: str):
                            )
 
 
-def _empty_column_check(courses: dict) -> (bool, bool, bool, bool):
+def _empty_column_check(courses: dict) -> Tuple[bool, bool, bool, bool]:
     """检查是否周末和晚上有课，返回三个布尔值"""
     with elasticapm.capture_span('_empty_column_check'):
         # 空闲周末判断，考虑到大多数人周末都是没有课程的

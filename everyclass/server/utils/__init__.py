@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Tuple
 
 import elasticapm
 
@@ -62,7 +63,7 @@ def get_time(digit):
         return (21, 00), (22, 40)
 
 
-def lesson_string_to_dict(lesson: str) -> (int, int):
+def lesson_string_to_dict(lesson: str) -> Tuple[int, int]:
     """transform str like '10102' into tuple like (1,1)"""
     day = int(lesson[0])
     time = int((int(lesson[2]) + 1) / 2)

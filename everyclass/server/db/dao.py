@@ -1,5 +1,7 @@
 import datetime
+import enum
 import uuid
+from typing import ClassVar
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -55,6 +57,11 @@ class PrivacySettingsDAO:
                                             "level"      : new_level})
 
 
+class ResourceType(enum.Enum):
+    student = "student"
+    teacher = "teacher"
+
+
 class CalendarTokenDAO:
     """
     {
@@ -66,36 +73,36 @@ class CalendarTokenDAO:
         "token": ""                                 # calendar token, uuid type (not string!)
     }
     """
-    collection_name = "calendar_token"
+    collection_name: ClassVar[str] = "calendar_token"
 
     @classmethod
-    def insert_calendar_token(cls, resource_type: str, semester: str, sid=None, tid=None):
+    def insert_calendar_token(cls, resource_type: ResourceType, semester: str, identifier: str) -> str:
         """generate a calendar token, record to database and return str(token)"""
         from everyclass.server.config import get_config
         uuid_ns = getattr(get_config(), 'CALENDAR_UUID_NAMESPACE')
 
-        if resource_type == 'student':
-            token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + sid + ':' + semester)
+        if resource_type == ResourceType.student:
+            token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + identifier + ':' + semester)
         else:
-            token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + tid + ':' + semester)
+            token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + identifier + ':' + semester)
 
         db = get_mongodb()
         if resource_type == 'student':
             db[cls.collection_name].insert({'type'       : 'student',
                                             "create_time": datetime.datetime.now(),
-                                            'sid'        : sid,
+                                            'sid'        : identifier,
                                             'semester'   : semester,
                                             'token'      : token})
         elif resource_type == 'teacher':
             db[cls.collection_name].insert({'type'       : 'teacher',
                                             "create_time": datetime.datetime.now(),
-                                            'tid'        : tid,
+                                            'tid'        : identifier,
                                             'semester'   : semester,
                                             'token'      : token})
         return str(token)
 
     @classmethod
-    def find_calendar_token(cls, tid=None, sid=None, semester=None, token=None):
+    def find_calendar_token(cls, tid: str = None, sid: str = None, semester: str = None, token: str = None):
         """query a token document by token or (sid, semester)"""
         db = get_mongodb()
         if token:
@@ -109,7 +116,7 @@ class CalendarTokenDAO:
                                                          'semester': semester})
 
     @classmethod
-    def get_or_set_calendar_token(cls, resource_type, resource_identifier, semester):
+    def get_or_set_calendar_token(cls, resource_type: ResourceType, resource_identifier: str, semester: str):
         """find token by resource_type(student or teacher) first. if not found, generate one"""
         if resource_type == 'student':
             token = cls.find_calendar_token(sid=resource_identifier, semester=semester)
@@ -118,12 +125,12 @@ class CalendarTokenDAO:
 
         if not token:
             if resource_type == 'student':
-                token = cls.insert_calendar_token(resource_type=resource_type,
-                                                  sid=resource_identifier,
+                token = cls.insert_calendar_token(resource_type=ResourceType.student,
+                                                  identifier=resource_identifier,
                                                   semester=semester)
             else:
-                token = cls.insert_calendar_token(resource_type=resource_type,
-                                                  tid=resource_identifier,
+                token = cls.insert_calendar_token(resource_type=ResourceType.teacher,
+                                                  identifier=resource_identifier,
                                                   semester=semester)
         else:
             token = token['token']

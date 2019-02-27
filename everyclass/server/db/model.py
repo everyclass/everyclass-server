@@ -1,5 +1,5 @@
 import re
-from collections import namedtuple
+from typing import NamedTuple
 
 
 class Semester(object):
@@ -66,4 +66,7 @@ class Semester(object):
         return self.to_str(simplify=True).replace('-', '_')
 
 
-Student = namedtuple("Student", ("sid_orig", "sid", "name"))
+class Student(NamedTuple):
+    sid_orig: str
+    sid: str
+    name: str
