@@ -119,7 +119,7 @@ class CalendarTokenDAO:
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: ResourceType, identifier: str, semester: str) -> str:
-        """find token by resource_type(student or teacher) first. if not found, generate one"""
+        """寻找 token，如果找到了则直接返回 token。找不到则生成一个再返回 token"""
         if resource_type == ResourceType.student:
             token_doc = cls.find_calendar_token(sid=identifier, semester=semester)
         else:
