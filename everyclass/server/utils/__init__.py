@@ -1,13 +1,13 @@
 import os
 import re
-from typing import Tuple
+from typing import List, Set, Tuple
 
 import elasticapm
 
 from everyclass.server.config import get_config
 
 
-def get_day_chinese(digit):
+def get_day_chinese(digit: int) -> str:
     """
     get Chinese char of day of week
     """
@@ -27,7 +27,7 @@ def get_day_chinese(digit):
         return '周日'
 
 
-def get_time_chinese(digit):
+def get_time_chinese(digit: int) -> str:
     """
     get Chinese time description for a single lesson time.
     """
@@ -45,7 +45,7 @@ def get_time_chinese(digit):
         return '第11-12节'
 
 
-def get_time(digit):
+def get_time(digit: int) -> Tuple[Tuple[int, int], Tuple[int, int]]:
     """
     get start and end time for a single lesson.
     """
@@ -70,7 +70,7 @@ def lesson_string_to_dict(lesson: str) -> Tuple[int, int]:
     return day, time
 
 
-def teacher_list_to_str(teachers: list):
+def teacher_list_to_str(teachers: List[dict]) -> str:
     """parse a teacher list into a str"""
     string = ''
     for teacher in teachers:
@@ -78,34 +78,34 @@ def teacher_list_to_str(teachers: list):
     return string[:len(string) - 1]
 
 
-def semester_calculate(current_semester: str, semester_list: list):
+def semester_calculate(current_semester: str, semester_list: List[str]) -> List[Tuple[str, bool]]:
     """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
     with elasticapm.capture_span('semester_calculate'):
         available_semesters = []
 
         for each_semester in semester_list:
             if current_semester == each_semester:
-                available_semesters.append([each_semester, True])
+                available_semesters.append((each_semester, True))
             else:
-                available_semesters.append([each_semester, False])
+                available_semesters.append((each_semester, False))
     return available_semesters
 
 
-def teacher_list_fix(teachers: list):
+def teacher_list_fix(teachers: List[dict]) -> list:
     """修复老师职称“未定”，以及修复重复老师
     @:param teachers: api server 返回的教师列表
     @:return: teacher list that has been fixed
     """
-    tids = []
-    new_teachers = []
+    tid_set: Set[str] = set()
+    new_teachers: List[dict] = []
     for teacher in teachers:
         if teacher['title'] == '未定':
             teacher['title'] = ''
 
-        if teacher['tid'] in tids:
+        if teacher['tid'] in tid_set:
             continue
         else:
-            tids.append(teacher['tid'])
+            tid_set.add(teacher['tid'])
             new_teachers.append(teacher)
     return new_teachers
 
@@ -113,7 +113,7 @@ def teacher_list_fix(teachers: list):
 zh_pattern = re.compile(u'[\u4e00-\u9fa5]+')
 
 
-def contains_chinese(word):
+def contains_chinese(word: str) -> bool:
     """
     判断传入字符串是否包含中文
     :param word: 待判断字符串
@@ -122,10 +122,17 @@ def contains_chinese(word):
     global zh_pattern
     match = zh_pattern.search(word)
 
-    return match
+    return True if match else False
 
 
-def plugin_available(plugin_name: str):
-    """check if a plugin (Sentry, apm, logstash) is available in the current environment."""
+def plugin_available(plugin_name: str) -> bool:
+    """
+    check if a plugin (Sentry, apm, logstash) is available in the current environment.
+    :return True if available else False
+    """
     config = get_config()
-    return os.environ.get("MODE").lower() in getattr(config, "{}_AVAILABLE_IN".format(plugin_name).upper())
+    mode = os.environ.get("MODE", None)
+    if mode:
+        return mode.lower() in getattr(config, "{}_AVAILABLE_IN".format(plugin_name).upper())
+    else:
+        raise EnvironmentError("MODE not in environment variables")
