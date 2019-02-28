@@ -96,8 +96,7 @@ def ics_download(calendar_token):
     ics_generator.generate(student_name=api_response['name'],
                            courses=courses,
                            semester=semester,
-                           ics_token=calendar_token
-                           )
+                           ics_token=calendar_token)
 
     return send_from_directory("../../calendar_files", calendar_token + ".ics",
                                as_attachment=True,

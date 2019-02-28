@@ -4,6 +4,7 @@ https://tools.ietf.org/html/rfc2445
 """
 import hashlib
 from datetime import datetime, timedelta
+from typing import Dict, Tuple
 
 import pytz
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
@@ -12,15 +13,24 @@ from everyclass.server.config import get_config
 from everyclass.server.db.model import Semester
 from everyclass.server.utils import get_time
 
+tzc = Timezone()
+tzc.add('tzid', 'Asia/Shanghai')
+tzc.add('x-lic-location', 'Asia/Shanghai')
+tzs = TimezoneStandard()
+tzs.add('tzname', 'CST')
+tzs.add('dtstart', datetime(1970, 1, 1, 0, 0, 0))
+tzs.add('TZOFFSETFROM', timedelta(hours=8))
+tzs.add('TZOFFSETTO', timedelta(hours=8))
 
-def generate(student_name: str, courses, semester: Semester, ics_token=None):
+
+def generate(student_name: str, courses: Dict[Tuple[int, int], list], semester: Semester, ics_token: str):
     """
     生成 ics 文件并保存到目录
 
-    :param ics_token: ics token
+    :param ics_token: ics 令牌
     :param student_name: 姓名
     :param courses: classes student are taking
-    :param semester: 当前导出的学期，三元组
+    :param semester: 当前导出的学期
     :return: None
     """
     semester_string = semester.to_str(simplify=True)
@@ -36,14 +46,6 @@ def generate(student_name: str, courses, semester: Semester, ics_token=None):
     cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
 
     # 时区
-    tzc = Timezone()
-    tzc.add('tzid', 'Asia/Shanghai')
-    tzc.add('x-lic-location', 'Asia/Shanghai')
-    tzs = TimezoneStandard()
-    tzs.add('tzname', 'CST')
-    tzs.add('dtstart', datetime(1970, 1, 1, 0, 0, 0))
-    tzs.add('TZOFFSETFROM', timedelta(hours=8))
-    tzs.add('TZOFFSETTO', timedelta(hours=8))
     tzc.add_component(tzs)
     cal.add_component(tzc)
 
@@ -52,30 +54,20 @@ def generate(student_name: str, courses, semester: Semester, ics_token=None):
         for day in range(1, 8):
             if (day, time) in courses:
                 for course in courses[(day, time)]:
-                    for each_week in course['week']:
-                        dur_starting_week = each_week
-                        if course['week'] == '双周' and int(dur_starting_week) % 2 != 0:
-                            dur_starting_week = str(int(dur_starting_week) + 1)
-
-                        if course['week'] == '单周' and int(dur_starting_week) % 2 == 0:
-                            dur_starting_week = str(int(dur_starting_week) + 1)
-
-                        dtstart = __get_datetime(dur_starting_week, day, get_time(time)[0], semester)
-                        dtend = __get_datetime(dur_starting_week, day, get_time(time)[1], semester)
+                    for week in course['week']:
+                        dtstart = _get_datetime(week, day, get_time(time)[0], semester)
+                        dtend = _get_datetime(week, day, get_time(time)[1], semester)
 
                         if dtstart.year == 1984:
                             continue
 
-                        # 参数：
-                        # 课程名称、初次时间[start、end、interval、until、duration]、循环规则、地点、老师、学生 ID
-                        cal.add_component(
-                                __add_event(course_name=course['name'],
-                                            times=(dtstart, dtend),
-                                            classroom=course['classroom'],
-                                            teacher=course['teacher'],
-                                            week_string=course['week_string'],
-                                            current_week=each_week,
-                                            cid=course['cid']))
+                        cal.add_component(_build_event(course_name=course['name'],
+                                                       times=(dtstart, dtend),
+                                                       classroom=course['classroom'],
+                                                       teacher=course['teacher'],
+                                                       week_string=course['week_string'],
+                                                       current_week=week,
+                                                       cid=course['cid']))
 
     # 写入文件
     import os
@@ -86,7 +78,7 @@ def generate(student_name: str, courses, semester: Semester, ics_token=None):
         f.write(cal.to_ical().decode(encoding='utf-8'))
 
 
-def __get_datetime(week, day, time, semester) -> datetime:
+def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[int, int, int]) -> datetime:
     """
     输入周次，星期、时间tuple（时,分），输出datetime类型的时间
 
@@ -99,7 +91,7 @@ def __get_datetime(week, day, time, semester) -> datetime:
     config = get_config()
     tz = pytz.timezone("Asia/Shanghai")
     dt = datetime(*(config.AVAILABLE_SEMESTERS[semester]['start'] + time), tzinfo=tz)  # noqa: T484
-    dt += timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
+    dt += timedelta(days=(week - 1) * 7 + (day - 1))  # 调整到当前周
 
     if 'adjustments' in config.AVAILABLE_SEMESTERS[semester]:
         ymd = (dt.year, dt.month, dt.day)
@@ -111,15 +103,16 @@ def __get_datetime(week, day, time, semester) -> datetime:
                                 month=adjustments[ymd]['to'][1],
                                 day=adjustments[ymd]['to'][2])
             else:
-                # 冲掉
+                # 冲掉的课年份设置为1984，返回之后被抹去
                 dt = dt.replace(year=1984)
 
     return dt
 
 
-def __add_event(course_name, times, classroom, teacher, current_week, week_string, cid) -> Event:
+def _build_event(course_name: str, times: Tuple[datetime, datetime], classroom: str, teacher: str, current_week: int,
+                 week_string: str, cid: str) -> Event:
     """
-    把 `Event` 对象添加到 `calendar` 对象中
+    生成 `Event` 对象
 
     :param course_name: 课程名
     :param times: 开始和结束时间
