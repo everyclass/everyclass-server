@@ -93,7 +93,7 @@ def ics_download(calendar_token):
                                              classroom_id=each_class['rid'],
                                              cid=each_class['cid']))
 
-    ics_generator.generate(student_name=api_response['name'],
+    ics_generator.generate(name=api_response['name'],
                            courses=courses,
                            semester=semester,
                            ics_token=calendar_token)

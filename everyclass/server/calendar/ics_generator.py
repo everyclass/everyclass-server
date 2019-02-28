@@ -4,7 +4,7 @@ https://tools.ietf.org/html/rfc2445
 """
 import hashlib
 from datetime import datetime, timedelta
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import pytz
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
@@ -23,14 +23,14 @@ tzs.add('TZOFFSETFROM', timedelta(hours=8))
 tzs.add('TZOFFSETTO', timedelta(hours=8))
 
 
-def generate(student_name: str, courses: Dict[Tuple[int, int], list], semester: Semester, ics_token: str):
+def generate(name: str, courses: Dict[Tuple[int, int], List[Dict]], semester: Semester, ics_token: str):
     """
     生成 ics 文件并保存到目录
 
-    :param ics_token: ics 令牌
-    :param student_name: 姓名
-    :param courses: classes student are taking
+    :param name: 姓名
+    :param courses: 参与的课程
     :param semester: 当前导出的学期
+    :param ics_token: ics 令牌
     :return: None
     """
     semester_string = semester.to_str(simplify=True)
@@ -42,7 +42,7 @@ def generate(student_name: str, courses: Dict[Tuple[int, int], list], semester: 
     cal.add('version', '2.0')
     cal.add('calscale', 'GREGORIAN')
     cal.add('method', 'PUBLISH')
-    cal.add('X-WR-CALNAME', student_name + '的' + semester_string + '课表')
+    cal.add('X-WR-CALNAME', name + '的' + semester_string + '课表')
     cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
 
     # 时区
@@ -80,7 +80,7 @@ def generate(student_name: str, courses: Dict[Tuple[int, int], list], semester: 
 
 def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[int, int, int]) -> datetime:
     """
-    输入周次，星期、时间tuple（时,分），输出datetime类型的时间
+    根据学期、周次、时间，生成 `datetime` 类型的时间
 
     :param week: 周次
     :param day: 星期
