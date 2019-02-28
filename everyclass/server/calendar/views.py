@@ -95,8 +95,7 @@ def ics_download(calendar_token):
 
     ics_generator.generate(student_name=api_response['name'],
                            courses=courses,
-                           semester_string=semester.to_str(simplify=True),
-                           semester=semester.to_tuple(),
+                           semester=semester,
                            ics_token=calendar_token
                            )
 

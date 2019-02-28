@@ -2,8 +2,8 @@ from gevent import monkey
 
 monkey.patch_all()
 
-import gc
-from everyclass.server import create_app
+import gc  # noqa: E402
+from everyclass.server import create_app  # noqa: E402
 
 app = create_app()
 

@@ -9,20 +9,22 @@ import pytz
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.server.config import get_config
+from everyclass.server.db.model import Semester
 from everyclass.server.utils import get_time
 
 
-def generate(student_name: str, courses, semester_string: str, semester, ics_token=None):
+def generate(student_name: str, courses, semester: Semester, ics_token=None):
     """
     生成 ics 文件并保存到目录
 
     :param ics_token: ics token
     :param student_name: 姓名
     :param courses: classes student are taking
-    :param semester_string: 学期字符串，显示在日历标题中，如 `17-18-1`
     :param semester: 当前导出的学期，三元组
-    :return: True
+    :return: None
     """
+    semester_string = semester.to_str(simplify=True)
+    semester = semester.to_tuple()
 
     # 创建 calender 对象
     cal = Calendar()
@@ -82,7 +84,6 @@ def generate(student_name: str, courses, semester_string: str, semester, ics_tok
                            '../../../calendar_files/{}.ics'.format(ics_token)),
               'w') as f:
         f.write(cal.to_ical().decode(encoding='utf-8'))
-    return True
 
 
 def __get_datetime(week, day, time, semester) -> datetime:
@@ -96,20 +97,21 @@ def __get_datetime(week, day, time, semester) -> datetime:
     :return: datetime 类型的时间
     """
     config = get_config()
-    dt = datetime(*(config.AVAILABLE_SEMESTERS[semester]['start'] + time), tzinfo=pytz.timezone("Asia/Shanghai")) \
-         + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
+    tz = pytz.timezone("Asia/Shanghai")
+    dt = datetime(*(config.AVAILABLE_SEMESTERS[semester]['start'] + time), tzinfo=tz)  # noqa: T484
+    dt += timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
     if 'adjustments' in config.AVAILABLE_SEMESTERS[semester]:
         ymd = (dt.year, dt.month, dt.day)
         adjustments = config.AVAILABLE_SEMESTERS[semester]['adjustments']
         if ymd in adjustments:
             if adjustments[ymd]['to']:
-                # time adjusted
+                # 调课
                 dt = dt.replace(year=adjustments[ymd]['to'][0],
                                 month=adjustments[ymd]['to'][1],
                                 day=adjustments[ymd]['to'][2])
             else:
-                # course canceled
+                # 冲掉
                 dt = dt.replace(year=1984)
 
     return dt

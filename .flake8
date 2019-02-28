@@ -3,4 +3,3 @@
 # E203 whitespace before ':'
 # E126 continuation line over-indented for hanging indent
 ignore = E501, E203, E126
-exclude = server.py

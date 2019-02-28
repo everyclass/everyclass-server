@@ -132,7 +132,7 @@ def create_app() -> Flask:
     # load app config
     from everyclass.server.config import get_config
     _config = get_config()
-    app.config.from_object(_config)
+    app.config.from_object(_config)  # noqa: T484
 
     """
     每课统一日志机制
