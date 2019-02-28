@@ -1,7 +1,7 @@
 import datetime
 import enum
 import uuid
-from typing import ClassVar, Dict, Union
+from typing import ClassVar, Dict, Union, overload
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -101,9 +101,23 @@ class CalendarTokenDAO:
                                             'token'      : token})
         return str(token)
 
+    @overload  # noqa: F811
     @classmethod
-    def find_calendar_token(cls, tid: str = None, sid: str = None, semester: str = None, token: str = None) \
-            -> Union[Dict, None]:
+    def find_calendar_token(cls, token: str) -> Union[Dict, None]:
+        ...
+
+    @overload  # noqa: F811
+    @classmethod
+    def find_calendar_token(cls, tid: str, semester: str) -> Union[Dict, None]:
+        ...
+
+    @overload  # noqa: F811
+    @classmethod
+    def find_calendar_token(cls, sid: str, semester: str) -> Union[Dict, None]:
+        ...
+
+    @classmethod  # noqa: F811
+    def find_calendar_token(cls, tid=None, sid=None, semester=None, token=None):
         """通过 token 或者 sid/tid + 学期获得 token 文档"""
         db = get_mongodb()
         if token:

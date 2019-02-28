@@ -96,10 +96,8 @@ def __get_datetime(week, day, time, semester) -> datetime:
     :return: datetime 类型的时间
     """
     config = get_config()
-    dt = datetime(*config.AVAILABLE_SEMESTERS[semester]['start'],
-                  *time,
-                  tzinfo=pytz.timezone("Asia/Shanghai")
-                  ) + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
+    dt = datetime(*(config.AVAILABLE_SEMESTERS[semester]['start'] + time), tzinfo=pytz.timezone("Asia/Shanghai")) \
+         + timedelta(days=(int(week) - 1) * 7 + (int(day) - 1))
 
     if 'adjustments' in config.AVAILABLE_SEMESTERS[semester]:
         ymd = (dt.year, dt.month, dt.day)
