@@ -1,8 +1,9 @@
 import datetime
 import enum
 import uuid
-from typing import ClassVar, Dict, Union, overload
+from typing import Dict, Optional, Union, overload
 
+from typing_extensions import Final
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server.db.mongodb import get_connection as get_mongodb
@@ -33,17 +34,17 @@ class PrivacySettingsDAO:
         "level": 0                                   # 0: public, 1: half-public, 2: private
     }
     """
-    collection_name = "privacy_settings"
+    collection_name: Final = "privacy_settings"
 
     @classmethod
-    def get_level(cls, sid_orig: str):
-        """Get a student's privacy level. Public by default."""
+    def get_level(cls, sid_orig: str) -> int:
+        """获得学生的隐私级别。0为公开，1为实名互访，2为自己可见。默认为0"""
         db = get_mongodb()
         doc = db[cls.collection_name].find_one({"sid_orig": sid_orig})
         return doc["level"] if doc else 0
 
     @classmethod
-    def set_level(cls, sid_orig: str, new_level: int):
+    def set_level(cls, sid_orig: str, new_level: int) -> None:
         """Set privacy level for a student"""
         db = get_mongodb()
         criteria = {"sid_orig": sid_orig}
@@ -73,7 +74,7 @@ class CalendarTokenDAO:
         "token": ""                                 # calendar token, uuid type (not string!)
     }
     """
-    collection_name: ClassVar[str] = "calendar_token"
+    collection_name: Final = "calendar_token"
 
     @classmethod
     def insert_calendar_token(cls, resource_type: ResourceType, semester: str, identifier: str) -> str:
@@ -161,10 +162,10 @@ class UserDAO:
         "password": ""
     }
     """
-    collection_name = "user"
+    collection_name: Final = "user"
 
     @classmethod
-    def exist(cls, sid_orig: str):
+    def exist(cls, sid_orig: str) -> bool:
         """check if a student has registered"""
         db = get_mongodb()
         result = db.user.find_one({'sid_orig': sid_orig})
@@ -173,14 +174,14 @@ class UserDAO:
         return False
 
     @classmethod
-    def check_password(cls, sid_orig: str, password: str):
+    def check_password(cls, sid_orig: str, password: str) -> bool:
         """verify a user's password. Return True if password is correct, otherwise return False."""
         db = get_mongodb()
         doc = db.user.find_one({'sid_orig': sid_orig})
         return check_password_hash(doc['password'], password)
 
     @classmethod
-    def add_user(cls, sid_orig: str, password: str):
+    def add_user(cls, sid_orig: str, password: str) -> None:
         """add a user"""
         db = get_mongodb()
         if db[cls.collection_name].find_one({"sid_orig": sid_orig}):
@@ -212,15 +213,16 @@ class IdentityVerificationDAO:
         "password": "xxxx"                        # encrypted password if this is a password verification request
     }
     """
-    collection_name = "verification_requests"
+    collection_name: Final = "verification_requests"
 
     @classmethod
-    def get_request_by_id(cls, req_id: str):
+    def get_request_by_id(cls, req_id: str) -> Optional[Dict]:
         db = get_mongodb()
         return db[cls.collection_name].find_one({'request_id': uuid.UUID(req_id)})
 
     @classmethod
-    def new_register_request(cls, sid_orig: str, verification_method: str, status: str, password=None):
+    def new_register_request(cls, sid_orig: str, verification_method: str, status: str,
+                             password: str = None) -> str:
         """
         add a new register request
 
@@ -241,10 +243,10 @@ class IdentityVerificationDAO:
         if password:
             doc.update({"password": generate_password_hash(password)})
         db[cls.collection_name].insert(doc)
-        return doc["request_id"]
+        return str(doc["request_id"])
 
     @classmethod
-    def set_request_status(cls, request_id: str, status: str):
+    def set_request_status(cls, request_id: str, status: str) -> None:
         """mark a verification request's status as email token passed"""
         db = get_mongodb()
         query = {"request_id": uuid.UUID(request_id)}
@@ -263,10 +265,10 @@ class SimplePasswordDAO:
         "password": "1234"                     # simple password
     }
     """
-    collection_name = "simple_passwords"
+    collection_name: Final = "simple_passwords"
 
     @classmethod
-    def new(cls, password, sid_orig):
+    def new(cls, password: str, sid_orig: str) -> None:
         db = get_mongodb()
         db[cls.collection_name].insert({"sid_orig": sid_orig,
                                         "time"    : datetime.datetime.now(),
@@ -283,10 +285,10 @@ class VisitorDAO:
         "last_time": 2019-02-24T13:33:05.123Z  # last visit time
     }
     """
-    collection_name = "visitor_track"
+    collection_name: Final = "visitor_track"
 
     @classmethod
-    def update_track(cls, host, visitor):
+    def update_track(cls, host: str, visitor: str) -> None:
         """
         Update time of visit. If this is first time visit, add a new document.
 

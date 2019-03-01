@@ -76,7 +76,7 @@ def register_by_email():
     # call everyclass-auth to send email
     with elasticapm.capture_span('rpc_send_email'):
         rpc_result = HttpRpc.call_with_error_page('{}/register_by_email'.format(app.config['AUTH_BASE_URL']),
-                                                  data={'request_id': str(request_id),
+                                                  data={'request_id': request_id,
                                                         'student_id': sid_orig},
                                                   method='POST')
         if isinstance(rpc_result, str):
@@ -200,7 +200,7 @@ def register_by_password():
 
         if api_response['acknowledged']:
             session[SESSION_VER_REQ_ID] = request_id
-            return render_template('user/passwordRegistrationPending.html', request_id=str(request_id))
+            return render_template('user/passwordRegistrationPending.html', request_id=request_id)
         else:
             return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
     else:

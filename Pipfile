@@ -25,6 +25,7 @@ pymongo = "~=3.7"
 flask-session = "*"
 zxcvbn = "*"
 flask-recaptcha = "*"
+typing-extensions = "*"
 
 [dev-packages]
 coverage = "==4.4.2"
