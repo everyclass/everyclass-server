@@ -1,5 +1,4 @@
 import datetime
-import enum
 import uuid
 from typing import Dict, Optional, Union, overload
 
@@ -73,11 +72,6 @@ class PrivacySettingsDAO:
                                             "level"      : new_level})
 
 
-class ResourceType(enum.Enum):
-    student = "student"
-    teacher = "teacher"
-
-
 class CalendarTokenDAO:
     """
     {
@@ -92,12 +86,12 @@ class CalendarTokenDAO:
     collection_name: Final = "calendar_token"
 
     @classmethod
-    def insert_calendar_token(cls, resource_type: ResourceType, semester: str, identifier: str) -> str:
+    def insert_calendar_token(cls, resource_type: str, semester: str, identifier: str) -> str:
         """生成日历令牌，写入数据库并返回字符串类型的令牌"""
         from everyclass.server.config import get_config
         uuid_ns = getattr(get_config(), 'CALENDAR_UUID_NAMESPACE')
 
-        if resource_type == ResourceType.student:
+        if resource_type == "student":
             token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + identifier + ':' + semester)
         else:
             token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + identifier + ':' + semester)
@@ -148,20 +142,20 @@ class CalendarTokenDAO:
             raise ValueError("tid or sid together with semester or token must be given to search a token document")
 
     @classmethod
-    def get_or_set_calendar_token(cls, resource_type: ResourceType, identifier: str, semester: str) -> str:
+    def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
         """寻找 token，如果找到了则直接返回 token。找不到则生成一个再返回 token"""
-        if resource_type == ResourceType.student:
+        if resource_type == "student":
             token_doc = cls.find_calendar_token(sid=identifier, semester=semester)
         else:
             token_doc = cls.find_calendar_token(tid=identifier, semester=semester)
 
         if not token_doc:
-            if resource_type == ResourceType.student:
-                token = cls.insert_calendar_token(resource_type=ResourceType.student,
+            if resource_type == "student":
+                token = cls.insert_calendar_token(resource_type="student",
                                                   identifier=identifier,
                                                   semester=semester)
             else:
-                token = cls.insert_calendar_token(resource_type=ResourceType.teacher,
+                token = cls.insert_calendar_token(resource_type="student",
                                                   identifier=identifier,
                                                   semester=semester)
         else:

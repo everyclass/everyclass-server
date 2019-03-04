@@ -4,7 +4,6 @@
 import elasticapm
 from flask import Blueprint
 
-from everyclass.server.db.dao import ResourceType
 from everyclass.server.utils.decorators import disallow_in_maintenance
 
 cal_blueprint = Blueprint('calendar', __name__)
@@ -22,7 +21,6 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     if resource_type not in ('student', 'teacher'):
         flash('请求异常')
         return redirect(url_for('main.main'))
-    resource_type = ResourceType(resource_type)
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -227,7 +225,7 @@ def legacy_get_ics(student_id, semester_str):
         # force user to get a calendar token when the user is privacy-protected but accessed through legacy interface
         return "Visit {} to get your calendar".format(url_for("main.main")), 401
     else:
-        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=ResourceType.student,
+        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type="student",
                                                            identifier=api_response['student'][0]['sid'],
                                                            semester=semester.to_str())
         return redirect(url_for('calendar.ics_download', calendar_token=token))
