@@ -3,9 +3,11 @@ import enum
 import uuid
 from typing import Dict, Optional, Union, overload
 
+import pymongo.errors
 from typing_extensions import Final
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from everyclass.server import logger
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.mysql import get_connection as get_mysql_connection
 
@@ -26,6 +28,19 @@ def new_user_id_sequence() -> int:
     return last_row_id
 
 
+def mongo_with_retry(method, *args, num_retries: int, **kwargs):
+    while True:
+        try:
+            return method(*args, **kwargs)
+        except (pymongo.errors.AutoReconnect,
+                pymongo.errors.ServerSelectionTimeoutError) as e:
+            if num_retries > 0:
+                logger.info('Retrying MongoDB operation: %s', str(e))
+                num_retries -= 1
+            else:
+                raise
+
+
 class PrivacySettingsDAO:
     """
     {
@@ -40,7 +55,7 @@ class PrivacySettingsDAO:
     def get_level(cls, sid_orig: str) -> int:
         """获得学生的隐私级别。0为公开，1为实名互访，2为自己可见。默认为0"""
         db = get_mongodb()
-        doc = db[cls.collection_name].find_one({"sid_orig": sid_orig})
+        doc = mongo_with_retry(db[cls.collection_name].find_one, {"sid_orig": sid_orig}, num_retries=1)
         return doc["level"] if doc else 0
 
     @classmethod
