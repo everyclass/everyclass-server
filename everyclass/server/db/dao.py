@@ -93,22 +93,22 @@ class CalendarTokenDAO:
 
         if resource_type == "student":
             token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + identifier + ':' + semester)
-        else:
+        elif resource_type == "teacher":
             token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + identifier + ':' + semester)
+        else:
+            raise ValueError("resource_type must be teacher or student")
 
         db = get_mongodb()
+        doc = {'type'       : resource_type,
+               "create_time": datetime.datetime.now(),
+               'semester'   : semester,
+               'token'      : token}
         if resource_type == 'student':
-            db[cls.collection_name].insert({'type'       : 'student',
-                                            "create_time": datetime.datetime.now(),
-                                            'sid'        : identifier,
-                                            'semester'   : semester,
-                                            'token'      : token})
+            doc.update({"sid": identifier})
         elif resource_type == 'teacher':
-            db[cls.collection_name].insert({'type'       : 'teacher',
-                                            "create_time": datetime.datetime.now(),
-                                            'tid'        : identifier,
-                                            'semester'   : semester,
-                                            'token'      : token})
+            doc.update({"tid": identifier})
+
+        db[cls.collection_name].insert(doc)
         return str(token)
 
     @overload  # noqa: F811
