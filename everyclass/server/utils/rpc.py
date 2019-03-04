@@ -11,7 +11,7 @@ from everyclass.server.utils import plugin_available
 
 class HttpRpc:
     @classmethod
-    def _status_code_raise(cls, response: requests.Response):
+    def _status_code_raise(cls, response: requests.Response) -> None:
         """
         raise exception if HTTP status code is 4xx or 5xx
 
@@ -28,7 +28,7 @@ class HttpRpc:
             raise RpcClientException(status_code, response.text)
 
     @classmethod
-    def _error_page(cls, message: str, sentry_capture=False, log=None):
+    def _error_page(cls, message: str, sentry_capture: bool = False, log: str = None):
         """return a error page with a message. if sentry is available, tell user that they can report the problem."""
         sentry_param = {}
         if sentry_capture and plugin_available("sentry"):
@@ -49,10 +49,13 @@ class HttpRpc:
         return string, status_code
 
     @classmethod
-    def call(cls, method, url, params=None, retry=False, data=None):
+    def call(cls, method: str, url: str, params=None, retry: bool = False, data=None):
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
-        @:param params: parameters when calling RPC
-        @:param retry: if set to True, will automatically retry
+        :param method: HTTP method. Support GET or POST at the moment.
+        :param url: URL of the HTTP endpoint
+        :param params: parameters when calling RPC
+        :param retry: if set to True, will automatically retry
+        :param data: json data along with the request
         """
         api_session = requests.sessions.session()
         trial_total = 5 if retry else 1
