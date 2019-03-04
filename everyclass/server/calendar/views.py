@@ -28,7 +28,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                                           resource_type,
                                                                           resource_identifier,
-                                                                          url_semester))
+                                                                          url_semester), retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
 
@@ -72,7 +72,7 @@ def ics_download(calendar_token):
                                                                           result['sid'] if result['type'] == 'student'
                                                                           else result['tid'],
                                                                           result['semester']),
-                                                  params={'week_string': 'true'})
+                                                  params={'week_string': 'true'}, retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -208,7 +208,7 @@ def legacy_get_ics(student_id, semester_str):
 
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           student_id))
+                                                                           student_id), retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result

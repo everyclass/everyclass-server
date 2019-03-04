@@ -80,9 +80,8 @@ class HttpRpc:
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
 
     @classmethod
-    def call_with_error_page(cls, url, params=None, retry=False, data=None, method='GET'):
-        """call API and handle exceptions.
-        if exception, flash a message and redirect to main page.
+    def call_with_error_page(cls, url: str, params=None, retry: bool = False, data=None, method: str = 'GET'):
+        """调用 API 并处理抛出的异常。如有异常，跳转到错误页。
         """
         try:
             api_response = cls.call(method, url, params=params, retry=retry, data=data)

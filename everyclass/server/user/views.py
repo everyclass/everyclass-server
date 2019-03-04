@@ -78,7 +78,8 @@ def register_by_email():
         rpc_result = HttpRpc.call_with_error_page('{}/register_by_email'.format(app.config['AUTH_BASE_URL']),
                                                   data={'request_id': request_id,
                                                         'student_id': sid_orig},
-                                                  method='POST')
+                                                  method='POST',
+                                                  retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -127,7 +128,7 @@ def email_verification():
         # fetch student basic information from api-server
         with elasticapm.capture_span('rpc_get_student_info'):
             rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                               sid_orig))
+                                                                               sid_orig), retry=True)
             if isinstance(rpc_result, str):
                 return rpc_result
             api_response = rpc_result
@@ -144,7 +145,8 @@ def email_verification():
                 return render_template("common/error.html", message=MSG_400)
             rpc_result = HttpRpc.call_with_error_page('{}/verify_email_token'.format(app.config['AUTH_BASE_URL']),
                                                       data={"email_token": request.args.get("token", None)},
-                                                      method='POST')
+                                                      method='POST',
+                                                      retry=True)
             if isinstance(rpc_result, str):
                 return rpc_result
             api_response = rpc_result
@@ -221,7 +223,8 @@ def register_by_password_status():
     # fetch status from everyclass-auth
     with elasticapm.capture_span('rpc_get_auth_state'):
         rpc_result = HttpRpc.call_with_error_page('{}/get_result'.format(app.config['AUTH_BASE_URL']),
-                                                  data={'request_id': str(request.args.get("request"))})
+                                                  data={'request_id': str(request.args.get("request"))},
+                                                  retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
@@ -247,7 +250,8 @@ def register_by_password_success():
     # fetch student basic information from api-server
     with elasticapm.capture_span('rpc_get_student_info'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           verification_req["sid_orig"]))
+                                                                           verification_req["sid_orig"]),
+                                                  retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
