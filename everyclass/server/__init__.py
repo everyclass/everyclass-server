@@ -4,7 +4,7 @@ import sys
 
 import logbook
 import requests
-from flask import Flask, g, render_template, session
+from flask import Flask, g, render_template, request, session
 from flask_cdn import CDN
 from flask_recaptcha import ReCaptcha
 from flask_session import Session
@@ -189,7 +189,7 @@ def create_app() -> Flask:
     @app.before_request
     def set_user_id():
         """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
-        if not session.get('user_id', None):
+        if not session.get('user_id', None) and request.endpoint != "main.health_check":
             session['user_id'] = new_user_id_sequence()
 
     @app.after_request
