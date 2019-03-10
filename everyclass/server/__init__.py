@@ -1,9 +1,7 @@
 import gc
-import json
 import sys
 
 import logbook
-import requests
 from flask import Flask, g, render_template, request, session
 from flask_cdn import CDN
 from flask_recaptcha import ReCaptcha
@@ -107,8 +105,10 @@ try:
         and the gevent engine is not started yet (controlled by uWSGI). So we can only do the initialization
         here.
         """
-        android_manifest = requests.get("https://everyclass.cdn.admirable.pro/android/manifest.json").content
-        android_manifest = json.loads(android_manifest)
+        from everyclass.server.utils.rpc import HttpRpc
+        android_manifest = HttpRpc.call(method="GET",
+                                        url="https://everyclass.cdn.admirable.pro/android/manifest.json",
+                                        retry=True)
         android_ver = android_manifest['latestVersions']['mainstream']['versionCode']
         __app.config['ANDROID_CLIENT_URL'] = android_manifest['releases'][android_ver]['url']
 except ModuleNotFoundError:
