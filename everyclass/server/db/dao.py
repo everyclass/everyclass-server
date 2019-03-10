@@ -71,6 +71,11 @@ class PrivacySettingsDAO:
                                             "sid_orig"   : sid_orig,
                                             "level"      : new_level})
 
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db[cls.collection_name].create_index([("sid_orig", 1)], unique=True)
+
 
 class CalendarTokenDAO:
     """
@@ -162,6 +167,13 @@ class CalendarTokenDAO:
             token = token_doc['token']
         return token
 
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db[cls.collection_name].create_index("token")
+        db[cls.collection_name].create_index([("tid", 1), ("semester", 1)])
+        db[cls.collection_name].create_index([("sid", 1), ("semester", 1)])
+
 
 class UserDAO:
     """
@@ -198,6 +210,11 @@ class UserDAO:
         db.user.insert({"sid_orig"   : sid_orig,
                         "create_time": datetime.datetime.now(),
                         "password"   : generate_password_hash(password)})
+
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db[cls.collection_name].create_index([("sid_orig", 1)], unique=True)
 
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
@@ -262,6 +279,11 @@ class IdentityVerificationDAO:
         new_values = {"$set": {"status": status}}
         db[cls.collection_name].update_one(query, new_values)
 
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db[cls.collection_name].create_index([("request_id", 1)], unique=True)
+
 
 class SimplePasswordDAO:
     """
@@ -310,3 +332,17 @@ class VisitorDAO:
                     "visitor": visitor}
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
         db[cls.collection_name].update(criteria, new_val, True)  # upsert
+
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db[cls.collection_name].create_index([("host", 1), ("visitor", 1)], unique=True)
+
+
+def create_index():
+    """创建索引"""
+    PrivacySettingsDAO.create_index()
+    CalendarTokenDAO.create_index()
+    UserDAO.create_index()
+    IdentityVerificationDAO.create_index()
+    VisitorDAO.create_index()
