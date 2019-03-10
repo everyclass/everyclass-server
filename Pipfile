@@ -26,6 +26,7 @@ flask-session = "*"
 zxcvbn = "*"
 flask-recaptcha = "*"
 typing-extensions = "*"
+redis = "*"
 
 [dev-packages]
 coverage = "==4.4.2"

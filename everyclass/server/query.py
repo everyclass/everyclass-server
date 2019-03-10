@@ -139,16 +139,18 @@ def get_student(url_sid, url_semester):
     with elasticapm.capture_span('get_privacy_settings'):
         privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
 
-    if privacy_level == 2:
-        if not session.get(SESSION_CURRENT_USER, None) or session[SESSION_CURRENT_USER].sid_orig != api_response['sid']:
+    # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
+    if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
+                               session[SESSION_CURRENT_USER].sid_orig != api_response['sid']):
             return render_template('query/studentBlocked.html',
                                    name=api_response['name'],
                                    falculty=api_response['deputy'],
                                    class_name=api_response['class'],
                                    sid=url_sid,
                                    level=2)
-    elif privacy_level == 1:
-        # need login to view
+    # 实名互访
+    if privacy_level == 1:
+        # 未登录，要求登录
         if not session.get(SESSION_CURRENT_USER, None):
             return render_template('query/studentBlocked.html',
                                    name=api_response['name'],
@@ -156,6 +158,14 @@ def get_student(url_sid, url_semester):
                                    class_name=api_response['class'],
                                    sid=url_sid,
                                    level=1)
+        # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
+        if PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig) == 2:
+            return render_template('query/studentBlocked.html',
+                                   name=api_response['name'],
+                                   falculty=api_response['deputy'],
+                                   class_name=api_response['class'],
+                                   sid=url_sid,
+                                   level=3)
 
     with elasticapm.capture_span('process_rpc_result'):
         courses = dict()
@@ -172,9 +182,10 @@ def get_student(url_sid, url_semester):
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
         available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
 
-    # leave track if this is a inter-visit mode
-    if privacy_level == 1:
-        VisitorDAO.update_track(host=api_response['sid'], visitor=session[SESSION_CURRENT_USER].sid_orig)
+    # 公开模式或实名互访模式，留下轨迹
+    if privacy_level != 2 and session.get(SESSION_CURRENT_USER, None):
+        VisitorDAO.update_track(host=api_response['sid'],
+                                visitor=session[SESSION_CURRENT_USER])
 
     return render_template('query/student.html',
                            name=api_response['name'],

@@ -81,6 +81,11 @@ class Config(object):
         'uuidRepresentation': 'standard'
     }
     MONGODB_DB = 'everyclass_server'
+    REDIS = {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db'  : 1
+    }
 
     # server side session
     SESSION_TYPE = 'mongodb'

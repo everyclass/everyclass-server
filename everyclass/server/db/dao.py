@@ -1,14 +1,19 @@
 import datetime
 import uuid
-from typing import Dict, Optional, Union, overload
+from typing import Dict, List, Optional, Union, overload
 
+import elasticapm
 import pymongo.errors
+from flask import current_app
 from typing_extensions import Final
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
+from everyclass.server.db.model import Student
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.mysql import get_connection as get_mysql_connection
+from everyclass.server.db.redis import redis
+from everyclass.server.utils.rpc import HttpRpc
 
 
 def new_user_id_sequence() -> int:
@@ -318,31 +323,80 @@ class VisitorDAO:
 
     {
         "host": "390xxx",                      # original sid of host
-        "visitor": "390xxx",                   # original sid of visitor
+        "visitor_sid_orig": "390xxx",          # original sid of visitor
         "last_time": 2019-02-24T13:33:05.123Z  # last visit time
     }
     """
     collection_name: Final = "visitor_track"
 
     @classmethod
-    def update_track(cls, host: str, visitor: str) -> None:
+    def update_track(cls, host: str, visitor: Student) -> None:
         """
         Update time of visit. If this is first time visit, add a new document.
 
         @:param host: original sid of host
-        @:param visitor: original sid of visitor
+        @:param visitor_sid_orig: original sid of visitor_sid_orig
         @:return None
         """
         db = get_mongodb()
-        criteria = {"host"   : host,
-                    "visitor": visitor}
+        criteria = {"host"            : host,
+                    "visitor_sid_orig": visitor.sid}
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
         db[cls.collection_name].update(criteria, new_val, True)  # upsert
+
+        RedisCacheDAO.set_student(student=visitor)
+
+    @classmethod
+    def get_visitors(cls, sid_orig: str) -> List[Dict]:
+        """获得访客列表"""
+        db = get_mongodb()
+        result = db[cls.collection_name].find({"host": sid_orig}).sort("last_time", -1).limit(50)
+        visitor_list = []
+        for people in result:
+            stu_cache = RedisCacheDAO.get_student(people["visitor_sid_orig"])
+            if stu_cache:
+                visitor_list.append({"name"      : stu_cache.name,
+                                     "sid"       : stu_cache.sid,
+                                     "visit_time": people["last_time"]})
+            else:
+                # query api-server
+                with elasticapm.capture_span('rpc_search'):
+                    rpc_result = HttpRpc.call(method="GET",
+                                              url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
+                                                                           people["visitor_sid_orig"]),
+                                              retry=True)
+                visitor_list.append({"name"      : rpc_result["student"][0]["name"],
+                                     "sid"       : rpc_result["student"][0]["sid"],
+                                     "visit_time": people["last_time"]})
+                RedisCacheDAO.set_student(Student(sid_orig=people["visitor_sid_orig"],
+                                                  name=rpc_result["student"][0]["name"],
+                                                  sid=rpc_result["student"][0]["sid"]))
+        return visitor_list
 
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index([("host", 1), ("visitor", 1)], unique=True)
+        db[cls.collection_name].create_index([("host", 1), ("last_time", 1)], unique=True)
+
+
+class RedisCacheDAO:
+    redis_prefix = "ec_sv"
+
+    @classmethod
+    def set_student(cls, student: Student):
+        """学生信息写入 Redis"""
+        redis.set("{}:stu:{}".format(RedisCacheDAO.redis_prefix, student.sid_orig), student.name + "," + student.sid,
+                  ex=86400)
+
+    @classmethod
+    def get_student(cls, sid_orig: str) -> Optional[Student]:
+        """从 Redis 中获取学生信息，有则返回 Student 对象，无则返回 None"""
+        res = redis.get("{}:stu:{}".format(cls.redis_prefix, sid_orig))
+        if res:
+            name, sid = res.split(",")
+            return Student(sid_orig=sid_orig, sid=sid, name=name)
+        else:
+            return None
 
 
 def create_index():

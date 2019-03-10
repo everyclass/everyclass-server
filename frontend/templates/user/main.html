@@ -3,7 +3,11 @@
 {% block body %}
     <div class="hero hero-homepage">
         <h1 class="hero-header">你好，{{ name }}</h1>
-        <h4 class="text-muted"><a href="{{ url_for("user.logout") }}">退出登录</a>
+        <h4 class="text-muted">
+            {% if privacy_level==1 %}
+                <a href="{{ url_for("user.visitors") }}">我的访客</a> &nbsp;
+            {% endif %}
+            <a href="{{ url_for("user.logout") }}">退出登录</a>
         </h4>
 
     </div>
@@ -24,9 +28,10 @@
                                 </select>
                                 <div id="privacy-level-hidden"></div>
                                 <ul>
-                                    <li><b>公开可见</b>：所有用户可以查看到你的课表（默认）</li>
-                                    <li><b>实名互访</b>：已登录用户可以访问你的课表，访问时会留下访客记录</li>
-                                    <li><b>仅自己可见</b>：只有你自己可以看到自己的课表</li>
+                                    <li><b>公开可见</b>：未登录用户可以查看你的课表；你可以访问公开可见课表及实名互访用户的课表，并可以查看自己的访客（默认）</li>
+                                    <li><b>实名互访</b>：已登录、且设置了公开可见或实名互访的用户可以互相实名访问，并可以查看自己的访客（推荐）</li>
+                                    <li><b>仅自己可见</b>：只有你自己可以看到自己的课表，最大程度保护你的隐私。但作为交换，你只能查看公开可见的课表，无法查看任何设置了其他可见性的用户的课表
+                                    </li>
                                 </ul>
                             </td>
                         </tr>
