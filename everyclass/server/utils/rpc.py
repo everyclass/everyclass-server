@@ -92,7 +92,8 @@ class HttpRpc:
         except RpcBadRequestException as e:
             return cls._error_page(MSG_400,
                                    log="Got bad request, upstream returned status code {} with message {}."
-                                   .format(*e.args))
+                                   .format(*e.args),
+                                   sentry_capture=True)
         except RpcClientException:
             return cls._error_page(MSG_400, sentry_capture=True)
         except RpcServerException:
