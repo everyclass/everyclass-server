@@ -168,6 +168,12 @@ class CalendarTokenDAO:
         return token
 
     @classmethod
+    def reset_tokens(cls, sid: str) -> None:
+        """删除学生所有的 token"""
+        db = get_mongodb()
+        db[cls.collection_name].remove({"sid": sid})
+
+    @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
         db[cls.collection_name].create_index("token")

@@ -7,7 +7,7 @@ from everyclass.server import logger, recaptcha
 from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, \
     MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, \
     SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
-from everyclass.server.db.dao import ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
+from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, SimplePasswordDAO, UserDAO
 from everyclass.server.db.model import Student
 from everyclass.server.utils.decorators import login_required
@@ -299,3 +299,12 @@ def js_set_preference():
 
         PrivacySettingsDAO.set_level(session[SESSION_CURRENT_USER].sid_orig, privacy_level)
     return jsonify({"acknowledged": True})
+
+
+@user_bp.route('/resetCalendarToken')
+@login_required
+def reset_calendar_token():
+    """重置日历订阅令牌"""
+    CalendarTokenDAO.reset_tokens(session[SESSION_CURRENT_USER].sid)
+    flash("日历订阅令牌重置成功")
+    return redirect(url_for("user.main"))
