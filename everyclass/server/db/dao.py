@@ -341,8 +341,10 @@ class VisitorDAO:
 
 def create_index():
     """创建索引"""
-    PrivacySettingsDAO.create_index()
-    CalendarTokenDAO.create_index()
-    UserDAO.create_index()
-    IdentityVerificationDAO.create_index()
-    VisitorDAO.create_index()
+    import inspect
+    import sys
+
+    for cls_name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+        if cls_name.endswith("DAO") and hasattr(cls, "create_index"):
+            print("[{}] Creating index...".format(cls_name))
+            cls.create_index()
