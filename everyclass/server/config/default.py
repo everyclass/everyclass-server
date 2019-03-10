@@ -187,6 +187,7 @@ class Config(object):
     FEATURE_GATING = {
         'user': False
     }
+    DEFAULT_PRIVACY_LEVEL = 0
 
     RECAPTCHA_ENABLED = True
     RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"

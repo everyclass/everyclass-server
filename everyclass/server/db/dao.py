@@ -9,6 +9,7 @@ from typing_extensions import Final
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
+from everyclass.server.config import get_config
 from everyclass.server.db.model import Student
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.mysql import get_connection as get_mysql_connection
@@ -57,10 +58,10 @@ class PrivacySettingsDAO:
 
     @classmethod
     def get_level(cls, sid_orig: str) -> int:
-        """获得学生的隐私级别。0为公开，1为实名互访，2为自己可见。默认为0"""
+        """获得学生的隐私级别。0为公开，1为实名互访，2为自己可见。默认为配置文件中定义的 DEFAULT_PRIVACY_LEVEL"""
         db = get_mongodb()
         doc = mongo_with_retry(db[cls.collection_name].find_one, {"sid_orig": sid_orig}, num_retries=1)
-        return doc["level"] if doc else 0
+        return doc["level"] if doc else get_config().DEFAULT_PRIVACY_LEVEL
 
     @classmethod
     def set_level(cls, sid_orig: str, new_level: int) -> None:
@@ -323,7 +324,7 @@ class VisitorDAO:
 
     {
         "host": "390xxx",                      # original sid of host
-        "visitor_sid_orig": "390xxx",          # original sid of visitor
+        "visitor": "390xxx",                   # original sid of visitor
         "last_time": 2019-02-24T13:33:05.123Z  # last visit time
     }
     """
@@ -335,12 +336,12 @@ class VisitorDAO:
         Update time of visit. If this is first time visit, add a new document.
 
         @:param host: original sid of host
-        @:param visitor_sid_orig: original sid of visitor_sid_orig
+        @:param visitor_sid_orig: original sid of visitor
         @:return None
         """
         db = get_mongodb()
-        criteria = {"host"            : host,
-                    "visitor_sid_orig": visitor.sid}
+        criteria = {"host"   : host,
+                    "visitor": visitor.sid_orig}
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
         db[cls.collection_name].update(criteria, new_val, True)  # upsert
 
@@ -353,7 +354,7 @@ class VisitorDAO:
         result = db[cls.collection_name].find({"host": sid_orig}).sort("last_time", -1).limit(50)
         visitor_list = []
         for people in result:
-            stu_cache = RedisCacheDAO.get_student(people["visitor_sid_orig"])
+            stu_cache = RedisCacheDAO.get_student(people["visitor"])
             if stu_cache:
                 visitor_list.append({"name"      : stu_cache.name,
                                      "sid"       : stu_cache.sid,
@@ -363,12 +364,12 @@ class VisitorDAO:
                 with elasticapm.capture_span('rpc_search'):
                     rpc_result = HttpRpc.call(method="GET",
                                               url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
-                                                                           people["visitor_sid_orig"]),
+                                                                           people["visitor"]),
                                               retry=True)
                 visitor_list.append({"name"      : rpc_result["student"][0]["name"],
                                      "sid"       : rpc_result["student"][0]["sid"],
                                      "visit_time": people["last_time"]})
-                RedisCacheDAO.set_student(Student(sid_orig=people["visitor_sid_orig"],
+                RedisCacheDAO.set_student(Student(sid_orig=people["visitor"],
                                                   name=rpc_result["student"][0]["name"],
                                                   sid=rpc_result["student"][0]["sid"]))
         return visitor_list

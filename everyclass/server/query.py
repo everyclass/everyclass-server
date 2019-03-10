@@ -183,7 +183,9 @@ def get_student(url_sid, url_semester):
         available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
 
     # 公开模式或实名互访模式，留下轨迹
-    if privacy_level != 2 and session.get(SESSION_CURRENT_USER, None):
+    if privacy_level != 2 and \
+            session.get(SESSION_CURRENT_USER, None) and \
+            session[SESSION_CURRENT_USER] != session[SESSION_LAST_VIEWED_STUDENT]:
         VisitorDAO.update_track(host=api_response['sid'],
                                 visitor=session[SESSION_CURRENT_USER])
 
