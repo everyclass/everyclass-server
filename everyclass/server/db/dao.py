@@ -105,15 +105,7 @@ class CalendarTokenDAO:
     @classmethod
     def insert_calendar_token(cls, resource_type: str, semester: str, identifier: str) -> str:
         """生成日历令牌，写入数据库并返回字符串类型的令牌"""
-        from everyclass.server.config import get_config
-        uuid_ns = getattr(get_config(), 'CALENDAR_UUID_NAMESPACE')
-
-        if resource_type == "student":
-            token = uuid.uuid5(uuid.UUID(uuid_ns), 's' + identifier + ':' + semester)
-        elif resource_type == "teacher":
-            token = uuid.uuid5(uuid.UUID(uuid_ns), 't' + identifier + ':' + semester)
-        else:
-            raise ValueError("resource_type must be teacher or student")
+        token = uuid.uuid4()
 
         db = get_mongodb()
         doc = {'type'       : resource_type,
@@ -253,7 +245,7 @@ class CalendarTokenDAO:
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index("token")
+        db[cls.collection_name].create_index("token", unique=True)
         db[cls.collection_name].create_index([("tid", 1), ("semester", 1)])
         db[cls.collection_name].create_index([("sid", 1), ("semester", 1)])
 
