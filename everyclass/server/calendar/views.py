@@ -64,17 +64,19 @@ def ics_download(calendar_token):
     if not result:
         return 'invalid calendar token', 404
 
-    # get sid by sid_orig
+    # 获得原始学号或教工号
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call(method="GET",
                                   url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
                                                                result['identifier']),
                                   retry=True)
-    # get courses by sid
+    # 由原始学号或教工号得到课程
     with elasticapm.capture_span('rpc_find_people'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER_BASE_URL'],
                                                                           result['type'],
-                                                                          rpc_result["student"][0]['sid'],
+                                                                          rpc_result["student"][0]['sid']
+                                                                          if result['type'] == 'student'
+                                                                          else rpc_result['teacher'][0]['tid'],
                                                                           result['semester']),
                                                   params={'week_string': 'true'}, retry=True)
         if isinstance(rpc_result, str):
