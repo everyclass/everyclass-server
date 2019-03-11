@@ -64,17 +64,6 @@ class Config(object):
     Connection settings
     """
     # database
-    MYSQL_CONFIG = {
-        'host'          : 'mysql',
-        'port'          : 3306,
-        'db'            : 'everyclass',
-        'user'          : 'everyclass',
-        'passwd'        : 'password',
-        'charset'       : 'utf8mb4',
-        'mincached'     : 10,
-        'maxcached'     : 1000,
-        'maxconnections': 2000
-    }
     MONGODB = {
         'host'              : 'mongodb',
         'port'              : 12306,

@@ -77,11 +77,9 @@ try:
     @uwsgidecorators.postfork
     def init_db():
         """init database connection"""
-        import everyclass.server.db.mysql
         import everyclass.server.db.mongodb
 
         global __app
-        everyclass.server.db.mysql.init_pool(__app)
         everyclass.server.db.mongodb.init_pool(__app)
 
     @uwsgidecorators.postfork

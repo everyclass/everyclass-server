@@ -15,7 +15,6 @@ from everyclass.server import logger
 from everyclass.server.config import get_config
 from everyclass.server.db.model import Student
 from everyclass.server.db.mongodb import get_connection as get_mongodb
-from everyclass.server.db.mysql import get_connection as get_mysql_connection
 from everyclass.server.db.redis import redis
 from everyclass.server.utils.rpc import HttpRpc
 
@@ -26,15 +25,7 @@ def new_user_id_sequence() -> int:
 
     :return: last row id
     """
-    # todo replace with redis
-    # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    cursor.execute("REPLACE INTO user_id_sequence (stub) VALUES ('a');")
-    last_row_id = cursor.lastrowid
-    cursor.close()
-    conn.close()
-    return last_row_id
+    return RedisCacheDAO.new_user_id_sequence()
 
 
 def mongo_with_retry(method, *args, num_retries: int, **kwargs):
@@ -463,6 +454,10 @@ class RedisCacheDAO:
             return Student(sid_orig=sid_orig, sid=sid, name=name)
         else:
             return None
+
+    @classmethod
+    def new_user_id_sequence(cls) -> int:
+        return redis.incr("{}:user_sequence".format(cls.redis_prefix))
 
 
 def create_index():
