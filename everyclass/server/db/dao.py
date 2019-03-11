@@ -90,7 +90,6 @@ class CalendarTokenDAO:
         "token": ""                                 # calendar token, uuid type (not string!)
     }
     """
-    # todo 使用真实学号而不是 sid
     collection_name: Final = "calendar_token"
 
     @classmethod
