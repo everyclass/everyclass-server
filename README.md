@@ -7,19 +7,19 @@
 ![works-on](https://img.shields.io/badge/works%20on-my%20computer-brightgreen.svg)
 [![code-coverage](https://codecov.io/gh/fr0der1c/EveryClass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/fr0der1c/EveryClass-server)
 
-This is the web server part of [EveryClass](https://github.com/fr0der1c/EveryClass) project.
+This is the web server part of the [EveryClass](https://github.com/fr0der1c/EveryClass) project.
 
 
 ### Communication
 
-If you found any problem of the code, please open an issue here and make sure you provided much information.
+If you find any problems with the code please open an issue and provide as much detail as possible.
 
-To discuss questions regarding the project, I suggest you join our [forum](https://base.admirable.pro/c/everyclass) (Chinese).
+If you wish to discuss the project, you can join our [forum](https://base.admirable.pro/c/everyclass) (Chinese).
 
 
 ### Technology stack
 
-- uWSGI: the gateway between programme itself and Nginx reverse proxy
+- uWSGI: the gateway between the program and Nginx reverse proxy
 - Flask: the micro Python web framework
 - MongoDB: database
 
@@ -32,27 +32,27 @@ To discuss questions regarding the project, I suggest you join our [forum](https
 
 ### Contributions, Bug Reports, Feature Requests
 
-This is an open source project and we would be happy to see contributors who report bugs and file feature requests submitting pull requests as well. Please report issues here [https://github.com/AdmirablePro/everyclass/issues](https://github.com/AdmirablePro/everyclass/issues) (not issue tracker of this repository!)
+This is an open source project and we would be happy to have contributors who report bugs, file feature requests and submit pull requests. Please report issues here: [https://github.com/AdmirablePro/everyclass/issues](https://github.com/AdmirablePro/everyclass/issues) (not issue tracker of this repository!)
 
 ### Branch Policy
 
-- All your development goes on **feature/feature-name** branch. When you are done, make a pull request or just merge to `master` branch if you have permission
-- Tagged commits following the pattern `vX.X.X` will be watched by Travis, our continuous integration tool, which runs unit-test check, builds Docker image, pushes the image to our private registry and updates services in `staging` environment. Tags following the pattern `vX.X.X_testing` will upgrade the `testing` environment.
-- Commits should be tested in staging environment first before they are deployed to production environment.
+- All development goes on the **feature/feature-name** branch. To commit a change make a pull request or merge to the `master` branch if you have permission
+- Tagged commits following the pattern `vX.X.X` will be watched by Travis, our continuous integration tool, which runs unit-tests, builds the Docker image, pushes the image to our private registry and updates services in the `staging` environment. Tags following the pattern `vX.X.X_testing` will upgrade the `testing` environment.
+- Commits should be tested in the staging environment before they are deployed to the production environment.
 
 
 ### Contributions Best Practices
 #### Commits
 
-- Write clear meaningful git commit messages
-- Make sure your PR's description contains GitHub's special keyword references that automatically close the related issue when the PR is merged. (More info at  [https://github.com/blog/1506-closing-issues-via-pull-requests](https://github.com/blog/1506-closing-issues-via-pull-requests))
-- When you make very very minor changes to a PR of yours (like for example fixing a failing travis build or some small style corrections or minor changes requested by reviewers) make sure you squash your commits afterwards so that you don't have an absurd number of commits for a very small fix. (Learn how to squash at https://davidwalsh.name/squash-commits-git )
+- Write clear and meaningful git commit messages
+- Make sure your pull request description contains GitHub's special keyword references that automatically close the related issue when merged. (More info at  [https://github.com/blog/1506-closing-issues-via-pull-requests](https://github.com/blog/1506-closing-issues-via-pull-requests))
+- When you make minor changes to a pull request (like for example fixing a failing travis build or some small style corrections or minor changes requested by reviewers) squash your commits afterwards so that you don't have an absurd number of commits for a small fix. (Learn how to squash at https://davidwalsh.name/squash-commits-git )
 
 
 #### Feature Requests and Bug Reports
 
-When you file a feature request or when you are submitting a bug report to the issue tracker, make sure you add steps to reproduce it. Especially if that bug is some weird/rare one.
+When you file a feature request or submit a bug report to the issue tracker, add the necessary steps to reproduce it. This is very important for weird/rare bugs.
 
 #### Join the development
 
-Feel free to join the development and happy coding. Again, please get familiar with **git-flow** before you start contributing.
+Feel free to join the development and happy coding. Before you contribute please get familiar with **git-flow**.
