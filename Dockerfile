@@ -18,8 +18,9 @@ WORKDIR /var/app
 # - gcc, libpcre3-dev for compiling uWSGI
 # - libffi-dev for installing Python package cffi
 # - libssl-dev for installing Python package cryptography
+# - vim for online debugging
 RUN apt-get update \
-    && apt-get install -y procps wget gcc libpcre3-dev git libffi-dev libssl-dev \
+    && apt-get install -y procps wget gcc libpcre3-dev git libffi-dev libssl-dev vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && pip install uwsgi
