@@ -25,7 +25,7 @@ def new_user_id_sequence() -> int:
 
     :return: last row id
     """
-    return RedisCacheDAO.new_user_id_sequence()
+    return RedisDAO.new_user_id_sequence()
 
 
 def mongo_with_retry(method, *args, num_retries: int, **kwargs):
@@ -401,7 +401,7 @@ class VisitorDAO:
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
         db[cls.collection_name].update(criteria, new_val, True)  # upsert
 
-        RedisCacheDAO.set_student(student=visitor)
+        RedisDAO.set_student(student=visitor)
 
     @classmethod
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
@@ -410,7 +410,7 @@ class VisitorDAO:
         result = db[cls.collection_name].find({"host": sid_orig}).sort("last_time", -1).limit(50)
         visitor_list = []
         for people in result:
-            stu_cache = RedisCacheDAO.get_student(people["visitor"])
+            stu_cache = RedisDAO.get_student(people["visitor"])
             if stu_cache:
                 visitor_list.append({"name"      : stu_cache.name,
                                      "sid"       : stu_cache.sid,
@@ -425,9 +425,9 @@ class VisitorDAO:
                 visitor_list.append({"name"      : rpc_result["student"][0]["name"],
                                      "sid"       : rpc_result["student"][0]["sid"],
                                      "visit_time": people["last_time"]})
-                RedisCacheDAO.set_student(Student(sid_orig=people["visitor"],
-                                                  name=rpc_result["student"][0]["name"],
-                                                  sid=rpc_result["student"][0]["sid"]))
+                RedisDAO.set_student(Student(sid_orig=people["visitor"],
+                                             name=rpc_result["student"][0]["name"],
+                                             sid=rpc_result["student"][0]["sid"]))
         return visitor_list
 
     @classmethod
@@ -436,13 +436,13 @@ class VisitorDAO:
         db[cls.collection_name].create_index([("host", 1), ("last_time", 1)], unique=True)
 
 
-class RedisCacheDAO:
+class RedisDAO:
     redis_prefix = "ec_sv"
 
     @classmethod
     def set_student(cls, student: Student):
         """学生信息写入 Redis"""
-        redis.set("{}:stu:{}".format(RedisCacheDAO.redis_prefix, student.sid_orig), student.name + "," + student.sid,
+        redis.set("{}:stu:{}".format(cls.redis_prefix, student.sid_orig), student.name + "," + student.sid,
                   ex=86400)
 
     @classmethod
@@ -459,6 +459,10 @@ class RedisCacheDAO:
     def new_user_id_sequence(cls) -> int:
         return redis.incr("{}:user_sequence".format(cls.redis_prefix))
 
+    @classmethod
+    def init(cls):
+        redis.set("{}:user_sequence".format(cls.redis_prefix), 100000)
+
 
 def create_index():
     """创建索引"""
@@ -469,3 +473,9 @@ def create_index():
         if cls_name.endswith("DAO") and hasattr(cls, "create_index"):
             print("[{}] Creating index...".format(cls_name))
             cls.create_index()
+
+
+def init_db():
+    """初始化数据库"""
+    create_index()
+    RedisDAO.init()
