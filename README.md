@@ -52,7 +52,3 @@ This is an open source project and we would be happy to have contributors who re
 #### Feature Requests and Bug Reports
 
 When you file a feature request or submit a bug report to the issue tracker, add the necessary steps to reproduce it. This is very important for weird/rare bugs.
-
-#### Join the development
-
-Feel free to join the development and happy coding. Before you contribute please get familiar with **git-flow**.
