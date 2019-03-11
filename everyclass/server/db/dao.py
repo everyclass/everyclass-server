@@ -448,7 +448,7 @@ class RedisDAO:
 
     @classmethod
     def init(cls):
-        redis.set("{}:user_sequence".format(cls.redis_prefix), 100000)
+        redis.set("{}:user_sequence".format(cls.redis_prefix), 5000000)
 
 
 def create_index():
