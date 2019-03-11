@@ -27,6 +27,7 @@ zxcvbn = "*"
 flask-recaptcha = "*"
 typing-extensions = "*"
 redis = "*"
+pycryptodome = "*"
 
 [dev-packages]
 coverage = "==4.4.2"

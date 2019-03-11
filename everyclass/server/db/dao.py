@@ -1,9 +1,12 @@
 import datetime
+import re
 import uuid
+from binascii import a2b_base64
 from typing import Dict, List, Optional, Union, overload
 
 import elasticapm
 import pymongo.errors
+from Crypto.Cipher import AES
 from flask import current_app
 from typing_extensions import Final
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -23,6 +26,7 @@ def new_user_id_sequence() -> int:
 
     :return: last row id
     """
+    # todo replace with redis
     # 数据库中生成唯一 ID，参考 https://blog.csdn.net/longjef/article/details/53117354
     conn = get_mysql_connection()
     cursor = conn.cursor()
@@ -88,12 +92,14 @@ class CalendarTokenDAO:
     {
         "type": "student",                          # "student" or "teacher"
         "create_time": 2019-02-24T13:33:05.123Z,    # token create time (added later)
-        "sid": "zp9ApTs9Ln2LO8T",                   # student id(not original) if this is a student
-        "tid": "zp9ApTs9Ln2LO8T",                   # teacher id(not original) if this is a teacher
-        "semester": "2018-2019-1",                  # semester
+        "sid": "zp9ApTs9Ln2LO8T",                   # student id(not original) if this is a student (legacy)
+        "tid": "zp9ApTs9Ln2LO8T",                   # teacher id(not original) if this is a teacher (legacy)
+        "identifier": "390xx"                       # 学生或老师的原始学号
+        "semester": "2018-2019-1",                  # 学期
         "token": ""                                 # calendar token, uuid type (not string!)
     }
     """
+    # todo 使用真实学号而不是 sid
     collection_name: Final = "calendar_token"
 
     @classmethod
@@ -112,12 +118,9 @@ class CalendarTokenDAO:
         db = get_mongodb()
         doc = {'type'       : resource_type,
                "create_time": datetime.datetime.now(),
+               "identifier" : identifier,
                'semester'   : semester,
                'token'      : token}
-        if resource_type == 'student':
-            doc.update({"sid": identifier})
-        elif resource_type == 'teacher':
-            doc.update({"tid": identifier})
 
         db[cls.collection_name].insert(doc)
         return str(token)
@@ -144,13 +147,81 @@ class CalendarTokenDAO:
         if token:
             return db[cls.collection_name].find_one({'token': uuid.UUID(token)})
         elif tid and semester:
-            return db[cls.collection_name].find_one({'tid'     : tid,
-                                                     'semester': semester})
+            new = db[cls.collection_name].find_one({'identifier': tid,
+                                                    'semester'  : semester})
+            if new:
+                return new
+            else:
+                legacy = db[cls.collection_name].find_one({'tid'     : tid,
+                                                           'semester': semester})
+                return legacy
+
         elif sid and semester:
-            return db[cls.collection_name].find_one({'sid'     : sid,
-                                                     'semester': semester})
+            new = db[cls.collection_name].find_one({'identifier': sid,
+                                                    'semester'  : semester})
+            if new:
+                return new
+            else:
+                legacy = db[cls.collection_name].find_one({'tid'     : sid,
+                                                           'semester': semester})
+                return legacy
         else:
-            raise ValueError("tid or sid together with semester or token must be given to search a token document")
+            raise ValueError("tid/sid together with semester or token must be given to search a token document")
+
+    @classmethod
+    def upgrade(cls, key):
+        """字段升级"""
+
+        def fill_16(text):
+            """
+            自动填充至十六位或十六的倍数
+            :param text: 需要被填充的字符串
+            :return: 已经被空白符填充的字符串
+            """
+            text += '\0' * (16 - (len(text) % 16))
+            return str.encode(text)
+
+        def aes_decrypt(aes_key, aes_text):
+            """
+            使用密钥解密文本信息，将会自动填充空白字符
+            :param aes_key: 解密密钥
+            :param aes_text: 需要解密的文本
+            :return: 经过解密的数据
+            """
+            # 初始化解码器
+            cipher = AES.new(fill_16(aes_key), AES.MODE_ECB)
+            # 优先逆向解密十六进制为bytes
+            decrypt = a2b_base64(aes_text.replace('-', '/').encode())
+            # 使用aes解密密文
+            decrypt_text = str(cipher.decrypt(decrypt), encoding='utf-8').replace('\0', '')
+            # 返回执行结果
+            return decrypt_text.strip()
+
+        def identifier_decrypt(key, data):
+            print("key:{} data:{}".format(key, data))
+            data = aes_decrypt(key, data)
+            # 通过正则校验确定数据的正确性
+            group = re.match(r'^(student|teacher|klass|room);([\s\S]+)$', data)
+            if group is None:
+                raise ValueError('解密后的数据无法被合理解读，解密后数据:%s' % data)
+            else:
+                return group.group(1), group.group(2)
+
+        db = get_mongodb()
+        teacher_docs = db[cls.collection_name].find({"tid": {"$exists": True}})
+        for each in teacher_docs:
+            print(each)
+            db[cls.collection_name].update_one(each, {"$set"  : {"identifier": identifier_decrypt(key, each["tid"])[1],
+                                                                 "type"      : "teacher"},
+                                                      "$unset": {"tid": 1}
+                                                      })
+        student_docs = db[cls.collection_name].find({"sid": {"$exists": True}})
+        for each in student_docs:
+            print(each)
+            db[cls.collection_name].update_one(each, {"$set"  : {"identifier": identifier_decrypt(key, each["sid"])[1],
+                                                                 "type"      : "student"},
+                                                      "$unset": {"sid": 1}
+                                                      })
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
@@ -325,6 +396,7 @@ class VisitorDAO:
     {
         "host": "390xxx",                      # original sid of host
         "visitor": "390xxx",                   # original sid of visitor
+        "visitor_type": "student"              # reserved for future
         "last_time": 2019-02-24T13:33:05.123Z  # last visit time
     }
     """
@@ -340,8 +412,9 @@ class VisitorDAO:
         @:return None
         """
         db = get_mongodb()
-        criteria = {"host"   : host,
-                    "visitor": visitor.sid_orig}
+        criteria = {"host"        : host,
+                    "visitor"     : visitor.sid_orig,
+                    "visitor_type": "student"}
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
         db[cls.collection_name].update(criteria, new_val, True)  # upsert
 
