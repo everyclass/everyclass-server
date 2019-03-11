@@ -130,24 +130,11 @@ class CalendarTokenDAO:
         if token:
             return db[cls.collection_name].find_one({'token': uuid.UUID(token)})
         elif tid and semester:
-            new = db[cls.collection_name].find_one({'identifier': tid,
-                                                    'semester'  : semester})
-            if new:
-                return new
-            else:
-                legacy = db[cls.collection_name].find_one({'tid'     : tid,
-                                                           'semester': semester})
-                return legacy
-
+            return db[cls.collection_name].find_one({'identifier': tid,
+                                                     'semester'  : semester})
         elif sid and semester:
-            new = db[cls.collection_name].find_one({'identifier': sid,
-                                                    'semester'  : semester})
-            if new:
-                return new
-            else:
-                legacy = db[cls.collection_name].find_one({'sid'     : sid,
-                                                           'semester': semester})
-                return legacy
+            return db[cls.collection_name].find_one({'identifier': sid,
+                                                     'semester'  : semester})
         else:
             raise ValueError("tid/sid together with semester or token must be given to search a token document")
 
