@@ -142,12 +142,12 @@ def get_student(url_sid, url_semester):
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
     if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
                                session[SESSION_CURRENT_USER].sid_orig != api_response['sid']):
-            return render_template('query/studentBlocked.html',
-                                   name=api_response['name'],
-                                   falculty=api_response['deputy'],
-                                   class_name=api_response['class'],
-                                   sid=url_sid,
-                                   level=2)
+        return render_template('query/studentBlocked.html',
+                               name=api_response['name'],
+                               falculty=api_response['deputy'],
+                               class_name=api_response['class'],
+                               sid=url_sid,
+                               level=2)
     # 实名互访
     if privacy_level == 1:
         # 未登录，要求登录
