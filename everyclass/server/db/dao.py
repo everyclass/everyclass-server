@@ -154,7 +154,7 @@ class CalendarTokenDAO:
             if new:
                 return new
             else:
-                legacy = db[cls.collection_name].find_one({'tid'     : sid,
+                legacy = db[cls.collection_name].find_one({'sid'     : sid,
                                                            'semester': semester})
                 return legacy
         else:
@@ -183,7 +183,7 @@ class CalendarTokenDAO:
             # 初始化解码器
             cipher = AES.new(fill_16(aes_key), AES.MODE_ECB)
             # 优先逆向解密十六进制为bytes
-            decrypt = a2b_base64(aes_text.replace('-', '/').encode())
+            decrypt = a2b_base64(aes_text.replace('-', '/').replace("%3D", "=").encode())
             # 使用aes解密密文
             decrypt_text = str(cipher.decrypt(decrypt), encoding='utf-8').replace('\0', '')
             # 返回执行结果

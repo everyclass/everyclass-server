@@ -67,8 +67,7 @@ def ics_download(calendar_token):
     with elasticapm.capture_span('rpc_find_people'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER_BASE_URL'],
                                                                           result['type'],
-                                                                          result['sid'] if result['type'] == 'student'
-                                                                          else result['tid'],
+                                                                          result['identifier'],
                                                                           result['semester']),
                                                   params={'week_string': 'true'}, retry=True)
         if isinstance(rpc_result, str):
