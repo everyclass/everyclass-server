@@ -448,6 +448,7 @@ class RedisDAO:
 
     @classmethod
     def init(cls):
+        print("Initializing Redis...")
         redis.set("{}:user_sequence".format(cls.redis_prefix), 5000000)
 
 
