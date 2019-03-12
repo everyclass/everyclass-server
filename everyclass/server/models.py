@@ -1,5 +1,5 @@
 import re
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple
 
 
@@ -74,7 +74,7 @@ class Student(NamedTuple):
 
 
 @dataclass
-class RPCStudentResult:
+class RPCStudentResultItem:
     class_: str
     deputy: str
     name: str
@@ -83,46 +83,107 @@ class RPCStudentResult:
 
 
 @dataclass
-class RPCTeacherInStudentInSemester:
+class RPCTeacherInCourseItem:
     name: str
     tid: str
     title: str
 
 
 @dataclass
-class RPCCourseInStudentInSemester:
+class RPCCourseInSemesterItem:
     cid: str
     lesson: str
     name: str
     rid: str
     room: str
     week: List[int]
-    teachers: List[RPCTeacherInStudentInSemester] = field(init=False)
-    teacher: InitVar[List[Dict]]
+    teachers: List[RPCTeacherInCourseItem]
     week_string: str = field(default="")  # optional field
 
-    def __post_init__(self, teacher):
-        """teacher域重命名为teachers域"""
-        self.teachers = [RPCTeacherInStudentInSemester(**x) for x in teacher]
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCCourseInSemesterItem":
+        dct["teachers"] = [RPCTeacherInCourseItem(**x) for x in dct["teacher"]]
+        del dct["teacher"]
+        return cls(**dct)
 
 
 @dataclass
 class RPCStudentInSemesterResult:
-    class_: str
-    courses: List[RPCCourseInStudentInSemester] = field(init=False)
-    course: InitVar[List[Dict]]
-    deputy: str
     name: str
     sid: str
+    deputy: str
+    class_: str
+    courses: List[RPCCourseInSemesterItem]
     semester_list: List[str] = field(default_factory=list)  # optional field
 
-    def __post_init__(self, course):
-        """course域重命名为courses域"""
-        self.courses = [RPCCourseInStudentInSemester(**x) for x in course]
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCStudentInSemesterResult":
+        dct["class_"] = dct.pop("class")
+        dct["courses"] = [RPCCourseInSemesterItem.make(x) for x in dct["course"]]
+        del dct["course"]
+        return cls(**dct)
 
 
-def handle_keyword_conflict(dct: Dict) -> Dict:
-    if "class" in dct:
-        dct["class_"] = dct["class"]
-        del dct["class"]
-    return dct
+@dataclass
+class RPCTeacherInSemesterResult:
+    name: str
+    tid: str
+    title: str
+    unit: str
+    courses: List[RPCCourseInSemesterItem]
+    semester_list: List[str] = field(default_factory=list)  # optional field
+
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCTeacherInSemesterResult":
+        dct["courses"] = [RPCCourseInSemesterItem.make(x) for x in dct["course"]]
+        del dct["course"]
+        return cls(**dct)
+
+
+@dataclass
+class RPCRoomResult:
+    name: str
+    rid: str
+    building: str
+    campus: str
+    courses: List[RPCCourseInSemesterItem]
+    semester_list: List[str] = field(default_factory=list)  # optional field
+
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCRoomResult":
+        dct["courses"] = [RPCCourseInSemesterItem.make(x) for x in dct["course"]]
+        del dct["course"]
+        return cls(**dct)
+
+
+@dataclass
+class RPCStudentInCourseItem:
+    name: str
+    sid: str
+    class_: str
+    deputy: str
+
+
+@dataclass
+class RPCCourseResult:
+    name: str
+    cid: str
+    union_class_name: str
+    hour: int
+    lesson: str
+    type: str
+    pick_num: int
+    rid: str
+    room: str
+    students: List[RPCStudentInCourseItem]
+    teachers: List[RPCTeacherInCourseItem]
+    week: List[int]
+    week_string: str = field(default="")  # optional field
+
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCCourseResult":
+        dct["teachers"] = [RPCTeacherInCourseItem(**x) for x in dct["teacher"]]
+        del dct["teacher"]
+        dct["students"] = [RPCTeacherInCourseItem(**x) for x in dct["student"]]
+        del dct["student"]
+        return cls(**dct)
