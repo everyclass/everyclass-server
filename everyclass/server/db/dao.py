@@ -9,7 +9,6 @@ import elasticapm
 import pymongo.errors
 from Crypto.Cipher import AES
 from flask import current_app
-from typing_extensions import Final
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
@@ -59,7 +58,7 @@ class PrivacySettingsDAO(MongoDAOBase):
         "level": 0                                   # 0: public, 1: half-public, 2: private
     }
     """
-    collection_name: Final = "privacy_settings"
+    collection_name = "privacy_settings"
 
     @classmethod
     def get_level(cls, sid_orig: str) -> int:
@@ -100,7 +99,7 @@ class CalendarTokenDAO(MongoDAOBase):
         "token": ""                                 # calendar token, uuid type (not string!)
     }
     """
-    collection_name: Final = "calendar_token"
+    collection_name = "calendar_token"
 
     @classmethod
     def insert_calendar_token(cls, resource_type: str, semester: str, identifier: str) -> str:
@@ -245,7 +244,7 @@ class UserDAO(MongoDAOBase):
         "password": ""
     }
     """
-    collection_name: Final = "user"
+    collection_name = "user"
 
     @classmethod
     def exist(cls, sid_orig: str) -> bool:
@@ -301,7 +300,7 @@ class IdentityVerificationDAO(MongoDAOBase):
         "password": "xxxx"                        # encrypted password if this is a password verification request
     }
     """
-    collection_name: Final = "verification_requests"
+    collection_name = "verification_requests"
 
     @classmethod
     def get_request_by_id(cls, req_id: str) -> Optional[Dict]:
@@ -358,7 +357,7 @@ class SimplePasswordDAO(MongoDAOBase):
         "password": "1234"                     # simple password
     }
     """
-    collection_name: Final = "simple_passwords"
+    collection_name = "simple_passwords"
 
     @classmethod
     def new(cls, password: str, sid_orig: str) -> None:
@@ -383,7 +382,7 @@ class VisitorDAO(MongoDAOBase):
         "last_time": 2019-02-24T13:33:05.123Z  # last visit time
     }
     """
-    collection_name: Final = "visitor_track"
+    collection_name = "visitor_track"
 
     @classmethod
     def update_track(cls, host: str, visitor: Student) -> None:
