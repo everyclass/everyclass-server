@@ -74,12 +74,19 @@ class Student(NamedTuple):
 
 
 @dataclass
-class RPCStudentResultItem:
+class RPCStudentResult:
     class_: str
     deputy: str
     name: str
-    semester: List[str]
+    semesters: List[str]
     sid: str
+
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCStudentResult":
+        dct["class_"] = dct.pop("class")
+        dct["semesters"] = [RPCCourseInSemesterItem.make(x) for x in dct["semester"]]
+        del dct["semester"]
+        return cls(**dct)
 
 
 @dataclass
@@ -110,7 +117,7 @@ class RPCCourseInSemesterItem:
 @dataclass
 class RPCStudentInSemesterResult:
     name: str
-    sid: str
+    sid: str  # 学号
     deputy: str
     class_: str
     courses: List[RPCCourseInSemesterItem]
@@ -127,7 +134,7 @@ class RPCStudentInSemesterResult:
 @dataclass
 class RPCTeacherInSemesterResult:
     name: str
-    tid: str
+    tid: str  # 教工号
     title: str
     unit: str
     courses: List[RPCCourseInSemesterItem]

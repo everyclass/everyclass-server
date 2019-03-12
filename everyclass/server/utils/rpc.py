@@ -1,3 +1,5 @@
+from typing import Dict, Tuple, Union
+
 import gevent
 import requests
 from flask import g, render_template
@@ -49,7 +51,7 @@ class HttpRpc:
         return string, status_code
 
     @classmethod
-    def call(cls, method: str, url: str, params=None, retry: bool = False, data=None):
+    def call(cls, method: str, url: str, params=None, retry: bool = False, data=None) -> Dict:
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
         :param method: HTTP method. Support GET or POST at the moment.
         :param url: URL of the HTTP endpoint
@@ -80,7 +82,8 @@ class HttpRpc:
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
 
     @classmethod
-    def call_with_error_page(cls, url: str, params=None, retry: bool = False, data=None, method: str = 'GET'):
+    def call_with_error_page(cls, url: str, params=None, retry: bool = False,
+                             data=None, method: str = 'GET') -> Union[Dict, str]:
         """调用 API 并处理抛出的异常。如有异常，跳转到错误页。
         """
         try:
@@ -104,7 +107,7 @@ class HttpRpc:
         return api_response
 
     @classmethod
-    def call_with_handle_message(cls, url, params=None, retry=False, data=None):
+    def call_with_handle_message(cls, url, params=None, retry=False, data=None) -> Union[Dict, Tuple]:
         """call API and handle exceptions.
         if exception, return a message
         """

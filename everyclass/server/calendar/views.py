@@ -17,6 +17,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
 
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.db.dao import CalendarTokenDAO
+    from everyclass.server.models import RPCStudentInSemesterResult, RPCTeacherInSemesterResult
 
     if resource_type not in ('student', 'teacher'):
         flash('请求异常')
@@ -27,12 +28,18 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
                                                                           resource_type,
                                                                           resource_identifier,
                                                                           url_semester), retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
+    if isinstance(rpc_result, str):
+        return rpc_result
+
+    if resource_type == 'student':
+        student = RPCStudentInSemesterResult.make(rpc_result)
+        identifier_orig = student.sid
+    else:
+        teacher = RPCTeacherInSemesterResult.make(rpc_result)
+        identifier_orig = teacher.tid
 
     token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                       identifier=rpc_result[
-                                                           "sid" if resource_type == 'student' else 'tid'],
+                                                       identifier=identifier_orig,
                                                        semester=url_semester)
 
     ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
