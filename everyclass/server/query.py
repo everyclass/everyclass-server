@@ -1,11 +1,10 @@
 """
 查询相关函数
 """
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 import elasticapm
-from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, \
-    url_for
+from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.server import logger
 from everyclass.server.db.model import Student
@@ -172,7 +171,7 @@ def get_student(url_sid: str, url_semester: str):
                                    level=3)
 
     with elasticapm.capture_span('process_rpc_result'):
-        courses = dict()
+        courses: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
         for each_class in api_response['course']:
             day, time = lesson_string_to_dict(each_class['lesson'])
             if (day, time) not in courses:
