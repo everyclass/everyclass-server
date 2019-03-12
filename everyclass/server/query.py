@@ -7,6 +7,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.server import logger
+from everyclass.server.consts import MSG_400
 from everyclass.server.db.model import Student
 from everyclass.server.utils import contains_chinese
 from everyclass.server.utils.decorators import disallow_in_maintenance
@@ -122,7 +123,7 @@ def get_student(url_sid: str, url_semester: str):
     from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT, SESSION_CURRENT_USER
 
     if len(url_semester) > 11:
-        return render_template('common/error.html', message=400)
+        return render_template('common/error.html', message=MSG_400)
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/student/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -215,7 +216,7 @@ def get_teacher(url_tid, url_semester):
     from .utils.rpc import HttpRpc
 
     if len(url_semester) > 11:
-        return render_template('common/error.html', message=400)
+        return render_template('common/error.html', message=MSG_400)
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -267,7 +268,7 @@ def get_classroom(url_rid, url_semester):
     from .utils.rpc import HttpRpc
 
     if len(url_semester) > 11:
-        return render_template('common/error.html', message=400)
+        return render_template('common/error.html', message=MSG_400)
 
     with elasticapm.capture_span('rpc_query_room'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -327,7 +328,7 @@ def get_course(url_cid: str, url_semester: str):
     from .utils.rpc import HttpRpc
 
     if len(url_semester) > 11:
-        return render_template('common/error.html', message=400)
+        return render_template('common/error.html', message=MSG_400)
 
     with elasticapm.capture_span('rpc_query_course'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
