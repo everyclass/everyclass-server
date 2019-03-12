@@ -1,3 +1,4 @@
+import abc
 import datetime
 import re
 import uuid
@@ -41,7 +42,16 @@ def mongo_with_retry(method, *args, num_retries: int, **kwargs):
                 raise
 
 
-class PrivacySettingsDAO:
+class MongoDAOBase(abc.ABC):
+    collection_name: str = NotImplemented
+
+    @classmethod
+    @abc.abstractmethod
+    def create_index(cls) -> None:
+        pass
+
+
+class PrivacySettingsDAO(MongoDAOBase):
     """
     {
         "create_time": 2019-02-24T13:33:05.123Z,     # create time
@@ -78,7 +88,7 @@ class PrivacySettingsDAO:
         db[cls.collection_name].create_index([("sid_orig", 1)], unique=True)
 
 
-class CalendarTokenDAO:
+class CalendarTokenDAO(MongoDAOBase):
     """
     {
         "type": "student",                          # "student" or "teacher"
@@ -227,7 +237,7 @@ class CalendarTokenDAO:
         db[cls.collection_name].create_index([("sid", 1), ("semester", 1)])
 
 
-class UserDAO:
+class UserDAO(MongoDAOBase):
     """
     {
         "sid_orig": 390xxxxxx,
@@ -276,7 +286,7 @@ ID_STATUS_WAIT_VERIFY = "VERIFY_WAIT"  # wait everyclass-auth to verify
 ID_STATUS_PWD_SUCCESS = "PASSWORD_PASSED"
 
 
-class IdentityVerificationDAO:
+class IdentityVerificationDAO(MongoDAOBase):
     """
     identity verification related manipulations
 
@@ -337,7 +347,7 @@ class IdentityVerificationDAO:
         db[cls.collection_name].create_index([("request_id", 1)], unique=True)
 
 
-class SimplePasswordDAO:
+class SimplePasswordDAO(MongoDAOBase):
     """
     Simple passwords will be rejected when registering. However, it's fun to know what kind of simple passwords are
     being used.
@@ -357,8 +367,12 @@ class SimplePasswordDAO:
                                         "time"    : datetime.datetime.now(),
                                         "password": password})
 
+    @classmethod
+    def create_index(cls) -> None:
+        pass
 
-class VisitorDAO:
+
+class VisitorDAO(MongoDAOBase):
     """
     If privacy level is 1, logged-in users can view each other's schedule with their visiting track saved.
 
@@ -457,7 +471,7 @@ def create_index():
     import sys
 
     for cls_name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass):
-        if cls_name.endswith("DAO") and hasattr(cls, "create_index"):
+        if issubclass(cls, MongoDAOBase):
             print("[{}] Creating index...".format(cls_name))
             cls.create_index()
 
