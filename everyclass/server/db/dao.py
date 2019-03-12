@@ -13,9 +13,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
 from everyclass.server.config import get_config
-from everyclass.server.db.model import Student
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.redis import redis
+from everyclass.server.models import Student
 from everyclass.server.utils.rpc import HttpRpc
 
 

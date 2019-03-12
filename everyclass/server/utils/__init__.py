@@ -5,6 +5,7 @@ from typing import List, Set, Tuple
 import elasticapm
 
 from everyclass.server.config import get_config
+from everyclass.server.models import RPCTeacherInStudentInSemester
 
 
 def get_day_chinese(digit: int) -> str:
@@ -91,21 +92,21 @@ def semester_calculate(current_semester: str, semester_list: List[str]) -> List[
     return available_semesters
 
 
-def teacher_list_fix(teachers: List[dict]) -> list:
+def teacher_list_fix(teachers: List[RPCTeacherInStudentInSemester]) -> List[RPCTeacherInStudentInSemester]:
     """修复老师职称“未定”，以及修复重复老师
     @:param teachers: api server 返回的教师列表
     @:return: teacher list that has been fixed
     """
     tid_set: Set[str] = set()
-    new_teachers: List[dict] = []
+    new_teachers: List[RPCTeacherInStudentInSemester] = []
     for teacher in teachers:
-        if teacher['title'] == '未定':
-            teacher['title'] = ''
+        if teacher.title == '未定':
+            teacher.title = ''
 
-        if teacher['tid'] in tid_set:
+        if teacher.tid in tid_set:
             continue
         else:
-            tid_set.add(teacher['tid'])
+            tid_set.add(teacher.tid)
             new_teachers.append(teacher)
     return new_teachers
 

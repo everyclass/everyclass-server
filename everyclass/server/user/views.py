@@ -10,7 +10,7 @@ from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_INTERNAL_E
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, SimplePasswordDAO, \
     UserDAO, VisitorDAO
-from everyclass.server.db.model import Student
+from everyclass.server.models import Student
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.rpc import HttpRpc
 

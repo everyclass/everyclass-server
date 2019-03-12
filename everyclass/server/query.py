@@ -8,7 +8,7 @@ from flask import Blueprint, current_app as app, escape, flash, redirect, render
 
 from everyclass.server import logger
 from everyclass.server.consts import MSG_400
-from everyclass.server.db.model import Student
+from everyclass.server.models import Student
 from everyclass.server.utils import contains_chinese
 from everyclass.server.utils.decorators import disallow_in_maintenance
 
@@ -121,6 +121,7 @@ def get_student(url_sid: str, url_semester: str):
     from everyclass.server.utils import semester_calculate
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT, SESSION_CURRENT_USER
+    from everyclass.server.models import RPCStudentInSemesterResult, handle_keyword_conflict
 
     if len(url_semester) > 11:
         return render_template('common/error.html', message=MSG_400)
@@ -133,23 +134,25 @@ def get_student(url_sid: str, url_semester: str):
                                                   retry=True)
         if isinstance(rpc_result, str):
             return rpc_result
-        api_response = rpc_result
+        student_rpc_result = RPCStudentInSemesterResult(**handle_keyword_conflict(rpc_result))
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
-    session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=api_response['sid'], sid=url_sid, name=api_response['name'])
+    session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=student_rpc_result.sid,
+                                                   sid=url_sid,
+                                                   name=student_rpc_result.name)
 
     # get privacy level, if current user has no permission to view, return now
     with elasticapm.capture_span('get_privacy_settings'):
-        privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
+        privacy_level = PrivacySettingsDAO.get_level(student_rpc_result.sid)
 
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
     if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
-                               session[SESSION_CURRENT_USER].sid_orig != api_response['sid']):
+                               session[SESSION_CURRENT_USER].sid_orig != student_rpc_result.sid):
         return render_template('query/studentBlocked.html',
-                               name=api_response['name'],
-                               falculty=api_response['deputy'],
-                               class_name=api_response['class'],
+                               name=student_rpc_result.name,
+                               falculty=student_rpc_result.deputy,
+                               class_name=student_rpc_result.class_,
                                sid=url_sid,
                                level=2)
     # 实名互访
@@ -157,46 +160,46 @@ def get_student(url_sid: str, url_semester: str):
         # 未登录，要求登录
         if not session.get(SESSION_CURRENT_USER, None):
             return render_template('query/studentBlocked.html',
-                                   name=api_response['name'],
-                                   falculty=api_response['deputy'],
-                                   class_name=api_response['class'],
+                                   name=student_rpc_result.name,
+                                   falculty=student_rpc_result.deputy,
+                                   class_name=student_rpc_result.class_,
                                    sid=url_sid,
                                    level=1)
         # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
         if PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig) == 2:
             return render_template('query/studentBlocked.html',
-                                   name=api_response['name'],
-                                   falculty=api_response['deputy'],
-                                   class_name=api_response['class'],
+                                   name=student_rpc_result.name,
+                                   falculty=student_rpc_result.deputy,
+                                   class_name=student_rpc_result.class_,
                                    sid=url_sid,
                                    level=3)
 
     with elasticapm.capture_span('process_rpc_result'):
         courses: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
-        for each_class in api_response['course']:
-            day, time = lesson_string_to_dict(each_class['lesson'])
+        for each_class in student_rpc_result.courses:
+            day, time = lesson_string_to_dict(each_class.lesson)
             if (day, time) not in courses:
                 courses[(day, time)] = list()
-            courses[(day, time)].append(dict(name=each_class['name'],
-                                             teacher=teacher_list_fix(each_class['teacher']),
-                                             week=each_class['week_string'],
-                                             classroom=each_class['room'],
-                                             classroom_id=each_class['rid'],
-                                             cid=each_class['cid']))
+            courses[(day, time)].append(dict(name=each_class.name,
+                                             teacher=teacher_list_fix(each_class.teachers),
+                                             week=each_class.week_string,
+                                             classroom=each_class.room,
+                                             classroom_id=each_class.rid,
+                                             cid=each_class.cid))
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
-        available_semesters = semester_calculate(url_semester, sorted(api_response['semester_list']))
+        available_semesters = semester_calculate(url_semester, sorted(student_rpc_result.semester_list))
 
     # 公开模式或实名互访模式，留下轨迹
     if privacy_level != 2 and \
             session.get(SESSION_CURRENT_USER, None) and \
             session[SESSION_CURRENT_USER] != session[SESSION_LAST_VIEWED_STUDENT]:
-        VisitorDAO.update_track(host=api_response['sid'],
+        VisitorDAO.update_track(host=student_rpc_result.sid,
                                 visitor=session[SESSION_CURRENT_USER])
 
     return render_template('query/student.html',
-                           name=api_response['name'],
-                           falculty=api_response['deputy'],
-                           class_name=api_response['class'],
+                           name=student_rpc_result.name,
+                           falculty=student_rpc_result.deputy,
+                           class_name=student_rpc_result.class_,
                            sid=url_sid,
                            classes=courses,
                            empty_sat=empty_sat,

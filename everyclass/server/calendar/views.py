@@ -54,7 +54,7 @@ def ics_download(calendar_token):
     """
     from flask import send_from_directory, current_app
     from everyclass.server.db.dao import CalendarTokenDAO
-    from everyclass.server.db.model import Semester
+    from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
     from everyclass.server.utils.rpc import HttpRpc
     from everyclass.server.utils import teacher_list_fix
@@ -204,7 +204,7 @@ def legacy_get_ics(student_id, semester_str):
 
     from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
     from everyclass.server.utils.rpc import HttpRpc
-    from everyclass.server.db.model import Semester
+    from everyclass.server.models import Semester
 
     # fix parameters
     place = student_id.find('-')

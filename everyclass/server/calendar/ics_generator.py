@@ -10,7 +10,7 @@ import pytz
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.server.config import get_config
-from everyclass.server.db.model import Semester
+from everyclass.server.models import Semester
 from everyclass.server.utils import get_time
 
 tzc = Timezone()

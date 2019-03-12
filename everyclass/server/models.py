@@ -1,5 +1,6 @@
 import re
-from typing import NamedTuple
+from dataclasses import InitVar, dataclass, field
+from typing import Dict, List, NamedTuple
 
 
 class Semester(object):
@@ -70,3 +71,58 @@ class Student(NamedTuple):
     sid_orig: str
     sid: str
     name: str
+
+
+@dataclass
+class RPCStudentResult:
+    class_: str
+    deputy: str
+    name: str
+    semester: List[str]
+    sid: str
+
+
+@dataclass
+class RPCTeacherInStudentInSemester:
+    name: str
+    tid: str
+    title: str
+
+
+@dataclass
+class RPCCourseInStudentInSemester:
+    cid: str
+    lesson: str
+    name: str
+    rid: str
+    room: str
+    week: List[int]
+    teachers: List[RPCTeacherInStudentInSemester] = field(init=False)
+    teacher: InitVar[List[Dict]]
+    week_string: str = field(default="")  # optional field
+
+    def __post_init__(self, teacher):
+        """teacher域重命名为teachers域"""
+        self.teachers = [RPCTeacherInStudentInSemester(**x) for x in teacher]
+
+
+@dataclass
+class RPCStudentInSemesterResult:
+    class_: str
+    courses: List[RPCCourseInStudentInSemester] = field(init=False)
+    course: InitVar[List[Dict]]
+    deputy: str
+    name: str
+    sid: str
+    semester_list: List[str] = field(default_factory=list)  # optional field
+
+    def __post_init__(self, course):
+        """course域重命名为courses域"""
+        self.courses = [RPCCourseInStudentInSemester(**x) for x in course]
+
+
+def handle_keyword_conflict(dct: Dict) -> Dict:
+    if "class" in dct:
+        dct["class_"] = dct["class"]
+        del dct["class"]
+    return dct
