@@ -31,7 +31,8 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
             return rpc_result
 
     token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                       identifier=rpc_result["sid"],
+                                                       identifier=rpc_result[
+                                                           "sid" if resource_type == 'student' else 'tid'],
                                                        semester=url_semester)
 
     ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
