@@ -164,7 +164,7 @@ def android_client_get_ics(resource_type, identifier, semester):
 
     if resource_type == 'teacher':
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               identifier=rpc_result["sid"],
+                                                               identifier=rpc_result["tid"],
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:
