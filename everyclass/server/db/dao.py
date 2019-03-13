@@ -449,7 +449,7 @@ class RedisDAO:
         """从 Redis 中获取学生信息，有则返回 Student 对象，无则返回 None"""
         res = redis.get("{}:stu:{}".format(cls.redis_prefix, sid_orig))
         if res:
-            name, sid = res.split(",")
+            name, sid = res.decode().split(",")
             return Student(sid_orig=sid_orig, sid=sid, name=name)
         else:
             return None
