@@ -456,7 +456,7 @@ class RedisDAO:
 
     @classmethod
     def add_visitor_count(cls, sid_orig: str, visitor: Student = None) -> None:
-        """增加访客计数"""
+        """增加用户的总访问人数"""
         if sid_orig != visitor.sid_orig:  # 排除自己的访问量
             if not visitor:  # 未登录用户使用分配的user_id代替学号标识
                 visitor_sid_orig = "anm" + str(session["user_id"])
@@ -466,7 +466,7 @@ class RedisDAO:
 
     @classmethod
     def get_visitor_count(cls, sid_orig: str) -> int:
-        """获得访客计数"""
+        """获得总访问人数计数"""
         return redis.pfcount("{}:visit_cnt:{}".format(cls.prefix, sid_orig))
 
     @classmethod
