@@ -24,7 +24,8 @@
                     <tbody>
                     {% for visitor in visitor_list %}
                         <tr>
-                            <td><a href="{{ url_for('query.query', id=visitor["name"]) }} ">{{ visitor["name"] }}</a>
+                            <td>
+                                <a href="{{ url_for('query.get_student', url_sid=visitor["sid"],url_semester=visitor["last_sem"]) }} ">{{ visitor["name"] }}</a>
                             </td>
                             <td>{{ moment(visitor["visit_time"]).fromNow(refresh=True) }}</td>
                         </tr>

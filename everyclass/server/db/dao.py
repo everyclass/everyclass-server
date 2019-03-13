@@ -409,24 +409,16 @@ class VisitorDAO(MongoDAOBase):
         result = db[cls.collection_name].find({"host": sid_orig}).sort("last_time", -1).limit(50)
         visitor_list = []
         for people in result:
-            stu_cache = RedisDAO.get_student(people["visitor"])
-            if stu_cache:
-                visitor_list.append({"name"      : stu_cache.name,
-                                     "sid"       : stu_cache.sid,
-                                     "visit_time": people["last_time"]})
-            else:
-                # query api-server
-                with elasticapm.capture_span('rpc_search'):
-                    rpc_result = HttpRpc.call(method="GET",
-                                              url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
-                                                                           people["visitor"]),
-                                              retry=True)
-                visitor_list.append({"name"      : rpc_result["student"][0]["name"],
-                                     "sid"       : rpc_result["student"][0]["sid"],
-                                     "visit_time": people["last_time"]})
-                RedisDAO.set_student(Student(sid_orig=people["visitor"],
-                                             name=rpc_result["student"][0]["name"],
-                                             sid=rpc_result["student"][0]["sid"]))
+            # query api-server
+            with elasticapm.capture_span('rpc_search'):
+                rpc_result = HttpRpc.call(method="GET",
+                                          url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
+                                                                       people["visitor"]),
+                                          retry=True)
+            visitor_list.append({"name"      : rpc_result["student"][0]["name"],
+                                 "sid"       : rpc_result["student"][0]["sid"],
+                                 "last_sem"  : rpc_result["student"][0]["semester"][-1],
+                                 "visit_time": people["last_time"]})
         return visitor_list
 
     @classmethod
