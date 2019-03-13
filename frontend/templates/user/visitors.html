@@ -25,7 +25,7 @@
                     {% for visitor in visitor_list %}
                         <tr>
                             <td>{{ visitor["name"] }}</td>
-                            <td>{{ visitor["visit_time"] }}</td>
+                            <td>{{ moment(visitor["visit_time"]).fromNow(refresh=True) }}</td>
                             <td>
                                 <a href="{{ url_for('query.query', id=visitor["sid"]) }} ">查看详情</a></td>
                         </tr>
@@ -50,4 +50,6 @@
         });
 
     </script>
+    {{ moment.include_moment() }}
+    {{ moment.lang("zh-CN") }}
 {% endblock %}

@@ -28,6 +28,7 @@ flask-recaptcha = "*"
 typing-extensions = "*"
 redis = "*"
 pycryptodome = "*"
+flask-moment = "*"
 
 [dev-packages]
 coverage = "==4.4.2"

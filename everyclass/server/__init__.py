@@ -4,6 +4,7 @@ import sys
 import logbook
 from flask import Flask, g, render_template, request, session
 from flask_cdn import CDN
+from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
 from flask_session import Session
 from htmlmin import minify
@@ -170,6 +171,9 @@ def create_app() -> Flask:
 
     # CDN
     CDN(app)
+
+    # moment
+    Moment(app)
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint

@@ -323,4 +323,4 @@ def reset_calendar_token():
 def visitors():
     """我的访客页面"""
     visitor_list = VisitorDAO.get_visitors(session[SESSION_CURRENT_USER].sid_orig)
-    return render_template("user/visitors.html", visitors=visitor_list)
+    return render_template("user/visitors.html", visitor_list=visitor_list)
