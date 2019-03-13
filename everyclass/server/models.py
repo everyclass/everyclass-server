@@ -95,6 +95,10 @@ class RPCTeacherInCourseItem:
     tid: str
     title: str
 
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCTeacherInCourseItem":
+        return cls(**dct)
+
 
 @dataclass
 class RPCCourseInSemesterItem:
@@ -170,6 +174,11 @@ class RPCStudentInCourseItem:
     class_: str
     deputy: str
 
+    @classmethod
+    def make(cls, dct: Dict) -> "RPCStudentInCourseItem":
+        dct["class_"] = dct.pop("class")
+        return cls(**dct)
+
 
 @dataclass
 class RPCCourseResult:
@@ -189,8 +198,10 @@ class RPCCourseResult:
 
     @classmethod
     def make(cls, dct: Dict) -> "RPCCourseResult":
-        dct["teachers"] = [RPCTeacherInCourseItem(**x) for x in dct["teacher"]]
+        dct["teachers"] = [RPCTeacherInCourseItem.make(x) for x in dct["teacher"]]
         del dct["teacher"]
-        dct["students"] = [RPCTeacherInCourseItem(**x) for x in dct["student"]]
+        dct["students"] = [RPCStudentInCourseItem.make(x) for x in dct["student"]]
         del dct["student"]
+        dct["union_class_name"] = dct.pop("class")
+        dct["pick_num"] = dct.pop("pick")
         return cls(**dct)
