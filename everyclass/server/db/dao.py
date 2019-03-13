@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Union, overload
 import elasticapm
 import pymongo.errors
 from Crypto.Cipher import AES
-from flask import current_app
+from flask import current_app, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
@@ -436,18 +436,18 @@ class VisitorDAO(MongoDAOBase):
 
 
 class RedisDAO:
-    redis_prefix = "ec_sv"
+    prefix = "ec_sv"
 
     @classmethod
     def set_student(cls, student: Student):
         """学生信息写入 Redis"""
-        redis.set("{}:stu:{}".format(cls.redis_prefix, student.sid_orig), student.name + "," + student.sid,
+        redis.set("{}:stu:{}".format(cls.prefix, student.sid_orig), student.name + "," + student.sid,
                   ex=86400)
 
     @classmethod
     def get_student(cls, sid_orig: str) -> Optional[Student]:
         """从 Redis 中获取学生信息，有则返回 Student 对象，无则返回 None"""
-        res = redis.get("{}:stu:{}".format(cls.redis_prefix, sid_orig))
+        res = redis.get("{}:stu:{}".format(cls.prefix, sid_orig))
         if res:
             name, sid = res.decode().split(",")
             return Student(sid_orig=sid_orig, sid=sid, name=name)
@@ -455,13 +455,28 @@ class RedisDAO:
             return None
 
     @classmethod
+    def add_visitor_count(cls, sid_orig: str, visitor: Student = None) -> None:
+        """增加访客计数"""
+        if sid_orig != visitor.sid_orig:  # 排除自己的访问量
+            if not visitor:  # 未登录用户使用分配的user_id代替学号标识
+                visitor_sid_orig = "anm" + str(session["user_id"])
+            else:
+                visitor_sid_orig = visitor.sid_orig
+            redis.pfadd("{}:visit_cnt:{}".format(cls.prefix, sid_orig), visitor_sid_orig)
+
+    @classmethod
+    def get_visitor_count(cls, sid_orig: str) -> int:
+        """获得访客计数"""
+        return redis.pfcount("{}:visit_cnt:{}".format(cls.prefix, sid_orig))
+
+    @classmethod
     def new_user_id_sequence(cls) -> int:
-        return redis.incr("{}:user_sequence".format(cls.redis_prefix))
+        return redis.incr("{}:user_sequence".format(cls.prefix))
 
     @classmethod
     def init(cls):
         print("Initializing Redis...")
-        redis.set("{}:user_sequence".format(cls.redis_prefix), 5000000)
+        redis.set("{}:user_sequence".format(cls.prefix), 5000000)
 
 
 def create_index():

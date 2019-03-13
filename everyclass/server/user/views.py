@@ -8,8 +8,8 @@ from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_INTERNAL_E
     MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
-    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, SimplePasswordDAO, \
-    UserDAO, VisitorDAO
+    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
+    SimplePasswordDAO, UserDAO, VisitorDAO
 from everyclass.server.models import Student
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.rpc import HttpRpc
@@ -323,4 +323,5 @@ def reset_calendar_token():
 def visitors():
     """我的访客页面"""
     visitor_list = VisitorDAO.get_visitors(session[SESSION_CURRENT_USER].sid_orig)
-    return render_template("user/visitors.html", visitor_list=visitor_list)
+    visitor_count = RedisDAO.get_visitor_count(session[SESSION_CURRENT_USER].sid_orig)
+    return render_template("user/visitors.html", visitor_list=visitor_list, visitor_count=visitor_count)

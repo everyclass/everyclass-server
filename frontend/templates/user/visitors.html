@@ -4,6 +4,7 @@
     <div class="hero hero-homepage">
         <h1 class="hero-header">访客记录</h1>
         <h4 class="text-muted">
+            总访问量 {{ visitor_count }}，以下显示最近 50 条实名访问。<br>
             <a href="{{ url_for("user.main") }}">回到个人中心</a>
         </h4>
 
@@ -18,16 +19,14 @@
                     <tr>
                         <th>姓名</th>
                         <th>访问时间</th>
-                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for visitor in visitor_list %}
                         <tr>
-                            <td>{{ visitor["name"] }}</td>
+                            <td><a href="{{ url_for('query.query', id=visitor["name"]) }} ">{{ visitor["name"] }}</a>
+                            </td>
                             <td>{{ moment(visitor["visit_time"]).fromNow(refresh=True) }}</td>
-                            <td>
-                                <a href="{{ url_for('query.query', id=visitor["sid"]) }} ">查看详情</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

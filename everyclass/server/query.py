@@ -115,7 +115,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
-    from everyclass.server.db.dao import PrivacySettingsDAO, VisitorDAO
+    from everyclass.server.db.dao import PrivacySettingsDAO, VisitorDAO, RedisDAO
     from everyclass.server.utils import lesson_string_to_dict
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
@@ -192,6 +192,9 @@ def get_student(url_sid: str, url_semester: str):
             session[SESSION_CURRENT_USER] != session[SESSION_LAST_VIEWED_STUDENT]:
         VisitorDAO.update_track(host=student.sid,
                                 visitor=session[SESSION_CURRENT_USER])
+
+    # 增加访客记录
+    RedisDAO.add_visitor_count(student.sid, session.get(SESSION_CURRENT_USER, None))
 
     return render_template('query/student.html',
                            name=student.name,
