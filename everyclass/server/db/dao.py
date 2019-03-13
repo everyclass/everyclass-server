@@ -449,12 +449,13 @@ class RedisDAO:
     @classmethod
     def add_visitor_count(cls, sid_orig: str, visitor: Student = None) -> None:
         """增加用户的总访问人数"""
-        if sid_orig != visitor.sid_orig:  # 排除自己的访问量
-            if not visitor:  # 未登录用户使用分配的user_id代替学号标识
-                visitor_sid_orig = "anm" + str(session["user_id"])
-            else:
-                visitor_sid_orig = visitor.sid_orig
-            redis.pfadd("{}:visit_cnt:{}".format(cls.prefix, sid_orig), visitor_sid_orig)
+        if not visitor:  # 未登录用户使用分配的user_id代替学号标识
+            visitor_sid_orig = "anm" + str(session["user_id"])
+        else:
+            if sid_orig != visitor.sid_orig:  # 排除自己的访问量
+                return
+            visitor_sid_orig = visitor.sid_orig
+        redis.pfadd("{}:visit_cnt:{}".format(cls.prefix, sid_orig), visitor_sid_orig)
 
     @classmethod
     def get_visitor_count(cls, sid_orig: str) -> int:
