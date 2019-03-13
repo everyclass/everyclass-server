@@ -108,13 +108,13 @@ def email_verification():
         if req["status"] != ID_STATUS_TKN_PASSED:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
 
-        if not request.form.get("password", None):  # check if empty password
+        if any(map(lambda x: not request.form.get(x, None), ("password", "password2"))):  # check if empty password
             flash(MSG_EMPTY_PASSWORD)
             return redirect(url_for("user.email_verification"))
 
-        if any(map(lambda x: not request.form.get(x, None), ("password", "password2"))):
+        if request.form["password"] != request.form["password2"]:
             flash(MSG_PWD_DIFFERENT)
-            return redirect(url_for("user.register_by_password"))
+            return redirect(url_for("user.email_verification"))
 
         sid_orig = req['sid_orig']
 
