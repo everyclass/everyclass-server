@@ -36,7 +36,7 @@ deploy:
 - provider: script
   script: bash deploy/travis.sh
   on:
-    python: '3.6'
+    python: '3.7.1'
     tags: true
 
 notifications:
