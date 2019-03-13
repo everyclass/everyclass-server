@@ -398,7 +398,7 @@ class VisitorDAO(MongoDAOBase):
                     "visitor"     : visitor.sid_orig,
                     "visitor_type": "student"}
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
-        db[cls.collection_name].update(criteria, new_val, True)  # upsert
+        db[cls.collection_name].update_one(criteria, new_val, upsert=True)
 
         RedisDAO.set_student(student=visitor)
 
