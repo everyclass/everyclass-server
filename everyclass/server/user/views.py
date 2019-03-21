@@ -266,8 +266,10 @@ def register_by_password_success():
         if isinstance(rpc_result, str):
             return rpc_result
         api_response = rpc_result
-
-    UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"])
+    try:
+        UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"])
+    except ValueError:
+        pass  # 已经注册成功，但不知为何进入了中间状态，没有执行下面的删除 session 的代码，并且用户刷新页面
 
     # write login state to session
     flash(MSG_REGISTER_SUCCESS)

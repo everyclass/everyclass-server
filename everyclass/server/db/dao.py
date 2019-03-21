@@ -267,7 +267,7 @@ class UserDAO(MongoDAOBase):
         """add a user"""
         db = get_mongodb()
         if db[cls.collection_name].find_one({"sid_orig": sid_orig}):
-            raise ValueError("sid_orig repeated")
+            raise ValueError("Student already exists in database")
         db.user.insert({"sid_orig"   : sid_orig,
                         "create_time": datetime.datetime.now(),
                         "password"   : generate_password_hash(password)})
