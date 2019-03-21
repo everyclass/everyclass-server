@@ -24,7 +24,7 @@ MSG_TOKEN_INVALID = "令牌无效或已过期，请重新注册"
 """
 提示信息
 """
-MSG_WEAK_PASSWORD = "密码过于简单，请使用复杂一些的密码。"
+MSG_WEAK_PASSWORD = "密码过于简单，为了保证账户安全，请使用复杂一些的密码。"
 MSG_INVALID_CAPTCHA = "人类验证未通过，请重试。"
 MSG_WRONG_PASSWORD = "密码错误，请重试。"
 MSG_REGISTER_SUCCESS = "注册成功，请牢记你的密码。"
