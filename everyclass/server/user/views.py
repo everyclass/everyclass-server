@@ -5,8 +5,8 @@ from zxcvbn import zxcvbn
 
 from everyclass.server import logger, recaptcha
 from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, \
-    MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
-    SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
+    MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, \
+    MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
@@ -215,6 +215,9 @@ def register_by_password():
             return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
     else:
         # show password registration page
+        if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
+            return render_template('common/error.html', message=MSG_VIEW_SCHEDULE_FIRST)
+
         return render_template("user/passwordRegistration.html", name=session[SESSION_LAST_VIEWED_STUDENT].name)
 
 
