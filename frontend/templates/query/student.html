@@ -19,7 +19,7 @@
                 {% if session.get("current_logged_in_user", None) and session["current_logged_in_user"].sid==sid %}
                     <a href="{{ url_for('user.main') }}">个人中心</a>
                 {% else %}
-                    <a href="{{ url_for('user.login') }}">登陆</a>
+                    <a href="{{ url_for('user.login') }}">登录</a>
                 {% endif %} &nbsp;
             {% endif %}
             <a

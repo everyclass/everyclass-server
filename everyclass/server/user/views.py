@@ -22,7 +22,7 @@ def login():
     """
     登录页
 
-    判断学生是否未注册，若已经注册，渲染登陆页。否则跳转到注册页面。
+    判断学生是否未注册，若已经注册，渲染登录页。否则跳转到注册页面。
     """
     if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
         return render_template('common/error.html', message=MSG_400)
