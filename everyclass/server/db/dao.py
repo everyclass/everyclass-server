@@ -64,7 +64,7 @@ class PrivacySettingsDAO(MongoDAOBase):
     def get_level(cls, sid_orig: str) -> int:
         """获得学生的隐私级别。0为公开，1为实名互访，2为自己可见。默认为配置文件中定义的 DEFAULT_PRIVACY_LEVEL"""
         db = get_mongodb()
-        doc = mongo_with_retry(db[cls.collection_name].find_one, {"sid_orig": sid_orig}, num_retries=1)
+        doc = mongo_with_retry(db.get_collection(cls.collection_name).find_one, {"sid_orig": sid_orig}, num_retries=1)
         return doc["level"] if doc else get_config().DEFAULT_PRIVACY_LEVEL
 
     @classmethod
@@ -72,19 +72,19 @@ class PrivacySettingsDAO(MongoDAOBase):
         """Set privacy level for a student"""
         db = get_mongodb()
         criteria = {"sid_orig": sid_orig}
-        doc = db[cls.collection_name].find_one(criteria)
+        doc = db.get_collection(cls.collection_name).find_one(criteria)
         if doc:
-            db[cls.collection_name].update_one(criteria,
-                                               {"$set": {"level": new_level}})
+            db.get_collection(cls.collection_name).update_one(criteria,
+                                                              {"$set": {"level": new_level}})
         else:
-            db[cls.collection_name].insert({"create_time": datetime.datetime.now(),
-                                            "sid_orig"   : sid_orig,
-                                            "level"      : new_level})
+            db.get_collection(cls.collection_name).insert({"create_time": datetime.datetime.now(),
+                                                           "sid_orig"   : sid_orig,
+                                                           "level"      : new_level})
 
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index([("sid_orig", 1)], unique=True)
+        db.get_collection(cls.collection_name).create_index([("sid_orig", 1)], unique=True)
 
 
 class CalendarTokenDAO(MongoDAOBase):
@@ -113,7 +113,7 @@ class CalendarTokenDAO(MongoDAOBase):
                'semester'   : semester,
                'token'      : token}
 
-        db[cls.collection_name].insert(doc)
+        db.get_collection(cls.collection_name).insert(doc)
         return str(token)
 
     @overload  # noqa: F811
@@ -136,13 +136,13 @@ class CalendarTokenDAO(MongoDAOBase):
         """通过 token 或者 sid/tid + 学期获得 token 文档"""
         db = get_mongodb()
         if token:
-            return db[cls.collection_name].find_one({'token': uuid.UUID(token)})
+            return db.get_collection(cls.collection_name).find_one({'token': uuid.UUID(token)})
         elif tid and semester:
-            return db[cls.collection_name].find_one({'identifier': tid,
-                                                     'semester'  : semester})
+            return db.get_collection(cls.collection_name).find_one({'identifier': tid,
+                                                                    'semester'  : semester})
         elif sid and semester:
-            return db[cls.collection_name].find_one({'identifier': sid,
-                                                     'semester'  : semester})
+            return db.get_collection(cls.collection_name).find_one({'identifier': sid,
+                                                                    'semester'  : semester})
         else:
             raise ValueError("tid/sid together with semester or token must be given to search a token document")
 
@@ -186,20 +186,27 @@ class CalendarTokenDAO(MongoDAOBase):
                 return group.group(1), group.group(2)
 
         db = get_mongodb()
-        teacher_docs = db[cls.collection_name].find({"tid": {"$exists": True}})
+        teacher_docs = db.get_collection(cls.collection_name).find({"tid": {"$exists": True}})
         for each in teacher_docs:
             print(each)
-            db[cls.collection_name].update_one(each, {"$set"  : {"identifier": identifier_decrypt(key, each["tid"])[1],
-                                                                 "type"      : "teacher"},
-                                                      "$unset": {"tid": 1}
-                                                      })
-        student_docs = db[cls.collection_name].find({"sid": {"$exists": True}})
+            db.get_collection(cls.collection_name).update_one(each,
+                                                              {"$set"  : {"identifier": identifier_decrypt(key,
+                                                                                                           each["tid"])[
+                                                                  1],
+                                                                          "type"      : "teacher"
+                                                                          },
+                                                               "$unset": {"tid": 1}
+                                                               })
+        student_docs = db.get_collection(cls.collection_name).find({"sid": {"$exists": True}})
         for each in student_docs:
             print(each)
-            db[cls.collection_name].update_one(each, {"$set"  : {"identifier": identifier_decrypt(key, each["sid"])[1],
-                                                                 "type"      : "student"},
-                                                      "$unset": {"sid": 1}
-                                                      })
+            db.get_collection(cls.collection_name).update_one(each,
+                                                              {"$set"     : {
+                                                                  "identifier": identifier_decrypt(key, each["sid"])[1],
+                                                                  "type"      : "student"
+                                                              },
+                                                                  "$unset": {"sid": 1}
+                                                              })
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
@@ -226,14 +233,14 @@ class CalendarTokenDAO(MongoDAOBase):
     def reset_tokens(cls, sid: str) -> None:
         """删除学生所有的 token"""
         db = get_mongodb()
-        db[cls.collection_name].remove({"sid": sid})
+        db.get_collection(cls.collection_name).remove({"sid": sid})
 
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index("token", unique=True)
-        db[cls.collection_name].create_index([("tid", 1), ("semester", 1)])
-        db[cls.collection_name].create_index([("sid", 1), ("semester", 1)])
+        db.get_collection(cls.collection_name).create_index("token", unique=True)
+        db.get_collection(cls.collection_name).create_index([("tid", 1), ("semester", 1)])
+        db.get_collection(cls.collection_name).create_index([("sid", 1), ("semester", 1)])
 
 
 class UserDAO(MongoDAOBase):
@@ -266,7 +273,7 @@ class UserDAO(MongoDAOBase):
     def add_user(cls, sid_orig: str, password: str) -> None:
         """add a user"""
         db = get_mongodb()
-        if db[cls.collection_name].find_one({"sid_orig": sid_orig}):
+        if db.get_collection(cls.collection_name).find_one({"sid_orig": sid_orig}):
             raise ValueError("Student already exists in database")
         db.user.insert({"sid_orig"   : sid_orig,
                         "create_time": datetime.datetime.now(),
@@ -275,10 +282,10 @@ class UserDAO(MongoDAOBase):
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index([("sid_orig", 1)], unique=True)
+        db.get_collection(cls.collection_name).create_index([("sid_orig", 1)], unique=True)
 
 
-ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"
+ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"  # email verification passed but password may not set
 ID_STATUS_SENT = "EMAIL_SENT"  # email request sent to everyclass-auth(cannot make sure the email is really sent)
 ID_STATUS_PASSWORD_SET = "PASSWORD_SET"
 ID_STATUS_WAIT_VERIFY = "VERIFY_WAIT"  # wait everyclass-auth to verify
@@ -305,7 +312,7 @@ class IdentityVerificationDAO(MongoDAOBase):
     @classmethod
     def get_request_by_id(cls, req_id: str) -> Optional[Dict]:
         db = get_mongodb()
-        return db[cls.collection_name].find_one({'request_id': uuid.UUID(req_id)})
+        return db.get_collection(cls.collection_name).find_one({'request_id': uuid.UUID(req_id)})
 
     @classmethod
     def new_register_request(cls, sid_orig: str, verification_method: str, status: str,
@@ -329,7 +336,7 @@ class IdentityVerificationDAO(MongoDAOBase):
                "status"             : status}
         if password:
             doc.update({"password": generate_password_hash(password)})
-        db[cls.collection_name].insert(doc)
+        db.get_collection(cls.collection_name).insert(doc)
         return str(doc["request_id"])
 
     @classmethod
@@ -338,12 +345,12 @@ class IdentityVerificationDAO(MongoDAOBase):
         db = get_mongodb()
         query = {"request_id": uuid.UUID(request_id)}
         new_values = {"$set": {"status": status}}
-        db[cls.collection_name].update_one(query, new_values)
+        db.get_collection(cls.collection_name).update_one(query, new_values)
 
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index([("request_id", 1)], unique=True)
+        db.get_collection(cls.collection_name).create_index([("request_id", 1)], unique=True)
 
 
 class SimplePasswordDAO(MongoDAOBase):
@@ -362,9 +369,9 @@ class SimplePasswordDAO(MongoDAOBase):
     @classmethod
     def new(cls, password: str, sid_orig: str) -> None:
         db = get_mongodb()
-        db[cls.collection_name].insert({"sid_orig": sid_orig,
-                                        "time"    : datetime.datetime.now(),
-                                        "password": password})
+        db.get_collection(cls.collection_name).insert({"sid_orig": sid_orig,
+                                                       "time"    : datetime.datetime.now(),
+                                                       "password": password})
 
     @classmethod
     def create_index(cls) -> None:
@@ -398,7 +405,7 @@ class VisitorDAO(MongoDAOBase):
                     "visitor"     : visitor.sid_orig,
                     "visitor_type": "student"}
         new_val = {"$set": {"last_time": datetime.datetime.now()}}
-        db[cls.collection_name].update_one(criteria, new_val, upsert=True)
+        db.get_collection(cls.collection_name).update_one(criteria, new_val, upsert=True)
 
         RedisDAO.set_student(student=visitor)
 
@@ -406,7 +413,7 @@ class VisitorDAO(MongoDAOBase):
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
         """获得访客列表"""
         db = get_mongodb()
-        result = db[cls.collection_name].find({"host": sid_orig}).sort("last_time", -1).limit(50)
+        result = db.get_collection(cls.collection_name).find({"host": sid_orig}).sort("last_time", -1).limit(50)
         visitor_list = []
         for people in result:
             # query api-server
@@ -424,7 +431,7 @@ class VisitorDAO(MongoDAOBase):
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db[cls.collection_name].create_index([("host", 1), ("last_time", 1)], unique=True)
+        db.get_collection(cls.collection_name).create_index([("host", 1), ("last_time", 1)], unique=True)
 
 
 class RedisDAO:
