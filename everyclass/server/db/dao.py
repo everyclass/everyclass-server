@@ -15,7 +15,7 @@ from everyclass.server import logger
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.redis import redis
-from everyclass.server.models import Student
+from everyclass.server.models import StudentSession
 from everyclass.server.utils.rpc import HttpRpc
 
 
@@ -392,7 +392,7 @@ class VisitorDAO(MongoDAOBase):
     collection_name = "visitor_track"
 
     @classmethod
-    def update_track(cls, host: str, visitor: Student) -> None:
+    def update_track(cls, host: str, visitor: StudentSession) -> None:
         """
         Update time of visit. If this is first time visit, add a new document.
 
@@ -438,23 +438,23 @@ class RedisDAO:
     prefix = "ec_sv"
 
     @classmethod
-    def set_student(cls, student: Student):
+    def set_student(cls, student: StudentSession):
         """学生信息写入 Redis"""
         redis.set("{}:stu:{}".format(cls.prefix, student.sid_orig), student.name + "," + student.sid,
                   ex=86400)
 
     @classmethod
-    def get_student(cls, sid_orig: str) -> Optional[Student]:
-        """从 Redis 中获取学生信息，有则返回 Student 对象，无则返回 None"""
+    def get_student(cls, sid_orig: str) -> Optional[StudentSession]:
+        """从 Redis 中获取学生信息，有则返回 StudentSession 对象，无则返回 None"""
         res = redis.get("{}:stu:{}".format(cls.prefix, sid_orig))
         if res:
             name, sid = res.decode().split(",")
-            return Student(sid_orig=sid_orig, sid=sid, name=name)
+            return StudentSession(sid_orig=sid_orig, sid=sid, name=name)
         else:
             return None
 
     @classmethod
-    def add_visitor_count(cls, sid_orig: str, visitor: Student = None) -> None:
+    def add_visitor_count(cls, sid_orig: str, visitor: StudentSession = None) -> None:
         """增加用户的总访问人数"""
         if not visitor:  # 未登录用户使用分配的user_id代替学号标识
             visitor_sid_orig = "anm" + str(session["user_id"])

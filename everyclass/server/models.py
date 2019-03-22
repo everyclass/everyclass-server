@@ -67,7 +67,7 @@ class Semester(object):
         return self.to_str(simplify=True).replace('-', '_')
 
 
-class Student(NamedTuple):
+class StudentSession(NamedTuple):
     sid_orig: str
     sid: str
     name: str

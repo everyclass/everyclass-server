@@ -9,7 +9,7 @@ from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_INTERNAL_E
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
-from everyclass.server.models import Student
+from everyclass.server.models import StudentSession
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.rpc import HttpRpc
 
@@ -55,9 +55,9 @@ def login():
                 api_response = rpc_result
 
             # 登录态写入 session
-            session[SESSION_CURRENT_USER] = Student(sid_orig=sid_orig,
-                                                    sid=api_response["student"][0]["sid"],
-                                                    name=api_response["student"][0]["name"])
+            session[SESSION_CURRENT_USER] = StudentSession(sid_orig=sid_orig,
+                                                           sid=api_response["student"][0]["sid"],
+                                                           name=api_response["student"][0]["name"])
             return redirect(url_for("user.main"))
         else:
             flash(MSG_WRONG_PASSWORD)
@@ -156,9 +156,9 @@ def email_verification():
             api_response = rpc_result
 
         # 登录态写入 session
-        session[SESSION_CURRENT_USER] = Student(sid_orig=api_response["student"][0]["sid_orig"],
-                                                sid=api_response["student"][0]["sid"],
-                                                name=api_response["student"][0]["name"])
+        session[SESSION_CURRENT_USER] = StudentSession(sid_orig=api_response["student"][0]["sid_orig"],
+                                                       sid=api_response["student"][0]["sid"],
+                                                       name=api_response["student"][0]["name"])
         return redirect(url_for("user.main"))
     else:
         # 设置密码页面
@@ -290,9 +290,9 @@ def register_by_password_success():
     # write login state to session
     flash(MSG_REGISTER_SUCCESS)
     del session[SESSION_VER_REQ_ID]
-    session[SESSION_CURRENT_USER] = Student(sid_orig=api_response["student"][0]["sid_orig"],
-                                            sid=api_response["student"][0]["sid"],
-                                            name=api_response["student"][0]["name"])
+    session[SESSION_CURRENT_USER] = StudentSession(sid_orig=api_response["student"][0]["sid_orig"],
+                                                   sid=api_response["student"][0]["sid"],
+                                                   name=api_response["student"][0]["name"])
     return redirect(url_for("user.main"))
 
 

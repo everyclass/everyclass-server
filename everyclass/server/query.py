@@ -7,7 +7,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.server import logger
-from everyclass.server.models import Student
+from everyclass.server.models import StudentSession
 from everyclass.server.utils import contains_chinese
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 
@@ -135,9 +135,9 @@ def get_student(url_sid: str, url_semester: str):
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
-    session[SESSION_LAST_VIEWED_STUDENT] = Student(sid_orig=student.sid,
-                                                   sid=url_sid,
-                                                   name=student.name)
+    session[SESSION_LAST_VIEWED_STUDENT] = StudentSession(sid_orig=student.sid,
+                                                          sid=url_sid,
+                                                          name=student.name)
 
     # get privacy level, if current user has no permission to view, return now
     with elasticapm.capture_span('get_privacy_settings'):
