@@ -193,8 +193,7 @@ class CalendarTokenDAO(MongoDAOBase):
                                                               {"$set"  : {"identifier": identifier_decrypt(key,
                                                                                                            each["tid"])[
                                                                   1],
-                                                                          "type"      : "teacher"
-                                                                          },
+                                                                          "type"      : "teacher"},
                                                                "$unset": {"tid": 1}
                                                                })
         student_docs = db.get_collection(cls.collection_name).find({"sid": {"$exists": True}})
@@ -203,10 +202,8 @@ class CalendarTokenDAO(MongoDAOBase):
             db.get_collection(cls.collection_name).update_one(each,
                                                               {"$set"     : {
                                                                   "identifier": identifier_decrypt(key, each["sid"])[1],
-                                                                  "type"      : "student"
-                                                              },
-                                                                  "$unset": {"sid": 1}
-                                                              })
+                                                                  "type"      : "student"},
+                                                                  "$unset": {"sid": 1}})
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
