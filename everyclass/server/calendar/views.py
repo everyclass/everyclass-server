@@ -13,15 +13,15 @@ cal_blueprint = Blueprint('calendar', __name__)
 @disallow_in_maintenance
 def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
-    from flask import current_app as app, render_template, url_for, flash, redirect
+    from flask import current_app as app, render_template, url_for, session
 
     from everyclass.server.utils.rpc import HttpRpc
-    from everyclass.server.db.dao import CalendarTokenDAO
+    from everyclass.server.db.dao import CalendarTokenDAO, PrivacySettingsDAO
     from everyclass.server.models import RPCStudentInSemesterResult, RPCTeacherInSemesterResult
+    from everyclass.server.consts import MSG_400, SESSION_CURRENT_USER, MSG_401
 
     if resource_type not in ('student', 'teacher'):
-        flash('请求异常')
-        return redirect(url_for('main.main'))
+        return render_template("common/error.html", message=MSG_400)
 
     with elasticapm.capture_span('rpc_query_student'):
         rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -34,6 +34,13 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     if resource_type == 'student':
         student = RPCStudentInSemesterResult.make(rpc_result)
         identifier_orig = student.sid
+
+        # 检查是否有权限访问日历订阅页面
+        with elasticapm.capture_span('get_privacy_settings'):
+            privacy_level = PrivacySettingsDAO.get_level(student.sid)
+        if privacy_level != 0:
+            if not (session.get(SESSION_CURRENT_USER, None) and session[SESSION_CURRENT_USER].sid_orig == student.sid):
+                return render_template("common/error.html", message=MSG_401)
     else:
         teacher = RPCTeacherInSemesterResult.make(rpc_result)
         identifier_orig = teacher.tid

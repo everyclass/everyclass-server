@@ -257,7 +257,7 @@ class UserDAO(MongoDAOBase):
     def exist(cls, sid_orig: str) -> bool:
         """check if a student has registered"""
         db = get_mongodb()
-        result = db.user.find_one({'sid_orig': sid_orig})
+        result = db.get_collection(cls.collection_name).find_one({'sid_orig': sid_orig})
         if result:
             return True
         return False
@@ -266,7 +266,9 @@ class UserDAO(MongoDAOBase):
     def check_password(cls, sid_orig: str, password: str) -> bool:
         """verify a user's password. Return True if password is correct, otherwise return False."""
         db = get_mongodb()
-        doc = db.user.find_one({'sid_orig': sid_orig})
+        doc = db.get_collection(cls.collection_name).find_one({'sid_orig': sid_orig})
+        if not doc:
+            raise ValueError("Student not registered")
         return check_password_hash(doc['password'], password)
 
     @classmethod
@@ -275,9 +277,10 @@ class UserDAO(MongoDAOBase):
         db = get_mongodb()
         if db.get_collection(cls.collection_name).find_one({"sid_orig": sid_orig}):
             raise ValueError("Student already exists in database")
+        password_hash = generate_password_hash(password)
         db.user.insert({"sid_orig"   : sid_orig,
                         "create_time": datetime.datetime.now(),
-                        "password"   : generate_password_hash(password)})
+                        "password"   : password_hash})
 
     @classmethod
     def create_index(cls) -> None:

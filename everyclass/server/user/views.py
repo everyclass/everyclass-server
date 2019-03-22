@@ -1,6 +1,5 @@
 import elasticapm
 from flask import Blueprint, current_app as app, flash, jsonify, redirect, render_template, request, session, url_for
-from werkzeug.security import generate_password_hash
 from zxcvbn import zxcvbn
 
 from everyclass.server import logger, recaptcha
@@ -26,6 +25,7 @@ def login():
     """
     if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
         return render_template('common/error.html', message=MSG_400)
+
     if request.method == 'GET':
         # if not registered, redirect to register page
         if not UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
@@ -33,18 +33,35 @@ def login():
 
         return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
     else:
+        if not request.form.get("password", None):
+            flash(MSG_EMPTY_PASSWORD)
+            return redirect(url_for("user.login"))
         if not recaptcha.verify():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.login"))
-        if request.form.get("password", None):
-            success = UserDAO.check_password(session[SESSION_LAST_VIEWED_STUDENT].sid_orig, request.form["password"])
-            if success:
-                session[SESSION_CURRENT_USER] = session[SESSION_LAST_VIEWED_STUDENT]
-                return redirect(url_for("user.main"))
-            else:
-                flash(MSG_WRONG_PASSWORD)
-                return redirect(url_for("user.login"))
-        return render_template('common/error.html', message=MSG_400)
+
+        if request.form.get("xh", None):
+            sid_orig = request.form["xh"]
+        else:
+            sid_orig = session[SESSION_LAST_VIEWED_STUDENT].sid_orig
+        success = UserDAO.check_password(sid_orig, request.form["password"])
+        if success:
+            with elasticapm.capture_span('rpc_get_student_info'):
+                rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(
+                        app.config['API_SERVER_BASE_URL'],
+                        sid_orig), retry=True)
+                if isinstance(rpc_result, str):
+                    return rpc_result
+                api_response = rpc_result
+
+            # 登录态写入 session
+            session[SESSION_CURRENT_USER] = Student(sid_orig=sid_orig,
+                                                    sid=api_response["student"][0]["sid"],
+                                                    name=api_response["student"][0]["name"])
+            return redirect(url_for("user.main"))
+        else:
+            flash(MSG_WRONG_PASSWORD)
+            return redirect(url_for("user.login"))
 
 
 @user_bp.route('/register')
@@ -194,8 +211,7 @@ def register_by_password():
         request_id = IdentityVerificationDAO.new_register_request(session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
                                                                   "password",
                                                                   ID_STATUS_WAIT_VERIFY,
-                                                                  password=generate_password_hash(
-                                                                          request.form["password"]))
+                                                                  password=request.form["password"])
 
         # call everyclass-auth to verify password
         with elasticapm.capture_span('rpc_submit_auth'):
