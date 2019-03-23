@@ -200,6 +200,7 @@ class Config(object):
                                 "MYSQL_CONFIG.password",
                                 "MYSQL_CONFIG.passwd",
                                 "REDIS.password",
+                                "MONGODB.password",
                                 "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
