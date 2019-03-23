@@ -199,6 +199,7 @@ class Config(object):
     PRODUCTION_SECURE_FIELDS = ("SENTRY_CONFIG.dsn",
                                 "MYSQL_CONFIG.password",
                                 "MYSQL_CONFIG.passwd",
+                                "REDIS.password",
                                 "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
