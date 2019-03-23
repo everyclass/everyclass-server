@@ -7,7 +7,7 @@
 ![works-on](https://img.shields.io/badge/works%20on-my%20computer-brightgreen.svg)
 [![code-coverage](https://codecov.io/gh/fr0der1c/EveryClass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/fr0der1c/EveryClass-server)
 
-This is the web server part of the [EveryClass](https://github.com/fr0der1c/EveryClass) project.
+This is the web server part of the [EveryClass](https://github.com/everyclass/everyclass) project.
 
 
 ### Communication
@@ -32,7 +32,7 @@ If you wish to discuss the project, you can join our [forum](https://base.admira
 
 ### Contributions, Bug Reports, Feature Requests
 
-This is an open source project and we would be happy to have contributors who report bugs, file feature requests and submit pull requests. Please report issues here: [https://github.com/AdmirablePro/everyclass/issues](https://github.com/AdmirablePro/everyclass/issues) (not issue tracker of this repository!)
+This is an open source project and we would be happy to have contributors who report bugs, file feature requests and submit pull requests. Please report issues here: [https://github.com/AdmirablePro/everyclass/issues](https://github.com/everyclass/everyclass/issues) (not issue tracker of this repository!)
 
 ### Branch Policy
 
