@@ -64,14 +64,13 @@ class HttpRpc:
         trial = 0
         while trial < trial_total:
             try:
-                with gevent.Timeout(5):
-                    logger.debug('RPC {} {}'.format(method, url))
-                    if method == 'GET':
-                        api_response = api_session.get(url, params=params, json=data)
-                    elif method == 'POST':
-                        api_response = api_session.post(url, params=params, json=data)
-                    else:
-                        raise NotImplementedError("Unsupported HTTP method {}".format(method))
+                logger.debug('RPC {} {}'.format(method, url))
+                if method == 'GET':
+                    api_response = api_session.get(url, params=params, json=data)
+                elif method == 'POST':
+                    api_response = api_session.post(url, params=params, json=data)
+                else:
+                    raise NotImplementedError("Unsupported HTTP method {}".format(method))
             except gevent.timeout.Timeout:
                 trial += 1
                 continue
