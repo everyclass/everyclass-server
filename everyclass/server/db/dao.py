@@ -16,7 +16,7 @@ from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
-from everyclass.server.utils.rpc import HttpRpc
+from everyclass.server.rpc.http import HttpRpc
 
 
 def new_user_id_sequence() -> int:

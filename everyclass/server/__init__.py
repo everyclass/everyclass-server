@@ -104,7 +104,7 @@ try:
         and the gevent engine is not started yet (controlled by uWSGI). So we can only do the initialization
         here.
         """
-        from everyclass.server.utils.rpc import HttpRpc
+        from everyclass.server.rpc.http import HttpRpc
         android_manifest = HttpRpc.call(method="GET",
                                         url="https://everyclass.cdn.admirable.pro/android/manifest.json",
                                         retry=True)

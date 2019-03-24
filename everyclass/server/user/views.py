@@ -10,8 +10,8 @@ from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, I
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
 from everyclass.server.models import StudentSession
+from everyclass.server.rpc.http import HttpRpc
 from everyclass.server.utils.decorators import login_required
-from everyclass.server.utils.rpc import HttpRpc
 
 user_bp = Blueprint('user', __name__)
 

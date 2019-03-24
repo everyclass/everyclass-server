@@ -15,7 +15,7 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
     from flask import current_app as app, render_template, url_for, session
 
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.db.dao import CalendarTokenDAO, PrivacySettingsDAO
     from everyclass.server.models import RPCStudentInSemesterResult, RPCTeacherInSemesterResult
     from everyclass.server.consts import MSG_400, SESSION_CURRENT_USER, MSG_401
@@ -70,7 +70,7 @@ def ics_download(calendar_token):
     from everyclass.server.db.dao import CalendarTokenDAO
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import teacher_list_to_str
     from everyclass.server.utils import lesson_string_to_dict
@@ -132,7 +132,7 @@ def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
     from flask import current_app as app, jsonify
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
 
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call_with_handle_message('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
@@ -164,7 +164,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     """
     from flask import current_app as app, redirect, url_for, request
 
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO, UserDAO
 
     if resource_type not in ('student', 'teacher'):
@@ -219,7 +219,7 @@ def legacy_get_ics(student_id, semester_str):
     from flask import current_app as app, abort, redirect, url_for
 
     from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.models import Semester
 
     # fix parameters

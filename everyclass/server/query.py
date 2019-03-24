@@ -27,7 +27,7 @@ def query():
     - `query_type`, 查询方式（姓名、学工号）: by_name, by_id, other
     """
     import re
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -119,7 +119,7 @@ def get_student(url_sid: str, url_semester: str):
     from everyclass.server.utils import lesson_string_to_dict
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT, SESSION_CURRENT_USER
     from everyclass.server.models import RPCStudentInSemesterResult
 
@@ -217,7 +217,7 @@ def get_teacher(url_tid, url_semester):
     """老师查询"""
     from everyclass.server.utils import lesson_string_to_dict
     from everyclass.server.utils import semester_calculate
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.models import RPCTeacherInSemesterResult
 
     with elasticapm.capture_span('rpc_query_student'):
@@ -268,7 +268,7 @@ def get_classroom(url_rid, url_semester):
     from everyclass.server.utils import lesson_string_to_dict
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.models import RPCRoomResult
 
     with elasticapm.capture_span('rpc_query_room'):
@@ -328,7 +328,7 @@ def get_course(url_cid: str, url_semester: str):
     from everyclass.server.utils import get_time_chinese
     from everyclass.server.utils import get_day_chinese
     from everyclass.server.utils import teacher_list_fix
-    from everyclass.server.utils.rpc import HttpRpc
+    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.models import RPCCourseResult
 
     with elasticapm.capture_span('rpc_query_course'):
