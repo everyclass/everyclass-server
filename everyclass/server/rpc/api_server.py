@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
 from flask import current_app as app
@@ -63,6 +63,101 @@ class SearchResult:
         return cls(*lst)
 
 
+@dataclass
+class ClassroomResultCourseItemTeacherItem:
+    tid: str
+    name: str
+    title: str
+
+    @classmethod
+    def make(cls, dct: Dict) -> "ClassroomResultCourseItemTeacherItem":
+        return cls(**dct)
+
+
+@dataclass
+class ClassroomResultCourseItem:
+    name: str
+    cid: str
+    room: str
+    rid: str
+    week: List[int]
+    week_string: str
+    teacher: List[ClassroomResultCourseItemTeacherItem]
+
+    @classmethod
+    def make(cls, dct: Dict) -> "ClassroomResultCourseItem":
+        dct["teachers"] = [ClassroomResultCourseItemTeacherItem.make(x) for x in dct["teacher"]]
+        return cls(**dct)
+
+
+@dataclass
+class ClassroomResult:
+    rid: str
+    name: str
+    building: str
+    campus: str
+    semester: str
+    course: List[ClassroomResultCourseItem]
+
+    @classmethod
+    def make(cls, dct: Dict) -> "ClassroomResult":
+        del dct["status"]
+        return cls(**dct)
+
+
+@dataclass
+class CourseResultTeacherItem:
+    name: str
+    tid: str
+    title: str
+    unit: str
+
+    @classmethod
+    def make(cls, dct: Dict) -> "CourseResultTeacherItem":
+        return cls(**dct)
+
+
+@dataclass
+class CourseResultStudentItem:
+    name: str
+    sid: str
+    klass: str
+    deputy: str
+
+    @classmethod
+    def make(cls, dct: Dict) -> "CourseResultStudentItem":
+        dct["klass"] = dct.pop("class")
+        return cls(**dct)
+
+
+@dataclass
+class CourseResult:
+    name: str
+    cid: str
+    union_class_name: str
+    hour: int
+    lesson: str
+    type: str
+    pick_num: int
+    rid: str
+    room: str
+    students: List[CourseResultStudentItem]
+    teachers: List[CourseResultTeacherItem]
+    week: List[int]
+    week_string: str = field(default="")  # optional field
+
+    @classmethod
+    def make(cls, dct: Dict) -> "CourseResult":
+        del dct["status"]
+        dct["teachers"] = [CourseResultTeacherItem.make(x) for x in dct["teacher"]]
+        del dct["teacher"]
+        dct["students"] = [CourseResultStudentItem.make(x) for x in dct["student"]]
+        del dct["student"]
+        dct["union_class_name"] = dct.pop("klass")
+        dct["pick_num"] = dct.pop("pick")
+        return cls(**dct)
+
+
 class APIServer:
     @classmethod
     def search(cls, keyword: str) -> SearchResult:
@@ -80,17 +175,41 @@ class APIServer:
         return search_result
 
     @classmethod
-    def get_student(cls, xh: str):
+    def get_student(cls, sid: str):
         pass
 
     @classmethod
-    def get_teacher(cls, jgh: str):
+    def get_teacher(cls, tid: str):
         pass
 
     @classmethod
-    def get_classroom(cls, room_id: str):
-        pass
+    def get_classroom(cls, semester: str, room_id: str):
+        """
+        根据学期和教室ID获得教室
+        :param semester: 学期，如 2018-2019-1
+        :param room_id: 教室ID
+        :return:
+        """
+        resp = HttpRpc.call(method="GET",
+                            url='{}/v2/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'], semester, room_id),
+                            retry=True)
+        if resp["status"] != "success":
+            raise RpcException('API Server returns non-success status')
+        search_result = ClassroomResult.make(resp)
+        return search_result
 
     @classmethod
-    def get_course(cls, course_id: str):
-        pass
+    def get_course(cls, semester: str, course_id: str) -> CourseResult:
+        """
+        根据学期和课程ID获得课程
+        :param semester: 学期，如 2018-2019-1
+        :param course_id: 课程ID
+        :return:
+        """
+        resp = HttpRpc.call(method="GET",
+                            url='{}/v2/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'], semester, course_id),
+                            retry=True)
+        if resp["status"] != "success":
+            raise RpcException('API Server returns non-success status')
+        search_result = CourseResult.make(resp)
+        return search_result
