@@ -1,10 +1,24 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Dict, List, Union
 
 from flask import current_app as app
 
+from everyclass.server import logger
 from everyclass.server.exceptions import RpcException
 from everyclass.server.rpc.http import HttpRpc
+
+
+def ensure_slots(cls, dct: Dict):
+    """移除dataclass中不存在的key，预防unexpected argument的发生。"""
+    _names = [x.name for x in fields(cls)]
+    _del = []
+    for key in dct:
+        if key not in _names:
+            _del.append(key)
+    for key in _del:
+        del dct[key]  # delete unexpected keys
+        logger.warn("Unexpected field `{}` is removed when converting dict to dataclass `{}`".format(key, cls.__name__))
+    return dct
 
 
 @dataclass
@@ -18,7 +32,7 @@ class SearchResultStudentItem:
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultStudentItem":
         del dct["type"]
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -31,7 +45,7 @@ class SearchResultTeacherItem:
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultTeacherItem":
         del dct["type"]
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -43,7 +57,7 @@ class SearchResultClassroomItem:
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultClassroomItem":
         del dct["type"]
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -71,7 +85,7 @@ class ClassroomResultCourseItemTeacherItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomResultCourseItemTeacherItem":
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -87,7 +101,7 @@ class ClassroomResultCourseItem:
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomResultCourseItem":
         dct["teachers"] = [ClassroomResultCourseItemTeacherItem.make(x) for x in dct["teacher"]]
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -102,7 +116,7 @@ class ClassroomResult:
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomResult":
         del dct["status"]
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -114,7 +128,7 @@ class CourseResultTeacherItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "CourseResultTeacherItem":
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -127,7 +141,7 @@ class CourseResultStudentItem:
     @classmethod
     def make(cls, dct: Dict) -> "CourseResultStudentItem":
         dct["klass"] = dct.pop("class")
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
@@ -155,7 +169,7 @@ class CourseResult:
         del dct["student"]
         dct["union_class_name"] = dct.pop("klass")
         dct["pick_num"] = dct.pop("pick")
-        return cls(**dct)
+        return cls(**ensure_slots(cls, dct))
 
 
 class APIServer:
