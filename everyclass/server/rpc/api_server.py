@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Dict, List, Union
+from typing import Dict, List, MutableSequence, Union
 
 from flask import current_app as app
 
@@ -62,11 +62,11 @@ class SearchResultClassroomItem:
 
 @dataclass
 class SearchResult:
-    lst: List[Union[SearchResultStudentItem, SearchResultTeacherItem, SearchResultClassroomItem]]
+    lst: MutableSequence[Union[SearchResultStudentItem, SearchResultTeacherItem, SearchResultClassroomItem]]
 
     @classmethod
     def make(cls, data_lst: List) -> "SearchResult":
-        lst = []
+        lst: MutableSequence = []
         for each in data_lst:
             if each["type"] == "student":
                 lst.append(SearchResultStudentItem.make(each))
@@ -74,7 +74,7 @@ class SearchResult:
                 lst.append(SearchResultTeacherItem.make(each))
             elif each["type"] == "classroom":
                 lst.append(SearchResultClassroomItem.make(each))
-        return cls(*lst)
+        return cls(lst)
 
 
 @dataclass
