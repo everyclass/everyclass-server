@@ -9,7 +9,7 @@ from everyclass.server.rpc.http import HttpRpc
 
 
 def ensure_slots(cls, dct: Dict):
-    """移除dataclass中不存在的key，预防unexpected argument的发生。"""
+    """移除 dataclass 中不存在的key，预防 dataclass 的 __init__ 中 unexpected argument 的发生。"""
     _names = [x.name for x in fields(cls)]
     _del = []
     for key in dct:
@@ -60,13 +60,16 @@ class SearchResultClassroomItem:
         return cls(**ensure_slots(cls, dct))
 
 
+SearchResultList = MutableSequence[Union[SearchResultStudentItem, SearchResultTeacherItem, SearchResultClassroomItem]]
+
+
 @dataclass
 class SearchResult:
-    lst: MutableSequence[Union[SearchResultStudentItem, SearchResultTeacherItem, SearchResultClassroomItem]]
+    lst: SearchResultList
 
     @classmethod
     def make(cls, data_lst: List) -> "SearchResult":
-        lst: MutableSequence = []
+        lst: SearchResultList = []
         for each in data_lst:
             if each["type"] == "student":
                 lst.append(SearchResultStudentItem.make(each))
