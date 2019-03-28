@@ -57,7 +57,7 @@ def encrypt(resource_type: str, data: str, encryption_key: str = None) -> Text:
 
     :param resource_type: student、teacher、klass、room
     :param data: 资源标识符
-    :param encryption_key:
+    :param encryption_key: 加密使用的 key
     :return: 加密后的资源标识符
     """
     if resource_type not in ('student', 'teacher', 'klass', 'room'):

@@ -1,53 +1,63 @@
 """
 日历相关函数
 """
+from typing import Dict, List, Tuple
+
 import elasticapm
 from flask import Blueprint
 
+from everyclass.server.rpc import handle_exception
 from everyclass.server.utils.decorators import disallow_in_maintenance
 
 cal_blueprint = Blueprint('calendar', __name__)
 
 
-@cal_blueprint.route('/calendar/<string:resource_type>/<resource_identifier>/<string:url_semester>')
+@cal_blueprint.route('/calendar/<url_res_type>/<url_res_identifier>/<string:url_semester>')
 @disallow_in_maintenance
-def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
+def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
     from flask import current_app as app, render_template, url_for, session
 
-    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.db.dao import CalendarTokenDAO, PrivacySettingsDAO
-    from everyclass.server.models import RPCStudentInSemesterResult, RPCTeacherInSemesterResult
     from everyclass.server.consts import MSG_400, SESSION_CURRENT_USER, MSG_401
+    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.server.utils.resource_identifier_encrypt import decrypt
+    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
 
-    if resource_type not in ('student', 'teacher'):
+    # 检查 URL 参数
+    try:
+        decoded_res_type, res_id = decrypt(url_res_identifier)
+    except ValueError:
+        return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
+    if url_res_type not in ('student', 'teacher') or url_res_type != decoded_res_type:
         return render_template("common/error.html", message=MSG_400)
 
-    with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                          resource_type,
-                                                                          resource_identifier,
-                                                                          url_semester), retry=True)
-    if isinstance(rpc_result, str):
-        return rpc_result
-
-    if resource_type == 'student':
-        student = RPCStudentInSemesterResult.make(rpc_result)
-        identifier_orig = student.sid
+    if url_res_type == 'student':
+        try:
+            student = APIServer.get_student_timetable(res_id, url_semester)
+        except Exception as e:
+            return handle_exception(e)
 
         # 检查是否有权限访问日历订阅页面
         with elasticapm.capture_span('get_privacy_settings'):
-            privacy_level = PrivacySettingsDAO.get_level(student.sid)
+            privacy_level = PrivacySettingsDAO.get_level(student.student_id)
         if privacy_level != 0:
-            if not (session.get(SESSION_CURRENT_USER, None) and session[SESSION_CURRENT_USER].sid_orig == student.sid):
+            if not (session.get(SESSION_CURRENT_USER, None) and
+                    session[SESSION_CURRENT_USER].sid_orig == student.student_id):
                 return render_template("common/error.html", message=MSG_401)
-    else:
-        teacher = RPCTeacherInSemesterResult.make(rpc_result)
-        identifier_orig = teacher.tid
 
-    token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                       identifier=identifier_orig,
-                                                       semester=url_semester)
+        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=url_res_type,
+                                                           identifier=student.student_id,
+                                                           semester=url_semester)
+    else:
+        try:
+            teacher = APIServer.get_teacher_timetable(res_id, url_semester)
+        except Exception as e:
+            return handle_exception(e)
+
+        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=url_res_type,
+                                                           identifier=teacher.teacher_id,
+                                                           semester=url_semester)
 
     ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
     ics_webcal = ics_url.replace('https', 'webcal').replace('http', 'webcal')
@@ -60,17 +70,19 @@ def cal_page(resource_type: str, resource_identifier: str, url_semester: str):
 
 @cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
 @disallow_in_maintenance
-def ics_download(calendar_token):
+def ics_download(calendar_token: str):
     """
     iCalendar ics file download
 
     因为课表会更新，所以 ics 文件只能在这里动态生成，不能在日历订阅页面就生成
     """
-    from flask import send_from_directory, current_app
+    from collections import defaultdict
+
+    from flask import send_from_directory
     from everyclass.server.db.dao import CalendarTokenDAO
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
-    from everyclass.server.rpc.http import HttpRpc
+    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_str
     from everyclass.server.utils import lesson_string_to_tuple
 
     result = CalendarTokenDAO.find_calendar_token(token=calendar_token)
@@ -80,42 +92,26 @@ def ics_download(calendar_token):
     CalendarTokenDAO.update_last_used_time(calendar_token)
 
     # 获得原始学号或教工号
-    with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call(method="GET",
-                                  url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
-                                                               result['identifier']),
-                                  retry=True)
-    # 由原始学号或教工号得到课程
-    with elasticapm.capture_span('rpc_find_people'):
-        rpc_result = HttpRpc.call_with_error_page('{}/v1/{}/{}/{}'.format(current_app.config['API_SERVER_BASE_URL'],
-                                                                          result['type'],
-                                                                          rpc_result["student"][0]['sid']
-                                                                          if result['type'] == 'student'
-                                                                          else rpc_result['teacher'][0]['tid'],
-                                                                          result['semester']),
-                                                  params={'week_string': 'true'}, retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
+    if result['type'] == 'student':
+        rpc_result = APIServer.get_student_timetable(result['identifier'], result['identifier'])
+    else:
+        # teacher
+        rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['identifier'])
 
     with elasticapm.capture_span('process_rpc_result'):
         semester = Semester(result['semester'])
 
-        courses = dict()
-        for each_class in api_response['course']:
-            each_class['teachers'] = [RPCTeacherInCourseItem.make(x) for x in each_class['teacher']]
-            day, time = lesson_string_to_tuple(each_class['lesson'])
-            if (day, time) not in courses:
-                courses[(day, time)] = list()
-            courses[(day, time)].append(dict(name=each_class['name'],
-                                             teacher=teacher_list_to_str(teacher_list_fix(each_class['teachers'])),
-                                             week=each_class['week'],
-                                             week_string=each_class['week_string'],
-                                             classroom=each_class['room'],
-                                             classroom_id=each_class['rid'],
-                                             cid=each_class['cid']))
+        courses: Dict[Tuple[int, int], List[Dict]] = defaultdict(list)
+        for course in rpc_result.courses:
+            day, time = lesson_string_to_tuple(course.lesson)
+            courses[(day, time)].append(dict(name=course.name,
+                                             teacher=teacher_list_to_str(course.teachers),
+                                             week=course.week,
+                                             week_string=course.week_string,
+                                             classroom=course.room,
+                                             cid=course.course_id_encrypted))
 
-    ics_generator.generate(name=api_response['name'],
+    ics_generator.generate(name=rpc_result.name,
                            courses=courses,
                            semester=semester,
                            ics_token=calendar_token)

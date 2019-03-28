@@ -129,7 +129,7 @@ def get_student(url_sid: str, url_semester: str):
     # RPC to get student timetable
     with elasticapm.capture_span('rpc_get_student_timetable'):
         try:
-            student = APIServer.get_student(student_id, url_semester)
+            student = APIServer.get_student_timetable(student_id, url_semester)
         except Exception as e:
             return handle_exception(e)
 

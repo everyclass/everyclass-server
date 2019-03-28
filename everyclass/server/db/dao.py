@@ -163,8 +163,7 @@ class CalendarTokenDAO(MongoDAOBase):
                                                               {"$set"     : {
                                                                   "identifier": decrypt(each["sid"])[1],
                                                                   "type"      : "student"},
-                                                                  "$unset": {"sid": 1}
-                                                              })
+                                                                  "$unset": {"sid": 1}})
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
