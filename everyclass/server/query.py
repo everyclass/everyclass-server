@@ -265,15 +265,14 @@ def get_classroom(url_rid, url_semester):
     from collections import defaultdict
 
     from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
     from everyclass.server.rpc.api_server import APIServer
-    from everyclass.server.utils.resource_identifier_encrypt import identifier_decrypt
+    from everyclass.server.utils.resource_identifier_encrypt import decrypt
     from everyclass.server.consts import MSG_INVALID_IDENTIFIER
 
     # decrypt identifier in URL
     try:
-        _, room_id = identifier_decrypt(url_rid, resource_type='room')
+        _, room_id = decrypt(url_rid, resource_type='room')
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
@@ -290,7 +289,7 @@ def get_classroom(url_rid, url_semester):
             day, time = lesson_string_to_tuple(each_course.lesson)
             courses[(day, time)].append(dict(name=each_course.name,
                                              week=each_course.week_string,
-                                             teacher=teacher_list_fix(each_course.teachers),
+                                             teacher=each_course.teachers,
                                              location=each_course.room,
                                              cid=each_course.cid))
 
@@ -315,55 +314,38 @@ def get_classroom(url_rid, url_semester):
 @disallow_in_maintenance
 def get_course(url_cid: str, url_semester: str):
     """课程查询"""
-
-    from everyclass.server.utils import teacher_list_to_str
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import get_time_chinese
     from everyclass.server.utils import get_day_chinese
-    from everyclass.server.utils import teacher_list_fix
-    from everyclass.server.rpc.http import HttpRpc
-    from everyclass.server.models import RPCCourseResult
+    from everyclass.server.utils.resource_identifier_encrypt import decrypt
+    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_str
+    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
 
-    with elasticapm.capture_span('rpc_query_course'):
-        rpc_result_ = HttpRpc.call_with_error_page('{}/v1/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                               url_cid,
-                                                                               url_semester),
-                                                   params={'week_string': 'true'},
-                                                   retry=True)
-    if isinstance(rpc_result_, str):
-        return rpc_result_
+    # decrypt identifier in URL
+    try:
+        _, course_id = decrypt(url_cid, resource_type='room')
+    except ValueError:
+        return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
-    course = RPCCourseResult.make(rpc_result_)
+    # RPC to get classroom timetable
+    with elasticapm.capture_span('rpc_get_classroom_timetable'):
+        try:
+            course = APIServer.get_course(url_semester, course_id)
+        except Exception as e:
+            return handle_exception(e)
 
     day, time = lesson_string_to_tuple(course.lesson)
-
-    # student list
-    students = list()
-    for each in course.students:
-        students.append([each.name, each.sid, each.deputy, each.class_])
 
     # 给“文化素质类”等加上“课”后缀
     if course.type and course.type[-1] != '课':
         course.type = course.type + '课'
 
-    # 合班名称为数字时不展示合班名称
-    show_heban = True
-    if course.union_class_name.isdigit():
-        show_heban = False
-
     return render_template('query/course.html',
-                           course_name=course.name,
+                           course=course,
                            course_day=get_day_chinese(day),
                            course_time=get_time_chinese(time),
-                           study_hour=course.hour,
-                           show_heban=show_heban,
-                           heban_name=course.union_class_name,
-                           course_type=course.type,
-                           week=course.week_string,
-                           room=course.room,
-                           course_teacher=teacher_list_to_str(teacher_list_fix(course.teachers)),
-                           students=students,
-                           student_count=len(course.students),
+                           show_union_class=not course.union_class_name.isdigit(),  # 合班名称为数字时不展示合班名称
+                           course_teacher=teacher_list_to_str(course.teachers),
                            current_semester=url_semester
                            )
 

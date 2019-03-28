@@ -1,5 +1,6 @@
 import re
-from binascii import a2b_base64
+from binascii import a2b_base64, b2a_base64
+from typing import Text
 
 from Crypto.Cipher import AES
 
@@ -16,7 +17,7 @@ def _fill_16(text):
     return str.encode(text)
 
 
-def _aes_decrypt(aes_key, aes_text):
+def _aes_decrypt(aes_key, aes_text) -> Text:
     """
     使用密钥解密文本信息，将会自动填充空白字符
     :param aes_key: 解密密钥
@@ -26,14 +27,48 @@ def _aes_decrypt(aes_key, aes_text):
     # 初始化解码器
     cipher = AES.new(_fill_16(aes_key), AES.MODE_ECB)
     # 优先逆向解密十六进制为bytes
-    decrypt = a2b_base64(aes_text.replace('-', '/').replace("%3D", "=").encode())
+    converted = a2b_base64(aes_text.replace('-', '/').replace("%3D", "=").encode())
     # 使用aes解密密文
-    decrypt_text = str(cipher.decrypt(decrypt), encoding='utf-8').replace('\0', '')
+    decrypt_text = str(cipher.decrypt(converted), encoding='utf-8').replace('\0', '')
     # 返回执行结果
     return decrypt_text.strip()
 
 
-def identifier_decrypt(data: str, encryption_key: str = None, resource_type: str = None):
+def _aes_encrypt(aes_key, aes_text) -> Text:
+    """
+    使用密钥加密文本信息，将会自动填充空白字符
+    :param aes_key: 加密密钥
+    :param aes_text: 需要加密的文本
+    :return: 经过加密的数据
+    """
+    # 初始化加密器
+    cipher = AES.new(_fill_16(aes_key), AES.MODE_ECB)
+    # 先进行aes加密
+    aes_encrypted = cipher.encrypt(_fill_16(aes_text))
+    # 使用十六进制转成字符串形式
+    encrypt_text = b2a_base64(aes_encrypted).decode().replace('/', '-').strip()
+    # 返回执行结果
+    return encrypt_text
+
+
+def encrypt(resource_type: str, data: str, encryption_key: str = None) -> Text:
+    """
+    加密资源标识符
+
+    :param resource_type: student、teacher、klass、room
+    :param data: 资源标识符
+    :param encryption_key:
+    :return: 加密后的资源标识符
+    """
+    if resource_type not in ('student', 'teacher', 'klass', 'room'):
+        raise ValueError("resource_type not valid")
+    if not encryption_key:
+        encryption_key = get_config().RESOURCE_IDENTIFIER_ENCRYPTION_KEY
+
+    return _aes_encrypt(encryption_key, "%s;%s" % (resource_type, data))
+
+
+def decrypt(data: str, encryption_key: str = None, resource_type: str = None):
     """
     解密资源标识符
 

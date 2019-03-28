@@ -145,14 +145,14 @@ class CalendarTokenDAO(MongoDAOBase):
     @classmethod
     def upgrade(cls):
         """字段升级"""
-        from everyclass.server.utils.resource_identifier_encrypt import identifier_decrypt
+        from everyclass.server.utils.resource_identifier_encrypt import decrypt
         db = get_mongodb()
         teacher_docs = db.get_collection(cls.collection_name).find({"tid": {"$exists": True}})
         for each in teacher_docs:
             print(each)
             db.get_collection(cls.collection_name).update_one(each,
                                                               {"$set"  : {
-                                                                  "identifier": identifier_decrypt(each["tid"])[1],
+                                                                  "identifier": decrypt(each["tid"])[1],
                                                                   "type"      : "teacher"},
                                                                "$unset": {"tid": 1}
                                                                })
@@ -161,7 +161,7 @@ class CalendarTokenDAO(MongoDAOBase):
             print(each)
             db.get_collection(cls.collection_name).update_one(each,
                                                               {"$set"     : {
-                                                                  "identifier": identifier_decrypt(each["sid"])[1],
+                                                                  "identifier": decrypt(each["sid"])[1],
                                                                   "type"      : "student"},
                                                                   "$unset": {"sid": 1}
                                                               })

@@ -73,6 +73,7 @@ def lesson_string_to_tuple(lesson: str) -> Tuple[int, int]:
 
 def teacher_list_to_str(teachers: List[RPCTeacherInCourseItem]) -> str:
     """parse a teacher list into a str"""
+    # todo remove after new api-server finished
     string = ''
     for teacher in teachers:
         string = string + teacher.name + teacher.title + '、'
@@ -94,6 +95,7 @@ def semester_calculate(current_semester: str, semester_list: List[str]) -> List[
 
 def teacher_list_fix(teachers: List[RPCTeacherInCourseItem]) -> List[RPCTeacherInCourseItem]:
     """将老师职称“未定”改为空，以及移除重复老师
+    todo: remove after new api-server finished
     :param teachers: api server 返回的教师列表
     :return: teacher list that has been fixed
     """

@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field, fields
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from flask import current_app as app
 
 from everyclass.server import logger
 from everyclass.server.exceptions import RpcException
 from everyclass.server.rpc.http import HttpRpc
+from everyclass.server.utils.resource_identifier_encrypt import encrypt
 
 
 def ensure_slots(cls, dct: Dict):
@@ -101,11 +102,19 @@ class ClassroomResultCourseItem:
     rid: str
     week: List[int]
     week_string: str
-    teacher: List[ClassroomResultCourseItemTeacherItem]
+    teachers: List[ClassroomResultCourseItemTeacherItem]
 
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomResultCourseItem":
-        dct["teachers"] = [ClassroomResultCourseItemTeacherItem.make(x) for x in dct["teacher"]]
+        tid_set: Set[str] = set()
+        unique_teacher_list: List[ClassroomResultCourseItemTeacherItem] = []
+        for teacher in dct["teachers"]:
+            if teacher["teacher_id"] in tid_set:
+                continue
+            else:
+                tid_set.add(teacher.tid)
+                unique_teacher_list.append(teacher)
+        dct["teachers"] = unique_teacher_list
         return cls(**ensure_slots(cls, dct))
 
 
@@ -141,12 +150,14 @@ class CourseResultTeacherItem:
 class CourseResultStudentItem:
     name: str
     sid: str
+    sid_encrypted: str
     klass: str
     deputy: str
 
     @classmethod
     def make(cls, dct: Dict) -> "CourseResultStudentItem":
         dct["klass"] = dct.pop("class")
+        dct["sid_encrypted"] = encrypt("student", dct["sid"])
         return cls(**ensure_slots(cls, dct))
 
 
@@ -176,6 +187,14 @@ class CourseResult:
         dct["union_class_name"] = dct.pop("klass")
         dct["pick_num"] = dct.pop("pick")
         return cls(**ensure_slots(cls, dct))
+
+
+def teacher_list_to_str(teachers: List[CourseResultTeacherItem]) -> str:
+    """CourseResultTeacherItem 列表转换为老师列表字符串"""
+    string = ''
+    for teacher in teachers:
+        string = string + teacher.name + teacher.title + '、'
+    return string[:len(string) - 1]
 
 
 class APIServer:
