@@ -114,21 +114,24 @@ def get_student(url_sid: str, url_semester: str):
     """学生查询"""
     from everyclass.server.db.dao import PrivacySettingsDAO, VisitorDAO, RedisDAO
     from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.utils import teacher_list_fix
+    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.server.utils.resource_identifier_encrypt import decrypt
+    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
     from everyclass.server.utils import semester_calculate
-    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT, SESSION_CURRENT_USER
-    from everyclass.server.models import RPCStudentInSemesterResult
 
-    with elasticapm.capture_span('rpc_query_student'):
-        rpc_result = HttpRpc.call_with_error_page('{}/v1/student/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                               url_sid,
-                                                                               url_semester),
-                                                  params={'week_string': 'true', 'other_semester': 'true'},
-                                                  retry=True)
-    if isinstance(rpc_result, str):
-        return rpc_result
-    student = RPCStudentInSemesterResult.make(rpc_result)
+    # decrypt identifier in URL
+    try:
+        _, student_id = decrypt(url_sid, resource_type='student')
+    except ValueError:
+        return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
+
+    # RPC to get student timetable
+    with elasticapm.capture_span('rpc_get_student_timetable'):
+        try:
+            student = APIServer.get_student(student_id, url_semester)
+        except Exception as e:
+            return handle_exception(e)
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
@@ -146,7 +149,7 @@ def get_student(url_sid: str, url_semester: str):
         return render_template('query/studentBlocked.html',
                                name=student.name,
                                falculty=student.deputy,
-                               class_name=student.class_,
+                               class_name=student.klass,
                                sid=url_sid,
                                level=2)
     # 实名互访
@@ -156,7 +159,7 @@ def get_student(url_sid: str, url_semester: str):
             return render_template('query/studentBlocked.html',
                                    name=student.name,
                                    falculty=student.deputy,
-                                   class_name=student.class_,
+                                   class_name=student.klass,
                                    sid=url_sid,
                                    level=1)
         # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
@@ -164,22 +167,17 @@ def get_student(url_sid: str, url_semester: str):
             return render_template('query/studentBlocked.html',
                                    name=student.name,
                                    falculty=student.deputy,
-                                   class_name=student.class_,
+                                   class_name=student.klass,
                                    sid=url_sid,
                                    level=3)
 
     with elasticapm.capture_span('process_rpc_result'):
         courses: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
-        for each_class in student.courses:
-            day, time = lesson_string_to_tuple(each_class.lesson)
+        for course in student.courses:
+            day, time = lesson_string_to_tuple(course.lesson)
             if (day, time) not in courses:
                 courses[(day, time)] = list()
-            courses[(day, time)].append(dict(name=each_class.name,
-                                             teacher=teacher_list_fix(each_class.teachers),
-                                             week=each_class.week_string,
-                                             classroom=each_class.room,
-                                             classroom_id=each_class.rid,
-                                             cid=each_class.cid))
+            courses[(day, time)].append(course)
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
         available_semesters = semester_calculate(url_semester, sorted(student.semester_list))
 
@@ -194,9 +192,7 @@ def get_student(url_sid: str, url_semester: str):
     RedisDAO.add_visitor_count(student.sid, session.get(SESSION_CURRENT_USER, None))
 
     return render_template('query/student.html',
-                           name=student.name,
-                           falculty=student.deputy,
-                           class_name=student.class_,
+                           student=student,
                            sid=url_sid,
                            classes=courses,
                            empty_sat=empty_sat,
@@ -212,42 +208,42 @@ def get_student(url_sid: str, url_semester: str):
 @url_semester_check
 def get_teacher(url_tid, url_semester):
     """老师查询"""
+    from collections import defaultdict
+
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import semester_calculate
-    from everyclass.server.rpc.http import HttpRpc
-    from everyclass.server.models import RPCTeacherInSemesterResult
+    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.server.utils.resource_identifier_encrypt import decrypt
+    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
 
-    with elasticapm.capture_span('rpc_query_student'):
-        rpc_result_ = HttpRpc.call_with_error_page('{}/v1/teacher/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                                url_tid,
-                                                                                url_semester),
-                                                   params={'week_string': 'true', 'other_semester': 'true'},
-                                                   retry=True)
-    if isinstance(rpc_result_, str):
-        return rpc_result_
-    teacher = RPCTeacherInSemesterResult.make(rpc_result_)
+    # decrypt identifier in URL
+    try:
+        _, teacher_id = decrypt(url_tid, resource_type='teacher')
+    except ValueError:
+        return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
+
+    # RPC to get teacher timetable
+    with elasticapm.capture_span('rpc_get_teacher_timetable'):
+        try:
+            teacher = APIServer.get_teacher_timetable(teacher_id, url_semester)
+        except Exception as e:
+            return handle_exception(e)
 
     with elasticapm.capture_span('process_rpc_result'):
-        courses = dict()
-        for each_class in teacher.courses:
-            day, time = lesson_string_to_tuple(each_class.lesson)
+        courses = defaultdict(list)
+        for course in teacher.courses:
+            day, time = lesson_string_to_tuple(course.lesson)
             if (day, time) not in courses:
                 courses[(day, time)] = list()
-            courses[(day, time)].append(dict(name=each_class.name,
-                                             week=each_class.week_string,
-                                             classroom=each_class.room,
-                                             classroom_id=each_class.rid,
-                                             cid=each_class.cid))
+            courses[(day, time)].append(course)
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, sorted(teacher.semester_list))
+    available_semesters = semester_calculate(url_semester, teacher.semester_list)
 
     return render_template('query/teacher.html',
-                           name=teacher.name,
-                           falculty=teacher.unit,
-                           title=teacher.title,
-                           tid=url_tid,
+                           teacher=teacher,
+                           tid_encrypted=url_tid,
                            classes=courses,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,
@@ -285,13 +281,9 @@ def get_classroom(url_rid, url_semester):
 
     with elasticapm.capture_span('process_rpc_result'):
         courses = defaultdict(list)
-        for each_course in room.courses:
-            day, time = lesson_string_to_tuple(each_course.lesson)
-            courses[(day, time)].append(dict(name=each_course.name,
-                                             week=each_course.week_string,
-                                             teacher=each_course.teachers,
-                                             location=each_course.room,
-                                             cid=each_course.cid))
+        for course in room.courses:
+            day, time = lesson_string_to_tuple(course.lesson)
+            courses[(day, time)].append(course)
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
@@ -323,12 +315,12 @@ def get_course(url_cid: str, url_semester: str):
 
     # decrypt identifier in URL
     try:
-        _, course_id = decrypt(url_cid, resource_type='room')
+        _, course_id = decrypt(url_cid, resource_type='klass')
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
-    # RPC to get classroom timetable
-    with elasticapm.capture_span('rpc_get_classroom_timetable'):
+    # RPC to get course
+    with elasticapm.capture_span('rpc_get_course'):
         try:
             course = APIServer.get_course(url_semester, course_id)
         except Exception as e:
@@ -344,7 +336,7 @@ def get_course(url_cid: str, url_semester: str):
                            course=course,
                            course_day=get_day_chinese(day),
                            course_time=get_time_chinese(time),
-                           show_union_class=not course.union_class_name.isdigit(),  # 合班名称为数字时不展示合班名称
+                           show_union_class=not course.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
                            course_teacher=teacher_list_to_str(course.teachers),
                            current_semester=url_semester
                            )

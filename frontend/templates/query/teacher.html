@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}{{ name }}{{ title }} - 教师 - 每课{% endblock %}
+{% block title %}{{ teacher.name }}{{ teacher.title }} - 教师 - 每课{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">{{ name }}</h1>
-        <h4 class="text-muted">{{ falculty }} {{ title }}
+        <h1 class="hero-header">{{ teacher.name }}</h1>
+        <h4 class="text-muted">{{ teacher.unit }} {{ teacher.title }}
         </h4>
         <form id="semester-choose-form">
             <select id="semester-select" name="semester">
@@ -19,7 +19,7 @@
                 href="{{ url_for("main.main", _external=True) }}">{{ url_for("main.main", _external=True) }}</a>
         </h4>
         <h4 class="text-muted"><a
-                href="{{ url_for('calendar.cal_page', resource_type="teacher", resource_identifier=tid, url_semester=current_semester) }}"
+                href="{{ url_for('calendar.cal_page', resource_type="teacher", resource_identifier=tid_encrypted, url_semester=current_semester) }}"
                 onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a></h4>
     </div>
     <br><br>
@@ -51,15 +51,15 @@
                                 {% for day in range(1,8) if not ((day==6 and empty_sat) or (day==7 and empty_sun)) %}
                                     <td>
                                         {% for every_class in classes[(day, time)] %}
-                                            <b>{{ every_class['name'] }}</b><br>
-                                            {{ every_class['week'] }}
-                                            {% if every_class['location']!='None' %}
+                                            <b>{{ every_class.name }}</b><br>
+                                            {{ every_class.week_string }}
+                                            {% if every_class.room!='None' %}
                                                 ，
-                                                <a href="{{ url_for('query.get_classroom', url_rid=every_class['classroom_id'], url_semester=current_semester) }}">{{ every_class['classroom'] }}</a>
+                                                <a href="{{ url_for('query.get_classroom', url_rid=every_class.room_id_encrypted, url_semester=current_semester) }}">{{ every_class.room }}</a>
                                             {% endif %}
                                             <br>
-                                            <a href="{{ url_for('query.get_course', url_cid=every_class['cid'], url_semester=current_semester) }}"
-                                               onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class['id'] }}']);">课程详情</a>
+                                            <a href="{{ url_for('query.get_course', url_cid=every_class.course_id_encrypted, url_semester=current_semester) }}"
+                                               onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class.course_id_encrypted }}']);">课程详情</a>
                                             <br>
                                         {% endfor %}
                                     </td>
@@ -114,7 +114,7 @@
     {% endif %}
     <script>
         $("select#semester-select").change(function () {
-            window.location.href = "/teacher/" + "{{ tid }}" + "/" + $('select#semester-select option:selected').val();
+            window.location.href = "/teacher/" + "{{ tid_encrypted }}" + "/" + $('select#semester-select option:selected').val();
         });
 
     </script>

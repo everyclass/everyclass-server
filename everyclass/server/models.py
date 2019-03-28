@@ -1,6 +1,5 @@
 import re
-from dataclasses import dataclass, field
-from typing import Dict, List, NamedTuple
+from typing import NamedTuple
 
 
 class Semester(object):
@@ -71,81 +70,3 @@ class StudentSession(NamedTuple):
     sid_orig: str
     sid: str
     name: str
-
-
-@dataclass
-class RPCStudentResult:
-    class_: str
-    deputy: str
-    name: str
-    semesters: List[str]
-    sid: str
-
-    @classmethod
-    def make(cls, dct: Dict) -> "RPCStudentResult":
-        dct["class_"] = dct.pop("class")
-        dct["semesters"] = [RPCCourseInSemesterItem.make(x) for x in dct["semester"]]
-        del dct["semester"]
-        return cls(**dct)
-
-
-@dataclass
-class RPCTeacherInCourseItem:
-    name: str
-    tid: str
-    title: str
-
-    @classmethod
-    def make(cls, dct: Dict) -> "RPCTeacherInCourseItem":
-        return cls(**dct)
-
-
-@dataclass
-class RPCCourseInSemesterItem:
-    cid: str
-    lesson: str
-    name: str
-    rid: str
-    room: str
-    week: List[int]
-    teachers: List[RPCTeacherInCourseItem]
-    week_string: str = field(default="")  # optional field
-
-    @classmethod
-    def make(cls, dct: Dict) -> "RPCCourseInSemesterItem":
-        dct["teachers"] = [RPCTeacherInCourseItem(**x) for x in dct["teacher"]]
-        del dct["teacher"]
-        return cls(**dct)
-
-
-@dataclass
-class RPCStudentInSemesterResult:
-    name: str
-    sid: str  # 学号
-    deputy: str
-    class_: str
-    courses: List[RPCCourseInSemesterItem]
-    semester_list: List[str] = field(default_factory=list)  # optional field
-
-    @classmethod
-    def make(cls, dct: Dict) -> "RPCStudentInSemesterResult":
-        dct["class_"] = dct.pop("class")
-        dct["courses"] = [RPCCourseInSemesterItem.make(x) for x in dct["course"]]
-        del dct["course"]
-        return cls(**dct)
-
-
-@dataclass
-class RPCTeacherInSemesterResult:
-    name: str
-    tid: str  # 教工号
-    title: str
-    unit: str
-    courses: List[RPCCourseInSemesterItem]
-    semester_list: List[str] = field(default_factory=list)  # optional field
-
-    @classmethod
-    def make(cls, dct: Dict) -> "RPCTeacherInSemesterResult":
-        dct["courses"] = [RPCCourseInSemesterItem.make(x) for x in dct["course"]]
-        del dct["course"]
-        return cls(**dct)

@@ -71,10 +71,7 @@ def ics_download(calendar_token):
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
     from everyclass.server.rpc.http import HttpRpc
-    from everyclass.server.utils import teacher_list_fix
-    from everyclass.server.utils import teacher_list_to_str
     from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.models import RPCTeacherInCourseItem
 
     result = CalendarTokenDAO.find_calendar_token(token=calendar_token)
     if not result:

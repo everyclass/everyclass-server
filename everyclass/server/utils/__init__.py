@@ -1,11 +1,10 @@
 import os
 import re
-from typing import List, Set, Tuple
+from typing import List, Tuple
 
 import elasticapm
 
 from everyclass.server.config import get_config
-from everyclass.server.models import RPCTeacherInCourseItem
 
 
 def get_day_chinese(digit: int) -> str:
@@ -71,15 +70,6 @@ def lesson_string_to_tuple(lesson: str) -> Tuple[int, int]:
     return day, time
 
 
-def teacher_list_to_str(teachers: List[RPCTeacherInCourseItem]) -> str:
-    """parse a teacher list into a str"""
-    # todo remove after new api-server finished
-    string = ''
-    for teacher in teachers:
-        string = string + teacher.name + teacher.title + '、'
-    return string[:len(string) - 1]
-
-
 def semester_calculate(current_semester: str, semester_list: List[str]) -> List[Tuple[str, bool]]:
     """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
     with elasticapm.capture_span('semester_calculate'):
@@ -91,26 +81,6 @@ def semester_calculate(current_semester: str, semester_list: List[str]) -> List[
             else:
                 available_semesters.append((each_semester, False))
     return available_semesters
-
-
-def teacher_list_fix(teachers: List[RPCTeacherInCourseItem]) -> List[RPCTeacherInCourseItem]:
-    """将老师职称“未定”改为空，以及移除重复老师
-    todo: remove after new api-server finished
-    :param teachers: api server 返回的教师列表
-    :return: teacher list that has been fixed
-    """
-    tid_set: Set[str] = set()
-    new_teachers: List[RPCTeacherInCourseItem] = []
-    for teacher in teachers:
-        if teacher.title == '未定':
-            teacher.title = ''
-
-        if teacher.tid in tid_set:
-            continue
-        else:
-            tid_set.add(teacher.tid)
-            new_teachers.append(teacher)
-    return new_teachers
 
 
 zh_pattern = re.compile(u'[\u4e00-\u9fa5]+')

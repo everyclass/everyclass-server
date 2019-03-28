@@ -6,7 +6,7 @@
         <h4 class="text-muted">{{ course_teacher }}及 {{ course.students|length }} 名学生</h4>
         <h4 class="text-muted">{{ course.week_string }}{{ course_day }}{{ course_time }}，{{ course.room }}</h4>
         <h4 class="text-muted">本{{ course.type }}共 {{ course.hour }} 学时{% if show_union_class %}，合班名称：
-            {{ course.union_class_name }}{% endif %}</h4>
+            {{ course.union_name }}{% endif %}</h4>
     </div>
 
     <script type="text/javascript">
