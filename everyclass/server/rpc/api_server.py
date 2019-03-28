@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Dict, List, MutableSequence, Union
+from typing import Dict, List
 
 from flask import current_app as app
 
@@ -32,6 +32,7 @@ class SearchResultStudentItem:
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultStudentItem":
         del dct["type"]
+        dct['semesters'].sort()
         return cls(**ensure_slots(cls, dct))
 
 
@@ -45,6 +46,7 @@ class SearchResultTeacherItem:
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultTeacherItem":
         del dct["type"]
+        dct['semesters'].sort()
         return cls(**ensure_slots(cls, dct))
 
 
@@ -57,27 +59,27 @@ class SearchResultClassroomItem:
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultClassroomItem":
         del dct["type"]
+        dct['semesters'].sort()
         return cls(**ensure_slots(cls, dct))
-
-
-SearchResultList = MutableSequence[Union[SearchResultStudentItem, SearchResultTeacherItem, SearchResultClassroomItem]]
 
 
 @dataclass
 class SearchResult:
-    lst: SearchResultList
+    students: List[SearchResultStudentItem]
+    teachers: List[SearchResultTeacherItem]
+    classrooms: List[SearchResultClassroomItem]
 
     @classmethod
     def make(cls, data_lst: List) -> "SearchResult":
-        lst: SearchResultList = []
+        students, teachers, classrooms = [], [], []
         for each in data_lst:
             if each["type"] == "student":
-                lst.append(SearchResultStudentItem.make(each))
+                students.append(SearchResultStudentItem.make(each))
             elif each["type"] == "teacher":
-                lst.append(SearchResultTeacherItem.make(each))
+                teachers.append(SearchResultTeacherItem.make(each))
             elif each["type"] == "classroom":
-                lst.append(SearchResultClassroomItem.make(each))
-        return cls(lst)
+                classrooms.append(SearchResultClassroomItem.make(each))
+        return cls(students=students, teachers=teachers, classrooms=classrooms)
 
 
 @dataclass

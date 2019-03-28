@@ -8,6 +8,7 @@ from flask import Blueprint, current_app as app, escape, flash, redirect, render
 
 from everyclass.server import logger
 from everyclass.server.models import StudentSession
+from everyclass.server.rpc import handle_exception
 from everyclass.server.utils import contains_chinese
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 
@@ -27,82 +28,79 @@ def query():
     - `query_type`, 查询方式（姓名、学工号）: by_name, by_id, other
     """
     import re
-    from everyclass.server.rpc.http import HttpRpc
+    from everyclass.server.rpc.api_server import APIServer
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
 
     # transform upper case xh to lower case(currently api-server does not support upper case xh)
-    to_search = request.values.get('id')
+    keyword = request.values.get('id')
 
-    if not to_search:
+    if not keyword:
         flash('请输入需要查询的姓名、学号、教工号或教室名称')
         return redirect(url_for('main.main'))
 
-    if re.match('^[A-Za-z0-9]*$', request.values.get('id')):
-        to_search = to_search.lower()
+    if re.match('^[A-Za-z0-9]*$', request.values.get('id')):  # 学号工号转小写
+        keyword = keyword.lower()
 
-    # add ‘座‘ since many users may search classroom in new campus without '座' and api-server doesn't not support
-    if to_search[0] in ('a', 'b', 'c', 'd') and len(to_search) <= 5:
-        to_search = to_search[0] + '座' + to_search[1:]
+    if keyword[0] in ('a', 'b', 'c', 'd') and len(keyword) <= 5:  # 增加‘座‘后缀，因为很多人搜索新校教室不加'座'就搜不到
+        keyword = keyword[0] + '座' + keyword[1:]
 
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           to_search.replace("/", "")), retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
+        try:
+            rpc_result = APIServer.search(keyword)
+        except Exception as e:
+            return handle_exception(e)
 
     # render different template for different resource types
-    if len(api_response['room']) >= 1:
-        # classroom
+    if len(rpc_result.classrooms) >= 1:  # classroom
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
         elasticapm.tag(query_type='by_name')
-        api_response['room'][0]['semester'].sort()
-        return redirect('/classroom/{}/{}'.format(api_response['room'][0]['rid'],
-                                                  api_response['room'][0]['semester'][-1]))
-    elif len(api_response['student']) == 1 and len(api_response['teacher']) == 0:
-        # only one student
+
+        rpc_result.classrooms[0].semesters.sort()
+        return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].rid,
+                                                  rpc_result.classrooms[0].semesters[-1]))
+    elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # only one student
         elasticapm.tag(query_resource_type='single_student')
-        if contains_chinese(to_search):
+        if contains_chinese(keyword):
             elasticapm.tag(query_type='by_name')
         else:
             elasticapm.tag(query_type='by_id')
-        if len(api_response['student'][0]['semester']) < 1:
+
+        if len(rpc_result.students[0].semesters) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
-        api_response['student'][0]['semester'].sort()
-        return redirect('/student/{}/{}'.format(api_response['student'][0]['sid'],
-                                                api_response['student'][0]['semester'][-1]))
-    elif len(api_response['teacher']) == 1 and len(api_response['student']) == 0:
-        # only one teacher
+
+        return redirect('/student/{}/{}'.format(rpc_result.students[0].sid,
+                                                rpc_result.students[0].semesters[-1]))
+    elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
-        if contains_chinese(to_search):
+        if contains_chinese(keyword):
             elasticapm.tag(query_type='by_name')
         else:
             elasticapm.tag(query_type='by_id')
-        if len(api_response['teacher'][0]['semester']) < 1:
+
+        if len(rpc_result.teachers[0].semesters) < 1:
             flash('没有可用学期')
             return redirect(url_for('main.main'))
-        api_response['teacher'][0]['semester'].sort()
-        return redirect('/teacher/{}/{}'.format(api_response['teacher'][0]['tid'],
-                                                api_response['teacher'][0]['semester'][-1]))
-    elif len(api_response['teacher']) >= 1 or len(api_response['student']) >= 1:
+
+        return redirect('/teacher/{}/{}'.format(rpc_result.teachers[0].tid,
+                                                rpc_result.teachers[0].semesters[-1]))
+    elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
         elasticapm.tag(query_resource_type='multiple_people')
-        if contains_chinese(to_search):
+        if contains_chinese(keyword):
             elasticapm.tag(query_type='by_name')
         else:
             elasticapm.tag(query_type='by_id')
+
         return render_template('query/peopleWithSameName.html',
-                               name=to_search,
-                               students_count=len(api_response['student']),
-                               students=api_response['student'],
-                               teachers_count=len(api_response['teacher']),
-                               teachers=api_response['teacher'])
+                               name=keyword,
+                               students=rpc_result.students,
+                               teachers=rpc_result.teachers)
     else:
         elasticapm.tag(query_resource_type='not_exist')
         elasticapm.tag(query_type='other')
