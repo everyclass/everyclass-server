@@ -187,6 +187,8 @@ class Config(object):
     }
     DEFAULT_PRIVACY_LEVEL = 0
 
+    RESOURCE_IDENTIFIER_ENCRYPTION_KEY = ''
+
     RECAPTCHA_ENABLED = True
     RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
     RECAPTCHA_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
@@ -201,7 +203,8 @@ class Config(object):
     PRODUCTION_OVERWRITE_FIELDS = ('CALENDAR_UUID_NAMESPACE',
                                    'SECRET_KEY',
                                    'RECAPTCHA_SITE_KEY',
-                                   'RECAPTCHA_SECRET_KEY'
+                                   'RECAPTCHA_SECRET_KEY',
+                                   'RESOURCE_IDENTIFIER_ENCRYPTION_KEY'
                                    )
 
     # fields that should not be in log
@@ -213,5 +216,6 @@ class Config(object):
                                 "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
-                                "RECAPTCHA_SECRET_KEY"
+                                "RECAPTCHA_SECRET_KEY",
+                                "RESOURCE_IDENTIFIER_ENCRYPTION_KEY"
                                 )

@@ -110,17 +110,18 @@ class ClassroomResultCourseItem:
 
 
 @dataclass
-class ClassroomResult:
+class ClassroomTimetableResult:
     rid: str
     name: str
     building: str
     campus: str
     semester: str
-    course: List[ClassroomResultCourseItem]
+    courses: List[ClassroomResultCourseItem]
 
     @classmethod
-    def make(cls, dct: Dict) -> "ClassroomResult":
+    def make(cls, dct: Dict) -> "ClassroomTimetableResult":
         del dct["status"]
+        dct['semesters'].sort()
         return cls(**ensure_slots(cls, dct))
 
 
@@ -202,19 +203,21 @@ class APIServer:
         pass
 
     @classmethod
-    def get_classroom(cls, semester: str, room_id: str):
+    def get_classroom_timetable(cls, semester: str, room_id: str):
         """
-        根据学期和教室ID获得教室
+        根据学期和教室ID获得教室课表
         :param semester: 学期，如 2018-2019-1
         :param room_id: 教室ID
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'], semester, room_id),
+                            url='{}/v2/room/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                    room_id,
+                                                                    semester),
                             retry=True)
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
-        search_result = ClassroomResult.make(resp)
+        search_result = ClassroomTimetableResult.make(resp)
         return search_result
 
     @classmethod

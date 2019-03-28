@@ -73,7 +73,7 @@ def ics_download(calendar_token):
     from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import teacher_list_to_str
-    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.models import RPCTeacherInCourseItem
 
     result = CalendarTokenDAO.find_calendar_token(token=calendar_token)
@@ -107,7 +107,7 @@ def ics_download(calendar_token):
         courses = dict()
         for each_class in api_response['course']:
             each_class['teachers'] = [RPCTeacherInCourseItem.make(x) for x in each_class['teacher']]
-            day, time = lesson_string_to_dict(each_class['lesson'])
+            day, time = lesson_string_to_tuple(each_class['lesson'])
             if (day, time) not in courses:
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class['name'],

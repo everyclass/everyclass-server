@@ -6,7 +6,6 @@ from typing import Dict, List, Tuple
 import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
-from everyclass.server import logger
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import handle_exception
 from everyclass.server.utils import contains_chinese
@@ -114,7 +113,7 @@ def query():
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
     from everyclass.server.db.dao import PrivacySettingsDAO, VisitorDAO, RedisDAO
-    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
     from everyclass.server.rpc.http import HttpRpc
@@ -172,7 +171,7 @@ def get_student(url_sid: str, url_semester: str):
     with elasticapm.capture_span('process_rpc_result'):
         courses: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
         for each_class in student.courses:
-            day, time = lesson_string_to_dict(each_class.lesson)
+            day, time = lesson_string_to_tuple(each_class.lesson)
             if (day, time) not in courses:
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class.name,
@@ -213,7 +212,7 @@ def get_student(url_sid: str, url_semester: str):
 @url_semester_check
 def get_teacher(url_tid, url_semester):
     """老师查询"""
-    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import semester_calculate
     from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.models import RPCTeacherInSemesterResult
@@ -231,7 +230,7 @@ def get_teacher(url_tid, url_semester):
     with elasticapm.capture_span('process_rpc_result'):
         courses = dict()
         for each_class in teacher.courses:
-            day, time = lesson_string_to_dict(each_class.lesson)
+            day, time = lesson_string_to_tuple(each_class.lesson)
             if (day, time) not in courses:
                 courses[(day, time)] = list()
             courses[(day, time)].append(dict(name=each_class.name,
@@ -263,48 +262,44 @@ def get_teacher(url_tid, url_semester):
 @disallow_in_maintenance
 def get_classroom(url_rid, url_semester):
     """教室查询"""
-    from everyclass.server.utils import lesson_string_to_dict
+    from collections import defaultdict
+
+    from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import teacher_list_fix
     from everyclass.server.utils import semester_calculate
-    from everyclass.server.rpc.http import HttpRpc
-    from everyclass.server.models import RPCRoomResult
+    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.server.utils.resource_identifier_encrypt import identifier_decrypt
+    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
 
-    with elasticapm.capture_span('rpc_query_room'):
-        rpc_result_ = HttpRpc.call_with_error_page('{}/v1/room/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                             url_rid,
-                                                                             url_semester),
-                                                   params={'week_string': 'true', 'other_semester': 'true'},
-                                                   retry=True)
-    if isinstance(rpc_result_, str):
-        return rpc_result_
+    # decrypt identifier in URL
+    try:
+        _, room_id = identifier_decrypt(url_rid, resource_type='room')
+    except ValueError:
+        return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
-    if 'name' not in rpc_result_:
-        logger.info("Hit classroom 'name' KeyError temporary fix")
-        flash("教务数据异常，暂时无法查询本教室。其他教室不受影响。")
-        return redirect(url_for("main.main"))
-
-    room = RPCRoomResult.make(rpc_result_)
+    # RPC to get classroom timetable
+    with elasticapm.capture_span('rpc_get_classroom_timetable'):
+        try:
+            room = APIServer.get_classroom_timetable(url_semester, room_id)
+        except Exception as e:
+            return handle_exception(e)
 
     with elasticapm.capture_span('process_rpc_result'):
-        courses = dict()
-        for each_class in room.courses:
-            day, time = lesson_string_to_dict(each_class.lesson)
-            if (day, time) not in courses:
-                courses[(day, time)] = list()
-            courses[(day, time)].append(dict(name=each_class.name,
-                                             week=each_class.week_string,
-                                             teacher=teacher_list_fix(each_class.teachers),
-                                             location=each_class.room,
-                                             cid=each_class.cid))
+        courses = defaultdict(list)
+        for each_course in room.courses:
+            day, time = lesson_string_to_tuple(each_course.lesson)
+            courses[(day, time)].append(dict(name=each_course.name,
+                                             week=each_course.week_string,
+                                             teacher=teacher_list_fix(each_course.teachers),
+                                             location=each_course.room,
+                                             cid=each_course.cid))
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, sorted(room.semester_list))
+    available_semesters = semester_calculate(url_semester, room.semester_list)
 
     return render_template('query/room.html',
-                           name=room.name,
-                           campus=room.campus,
-                           building=room.building,
+                           room=room,
                            rid=url_rid,
                            classes=courses,
                            empty_sat=empty_sat,
@@ -322,7 +317,7 @@ def get_course(url_cid: str, url_semester: str):
     """课程查询"""
 
     from everyclass.server.utils import teacher_list_to_str
-    from everyclass.server.utils import lesson_string_to_dict
+    from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import get_time_chinese
     from everyclass.server.utils import get_day_chinese
     from everyclass.server.utils import teacher_list_fix
@@ -340,7 +335,7 @@ def get_course(url_cid: str, url_semester: str):
 
     course = RPCCourseResult.make(rpc_result_)
 
-    day, time = lesson_string_to_dict(course.lesson)
+    day, time = lesson_string_to_tuple(course.lesson)
 
     # student list
     students = list()

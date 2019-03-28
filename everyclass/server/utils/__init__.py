@@ -64,7 +64,7 @@ def get_time(digit: int) -> Tuple[Tuple[int, int], Tuple[int, int]]:
         return (21, 00), (22, 40)
 
 
-def lesson_string_to_dict(lesson: str) -> Tuple[int, int]:
+def lesson_string_to_tuple(lesson: str) -> Tuple[int, int]:
     """transform str like '10102' into tuple like (1,1)"""
     day = int(lesson[0])
     time = int((int(lesson[2]) + 1) / 2)
@@ -93,9 +93,9 @@ def semester_calculate(current_semester: str, semester_list: List[str]) -> List[
 
 
 def teacher_list_fix(teachers: List[RPCTeacherInCourseItem]) -> List[RPCTeacherInCourseItem]:
-    """修复老师职称“未定”，以及修复重复老师
-    @:param teachers: api server 返回的教师列表
-    @:return: teacher list that has been fixed
+    """将老师职称“未定”改为空，以及移除重复老师
+    :param teachers: api server 返回的教师列表
+    :return: teacher list that has been fixed
     """
     tid_set: Set[str] = set()
     new_teachers: List[RPCTeacherInCourseItem] = []

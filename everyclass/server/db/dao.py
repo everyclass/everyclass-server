@@ -1,13 +1,10 @@
 import abc
 import datetime
-import re
 import uuid
-from binascii import a2b_base64
 from typing import Dict, List, Optional, Union, overload
 
 import elasticapm
 import pymongo.errors
-from Crypto.Cipher import AES
 from flask import current_app, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -146,53 +143,17 @@ class CalendarTokenDAO(MongoDAOBase):
             raise ValueError("tid/sid together with semester or token must be given to search a token document")
 
     @classmethod
-    def upgrade(cls, key):
+    def upgrade(cls):
         """字段升级"""
-
-        def fill_16(text):
-            """
-            自动填充至十六位或十六的倍数
-            :param text: 需要被填充的字符串
-            :return: 已经被空白符填充的字符串
-            """
-            text += '\0' * (16 - (len(text) % 16))
-            return str.encode(text)
-
-        def aes_decrypt(aes_key, aes_text):
-            """
-            使用密钥解密文本信息，将会自动填充空白字符
-            :param aes_key: 解密密钥
-            :param aes_text: 需要解密的文本
-            :return: 经过解密的数据
-            """
-            # 初始化解码器
-            cipher = AES.new(fill_16(aes_key), AES.MODE_ECB)
-            # 优先逆向解密十六进制为bytes
-            decrypt = a2b_base64(aes_text.replace('-', '/').replace("%3D", "=").encode())
-            # 使用aes解密密文
-            decrypt_text = str(cipher.decrypt(decrypt), encoding='utf-8').replace('\0', '')
-            # 返回执行结果
-            return decrypt_text.strip()
-
-        def identifier_decrypt(key, data):
-            print("key:{} data:{}".format(key, data))
-            data = aes_decrypt(key, data)
-            # 通过正则校验确定数据的正确性
-            group = re.match(r'^(student|teacher|klass|room);([\s\S]+)$', data)
-            if group is None:
-                raise ValueError('解密后的数据无法被合理解读，解密后数据:%s' % data)
-            else:
-                return group.group(1), group.group(2)
-
+        from everyclass.server.utils.resource_identifier_encrypt import identifier_decrypt
         db = get_mongodb()
         teacher_docs = db.get_collection(cls.collection_name).find({"tid": {"$exists": True}})
         for each in teacher_docs:
             print(each)
             db.get_collection(cls.collection_name).update_one(each,
-                                                              {"$set"  : {"identifier": identifier_decrypt(key,
-                                                                                                           each["tid"])[
-                                                                  1],
-                                                                          "type"      : "teacher"},
+                                                              {"$set"  : {
+                                                                  "identifier": identifier_decrypt(each["tid"])[1],
+                                                                  "type"      : "teacher"},
                                                                "$unset": {"tid": 1}
                                                                })
         student_docs = db.get_collection(cls.collection_name).find({"sid": {"$exists": True}})
@@ -200,9 +161,10 @@ class CalendarTokenDAO(MongoDAOBase):
             print(each)
             db.get_collection(cls.collection_name).update_one(each,
                                                               {"$set"     : {
-                                                                  "identifier": identifier_decrypt(key, each["sid"])[1],
+                                                                  "identifier": identifier_decrypt(each["sid"])[1],
                                                                   "type"      : "student"},
-                                                                  "$unset": {"sid": 1}})
+                                                                  "$unset": {"sid": 1}
+                                                              })
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
