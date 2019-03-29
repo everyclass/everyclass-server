@@ -230,14 +230,13 @@ class CalendarTokenDAO(MongoDAOBase):
     def reset_tokens(cls, student_id: str) -> None:
         """删除学生所有的 token"""
         db = get_mongodb()
-        db.get_collection(cls.collection_name).delete_many(({"sid": student_id}))
+        db.get_collection(cls.collection_name).delete_many(({"identifier": student_id}))
 
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
         db.get_collection(cls.collection_name).create_index("token", unique=True)
-        db.get_collection(cls.collection_name).create_index([("tid", 1), ("semester", 1)])
-        db.get_collection(cls.collection_name).create_index([("sid", 1), ("semester", 1)])
+        db.get_collection(cls.collection_name).create_index([("identifier", 1), ("semester", 1)])
 
 
 class UserDAO(MongoDAOBase):
