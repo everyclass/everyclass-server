@@ -174,7 +174,7 @@ class Config(object):
     ANDROID_CLIENT_URL = ''  # apk file for android client, dynamically fetched when starting
 
     FEATURE_GATING = {
-        'user': False
+        'user': True
     }
     DEFAULT_PRIVACY_LEVEL = 0
 
