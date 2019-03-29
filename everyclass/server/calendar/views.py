@@ -248,7 +248,7 @@ def legacy_get_ics(student_id, semester_str):
 
     if privacy_settings != 0:
         # force user to get a calendar token when the user is privacy-protected but accessed through legacy interface
-        return "Visit {} to get your calendar".format(url_for("main.main")), 401
+        return "Visit {} to get your calendar".format(url_for("main.main", _external=True)), 401
     else:
         token = CalendarTokenDAO.get_or_set_calendar_token(resource_type="student",
                                                            identifier=api_response['student'][0]['sid_orig'],
