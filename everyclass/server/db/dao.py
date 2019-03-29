@@ -3,9 +3,8 @@ import datetime
 import uuid
 from typing import Dict, List, Optional, Union, overload
 
-import elasticapm
 import pymongo.errors
-from flask import current_app, session
+from flask import session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
@@ -13,7 +12,6 @@ from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
-from everyclass.server.rpc.http import HttpRpc
 
 
 def new_user_id_sequence() -> int:
@@ -386,19 +384,17 @@ class VisitorDAO(MongoDAOBase):
     @classmethod
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
         """获得访客列表"""
+        from everyclass.server.rpc.api_server import APIServer
         db = get_mongodb()
         result = db.get_collection(cls.collection_name).find({"host": sid_orig}).sort("last_time", -1).limit(50)
         visitor_list = []
         for people in result:
             # query api-server
-            with elasticapm.capture_span('rpc_search'):
-                rpc_result = HttpRpc.call(method="GET",
-                                          url='{}/v1/search/{}'.format(current_app.config['API_SERVER_BASE_URL'],
-                                                                       people["visitor"]),
-                                          retry=True)
-            visitor_list.append({"name"      : rpc_result["student"][0]["name"],
-                                 "sid"       : rpc_result["student"][0]["sid"],
-                                 "last_sem"  : rpc_result["student"][0]["semester"][-1],
+            search_result = APIServer.search(people["visitor"])
+
+            visitor_list.append({"name"      : search_result.students[0].name,
+                                 "sid"       : search_result.students[0].student_id,
+                                 "last_sem"  : search_result.students[0].semesters[-1],
                                  "visit_time": people["last_time"]})
         return visitor_list
 

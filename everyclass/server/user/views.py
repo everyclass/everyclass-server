@@ -10,6 +10,8 @@ from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, I
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
 from everyclass.server.models import StudentSession
+from everyclass.server.rpc import handle_exception_with_error_page
+from everyclass.server.rpc.api_server import APIServer
 from everyclass.server.rpc.http import HttpRpc
 from everyclass.server.utils.decorators import login_required
 
@@ -40,24 +42,21 @@ def login():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.login"))
 
-        if request.form.get("xh", None):
+        if request.form.get("xh", None):  # 已手动填写用户名
             sid_orig = request.form["xh"]
-        else:
+        else:  # 没有手动填写，使用获取最后浏览的学生
             sid_orig = session[SESSION_LAST_VIEWED_STUDENT].sid_orig
         success = UserDAO.check_password(sid_orig, request.form["password"])
         if success:
-            with elasticapm.capture_span('rpc_get_student_info'):
-                rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(
-                        app.config['API_SERVER_BASE_URL'],
-                        sid_orig), retry=True)
-                if isinstance(rpc_result, str):
-                    return rpc_result
-                api_response = rpc_result
+            try:
+                student = APIServer.get_student(sid_orig)
+            except Exception as e:
+                return handle_exception_with_error_page(e)
 
             # 登录态写入 session
             session[SESSION_CURRENT_USER] = StudentSession(sid_orig=sid_orig,
-                                                           sid=api_response["student"][0]["sid"],
-                                                           name=api_response["student"][0]["name"])
+                                                           sid=student.student_id_encoded,
+                                                           name=student.name)
             return redirect(url_for("user.main"))
         else:
             flash(MSG_WRONG_PASSWORD)
@@ -147,18 +146,16 @@ def email_verification():
         IdentityVerificationDAO.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
         flash(MSG_REGISTER_SUCCESS)
 
-        # fetch student basic information from api-server
-        with elasticapm.capture_span('rpc_get_student_info'):
-            rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                               sid_orig), retry=True)
-            if isinstance(rpc_result, str):
-                return rpc_result
-            api_response = rpc_result
+        # 查询 api-server 获得学生基本信息
+        try:
+            student = APIServer.get_student(sid_orig)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
 
         # 登录态写入 session
-        session[SESSION_CURRENT_USER] = StudentSession(sid_orig=api_response["student"][0]["sid_orig"],
-                                                       sid=api_response["student"][0]["sid"],
-                                                       name=api_response["student"][0]["name"])
+        session[SESSION_CURRENT_USER] = StudentSession(sid_orig=student.student_id,
+                                                       sid=student.student_id_encoded,
+                                                       name=student.name)
         return redirect(url_for("user.main"))
     else:
         # 设置密码页面
@@ -258,6 +255,28 @@ def register_by_password_status():
 
     if api_response['success']:
         IdentityVerificationDAO.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
+
+        verification_req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
+
+        # 从 api-server 查询学生基本信息
+        try:
+            student = APIServer.get_student(verification_req["sid_orig"])
+        except Exception as e:
+            return handle_exception_with_error_page(e)
+
+        # 添加用户
+        try:
+            UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"],
+                             password_encrypted=True)
+        except ValueError:
+            pass  # 已经注册成功，但不知为何进入了中间状态，没有执行下面的删除 session 的代码，并且用户刷新页面
+
+        # write login state to session
+        flash(MSG_REGISTER_SUCCESS)
+        del session[SESSION_VER_REQ_ID]
+        session[SESSION_CURRENT_USER] = StudentSession(sid_orig=student.student_id,
+                                                       sid=student.student_id_encoded,
+                                                       name=student.name)
         return jsonify({"message": "SUCCESS"})
     elif api_response["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
         return jsonify({"message": api_response["message"]})
@@ -267,33 +286,7 @@ def register_by_password_status():
 
 @user_bp.route('/register/byPassword/success')
 def register_by_password_success():
-    """验证成功后新增用户、写入登录态，然后跳转到用户首页"""
-    if not session.get(SESSION_VER_REQ_ID, None):
-        return "Invalid request"
-    verification_req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
-    if not verification_req or verification_req["status"] != ID_STATUS_PWD_SUCCESS:
-        return "Invalid request"
-
-    # fetch student basic information from api-server
-    with elasticapm.capture_span('rpc_get_student_info'):
-        rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           verification_req["sid_orig"]),
-                                                  retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
-    try:
-        UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"],
-                         password_encrypted=True)
-    except ValueError:
-        pass  # 已经注册成功，但不知为何进入了中间状态，没有执行下面的删除 session 的代码，并且用户刷新页面
-
-    # write login state to session
-    flash(MSG_REGISTER_SUCCESS)
-    del session[SESSION_VER_REQ_ID]
-    session[SESSION_CURRENT_USER] = StudentSession(sid_orig=api_response["student"][0]["sid_orig"],
-                                                   sid=api_response["student"][0]["sid"],
-                                                   name=api_response["student"][0]["name"])
+    """验证成功后跳转到用户首页"""
     return redirect(url_for("user.main"))
 
 

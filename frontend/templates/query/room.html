@@ -57,7 +57,7 @@
                                         {% for every_class in classes[(day, time)] %}
                                             <b>{{ every_class.name }}</b><br>
                                             {% for teacher in every_class.teachers %}
-                                                <a href="{{ url_for('query.get_teacher', url_tid=teacher.teacher_id_encrypted, url_semester=current_semester) }}">
+                                                <a href="{{ url_for('query.get_teacher', url_tid=teacher.teacher_id_encoded, url_semester=current_semester) }}">
                                                     {{ teacher.name }}{{ teacher.title }}</a>
                                                 {% if not loop.last %}、{% endif %}
                                             {% endfor %}
@@ -67,8 +67,8 @@
                                                 ，{{ every_class.location }}
                                             {% endif %}
                                             <br>
-                                            <a href="{{ url_for('query.get_course', url_cid=every_class.course_id_encrypted, url_semester=current_semester) }}"
-                                               onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class.course_id_encrypted }}']);">课程详情</a>
+                                            <a href="{{ url_for('query.get_course', url_cid=every_class.course_id_encoded, url_semester=current_semester) }}"
+                                               onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class.course_id_encoded }}']);">课程详情</a>
                                             <br>
                                         {% endfor %}
                                     </td>

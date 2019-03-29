@@ -7,7 +7,7 @@ import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.server.models import StudentSession
-from everyclass.server.rpc import handle_exception
+from everyclass.server.rpc import handle_exception_with_error_page
 from everyclass.server.utils import contains_chinese
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 
@@ -51,7 +51,7 @@ def query():
         try:
             rpc_result = APIServer.search(keyword)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
     # render different template for different resource types
     if len(rpc_result.classrooms) >= 1:  # classroom
@@ -60,7 +60,7 @@ def query():
         elasticapm.tag(query_type='by_name')
 
         rpc_result.classrooms[0].semesters.sort()
-        return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].rid,
+        return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id,
                                                   rpc_result.classrooms[0].semesters[-1]))
     elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # only one student
         elasticapm.tag(query_resource_type='single_student')
@@ -73,7 +73,7 @@ def query():
             flash('没有可用学期')
             return redirect(url_for('main.main'))
 
-        return redirect('/student/{}/{}'.format(rpc_result.students[0].sid,
+        return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id,
                                                 rpc_result.students[0].semesters[-1]))
     elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
@@ -86,7 +86,7 @@ def query():
             flash('没有可用学期')
             return redirect(url_for('main.main'))
 
-        return redirect('/teacher/{}/{}'.format(rpc_result.teachers[0].tid,
+        return redirect('/teacher/{}/{}'.format(rpc_result.teachers[0].teacher_id,
                                                 rpc_result.teachers[0].semesters[-1]))
     elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
@@ -131,7 +131,7 @@ def get_student(url_sid: str, url_semester: str):
         try:
             student = APIServer.get_student_timetable(student_id, url_semester)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
@@ -227,7 +227,7 @@ def get_teacher(url_tid, url_semester):
         try:
             teacher = APIServer.get_teacher_timetable(teacher_id, url_semester)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
     with elasticapm.capture_span('process_rpc_result'):
         courses = defaultdict(list)
@@ -277,7 +277,7 @@ def get_classroom(url_rid, url_semester):
         try:
             room = APIServer.get_classroom_timetable(url_semester, room_id)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
     with elasticapm.capture_span('process_rpc_result'):
         courses = defaultdict(list)
@@ -324,7 +324,7 @@ def get_course(url_cid: str, url_semester: str):
         try:
             course = APIServer.get_course(url_semester, course_id)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
     day, time = lesson_string_to_tuple(course.lesson)
 

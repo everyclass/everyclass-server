@@ -21,7 +21,7 @@ def _error_page(message: str, sentry_capture: bool = False, log: str = None):
     return render_template('common/error.html', message=message, **sentry_param)
 
 
-def handle_exception(e: Exception) -> Text:
+def handle_exception_with_error_page(e: Exception) -> Text:
     """处理抛出的异常，返回错误页。
     """
     from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR

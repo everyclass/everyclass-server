@@ -40,7 +40,7 @@
                                 <td>{{ each_student.deputy }}</td>
                                 <td>{{ each_student.klass }}</td>
                                 <td>
-                                    <a href="{{ url_for('query.get_student', url_sid=each_student.sid_encrypted, url_semester=current_semester) }}"
+                                    <a href="{{ url_for('query.get_student', url_sid=each_student.student_id_encoded, url_semester=current_semester) }}"
                                        onclick="_czc.push(['_trackEvent', '同学页', '查询同学课表']);">查看课表</a></td>
                             </tr>
                         {% endfor %}

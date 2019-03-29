@@ -24,7 +24,8 @@ def ensure_slots(cls, dct: Dict):
 
 @dataclass
 class SearchResultStudentItem:
-    sid: str
+    student_id: str
+    student_id_encoded: str
     name: str
     semesters: List[str]
     deputy: str
@@ -32,35 +33,41 @@ class SearchResultStudentItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultStudentItem":
-        del dct["type"]
-        dct['semesters'].sort()
+        dct['semesters'] = dct.pop("semester_list").sort()
+        dct['student_id'] = dct.pop("student_code")  # rename
+        dct['student_id_encoded'] = encrypt('student', dct['student_id'])
+        dct['klass'] = dct.pop("class")
         return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
 class SearchResultTeacherItem:
-    tid: str
+    teacher_id: str
+    teacher_id_encoded: str
     name: str
     semesters: List[str]
     deputy: str
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultTeacherItem":
-        del dct["type"]
-        dct['semesters'].sort()
+        dct['semesters'] = dct.pop("semester_list").sort()
+        dct['teacher_id'] = dct.pop("teacher_code")  # rename
+        dct['teacher_id_encoded'] = encrypt('teacher', dct['teacher_id'])
         return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
 class SearchResultClassroomItem:
-    rid: str
+    room_id: str
+    room_id_encoded: str
     name: str
     semesters: List[str]
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultClassroomItem":
-        del dct["type"]
-        dct['semesters'].sort()
+        dct['semesters'] = dct.pop("semester_list").sort()
+        dct['room_id'] = dct.pop("room_code")  # rename
+        dct['room_id_encoded'] = encrypt('room', dct['room_id'])
         return cls(**ensure_slots(cls, dct))
 
 
@@ -71,28 +78,27 @@ class SearchResult:
     classrooms: List[SearchResultClassroomItem]
 
     @classmethod
-    def make(cls, data_lst: List) -> "SearchResult":
-        students, teachers, classrooms = [], [], []
-        for each in data_lst:
-            if each["type"] == "student":
-                students.append(SearchResultStudentItem.make(each))
-            elif each["type"] == "teacher":
-                teachers.append(SearchResultTeacherItem.make(each))
-            elif each["type"] == "classroom":
-                classrooms.append(SearchResultClassroomItem.make(each))
-        return cls(students=students, teachers=teachers, classrooms=classrooms)
+    def make(cls, dct: Dict) -> "SearchResult":
+        del dct["status"]
+        del dct["info"]
+        dct["students"] = [SearchResultStudentItem.make(x) for x in dct.pop("student_list")]
+        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct.pop("teacher_list")]
+        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct.pop("room_list")]
+
+        return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
 class TeacherItem:
     teacher_id: str
-    teacher_id_encrypted: str
+    teacher_id_encoded: str
     name: str
     title: str
 
     @classmethod
     def make(cls, dct: Dict) -> "TeacherItem":
-        dct['teacher_id_encrypted'] = encrypt('teacher', dct['teacher_id'])
+        dct['teacher_id'] = dct["teacher_code"]
+        dct['teacher_id_encoded'] = encrypt('teacher', dct['teacher_id'])
         return cls(**ensure_slots(cls, dct))
 
 
@@ -100,10 +106,10 @@ class TeacherItem:
 class CourseItem:
     name: str
     course_id: str
-    course_id_encrypted: str
+    course_id_encoded: str
     room: str
     room_id: str
-    room_id_encrypted: str
+    room_id_encoded: str
     week: List[int]
     week_string: str
     lesson: str
@@ -114,23 +120,26 @@ class CourseItem:
         # remove duplicated teachers
         tid_set: Set[str] = set()
         unique_teacher_list: List[TeacherItem] = []
-        for teacher in dct["teachers"]:
-            if teacher["teacher_id"] in tid_set:
+        for teacher in dct["teacher_list"]:
+            if teacher["teacher_code"] in tid_set:
                 continue
             else:
                 tid_set.add(teacher.tid)
                 unique_teacher_list.append(teacher)
         dct["teachers"] = unique_teacher_list
+        del dct["teacher_list"]
+        dct['room_id'] = dct.pop('room_code')
+        dct['course_id'] = dct.pop('course_code')
 
-        dct['room_id_encrypted'] = encrypt('klass', dct['room_id'])
-        dct['course_id_encrypted'] = encrypt('class', dct['course_id_encrypted'])
+        dct['room_id_encoded'] = encrypt('klass', dct['room_id'])
+        dct['course_id_encoded'] = encrypt('class', dct['course_id'])
         return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
 class ClassroomTimetableResult:
     room_id: str
-    room_id_encrypted: str
+    room_id_encoded: str
     name: str
     building: str
     campus: str
@@ -140,43 +149,65 @@ class ClassroomTimetableResult:
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomTimetableResult":
         del dct["status"]
-        dct['semesters'].sort()
-        dct['room_id_encrypted'] = encrypt('room', dct['room_id'])
+        dct['semesters'] = dct.pop('semester_list').sort()
+        dct['room_id'] = dct['room_code']
+        dct['room_id_encoded'] = encrypt('room', dct['room_id'])
         return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
 class CourseResultTeacherItem:
     name: str
-    tid: str
+    teacher_id: str
     title: str
     unit: str
 
     @classmethod
     def make(cls, dct: Dict) -> "CourseResultTeacherItem":
+        dct['teacher_id'] = dct.pop('teacher_code')
         return cls(**ensure_slots(cls, dct))
 
 
 @dataclass
 class CourseResultStudentItem:
     name: str
-    sid: str
-    sid_encrypted: str
+    student_id: str
+    student_id_encoded: str
     klass: str
     deputy: str
 
     @classmethod
     def make(cls, dct: Dict) -> "CourseResultStudentItem":
         dct["klass"] = dct.pop("class")
-        dct["sid_encrypted"] = encrypt("student", dct["sid"])
+        dct["student_id"] = dct.pop("student_code")
+        dct["student_id_encoded"] = encrypt("student", dct.pop("student_id"))
         return cls(**ensure_slots(cls, dct))
+
+
+@dataclass
+class StudentResult:
+    name: str
+    student_id: str
+    student_id_encoded: str
+    deputy: str
+    klass: str
+    semesters: List[str] = field(default_factory=list)  # optional field
+
+    @classmethod
+    def make(cls, dct: Dict) -> "StudentResult":
+        del dct["status"]
+        dct["semesters"] = [CourseItem.make(x) for x in dct.pop("semester_list")]
+        dct["student_id"] = dct.pop("student_code")
+        dct["student_id_encoded"] = encrypt("student", dct["student_id"])
+        dct["klass"] = dct.pop("class")
+        return cls(**dct)
 
 
 @dataclass
 class StudentTimetableResult:
     name: str
     student_id: str
-    student_id_encrypted: str
+    student_id_encoded: str
     deputy: str
     klass: str
     courses: List[CourseItem]
@@ -185,8 +216,10 @@ class StudentTimetableResult:
     @classmethod
     def make(cls, dct: Dict) -> "StudentTimetableResult":
         del dct["status"]
-        dct["courses"] = [CourseItem.make(x) for x in dct["courses"]]
-        dct["student_id_encrypted"] = encrypt("student", dct["student_id"])
+        dct["courses"] = [CourseItem.make(x) for x in dct.pop("course_list")]
+        dct["semesters"] = [CourseItem.make(x) for x in dct.pop("semester_list")]
+        dct["student_id"] = dct.pop("student_code")
+        dct["student_id_encoded"] = encrypt("student", dct["student_id"])
         dct["klass"] = dct.pop("class")
         return cls(**dct)
 
@@ -195,7 +228,7 @@ class StudentTimetableResult:
 class TeacherTimetableResult:
     name: str
     teacher_id: str
-    teacher_id_encrypted: str
+    teacher_id_encoded: str
     title: str
     unit: str
     courses: List[CourseItem]
@@ -204,8 +237,10 @@ class TeacherTimetableResult:
     @classmethod
     def make(cls, dct: Dict) -> "TeacherTimetableResult":
         del dct["status"]
-        dct["courses"] = [CourseItem.make(x) for x in dct["courses"]]
-        dct["teacher_id_encrypted"] = encrypt("teacher", dct["teacher_id"])
+        dct["courses"] = [CourseItem.make(x) for x in dct.pop("course_list")]
+        dct['semesters'] = dct.pop('semester_list').sort()
+        dct['teacher_id'] = dct.pop('teacher_code')
+        dct["teacher_id_encoded"] = encrypt("teacher", dct["teacher_id"])
         return cls(**dct)
 
 
@@ -213,14 +248,15 @@ class TeacherTimetableResult:
 class CourseResult:
     name: str
     course_id: str
-    course_id_encrypted: str
+    course_id_encoded: str
     union_name: str
     hour: int
     lesson: str
     type: str
     pick_num: int
-    rid: str
     room: str
+    room_id: str
+    room_id_encoded: str
     students: List[CourseResultStudentItem]
     teachers: List[CourseResultTeacherItem]
     week: List[int]
@@ -229,9 +265,12 @@ class CourseResult:
     @classmethod
     def make(cls, dct: Dict) -> "CourseResult":
         del dct["status"]
-        dct["teachers"] = [CourseResultTeacherItem.make(x) for x in dct["teachers"]]
-        dct["students"] = [CourseResultStudentItem.make(x) for x in dct["students"]]
-        dct["course_id_encrypted"] = encrypt("klass", dct["course_id"])
+        dct["teachers"] = [CourseResultTeacherItem.make(x) for x in dct.pop("teacher_list")]
+        dct["students"] = [CourseResultStudentItem.make(x) for x in dct.pop("student_list")]
+        dct['course_id'] = dct.pop('course_code')
+        dct["course_id_encoded"] = encrypt("klass", dct["course_id"])
+        dct['room_id'] = dct.pop('room_code')
+        dct['room_id_encoded'] = encrypt("room", dct["room_id"])
         return cls(**ensure_slots(cls, dct))
 
 
@@ -256,13 +295,30 @@ class APIServer:
                             retry=True)
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
-        search_result = SearchResult.make(resp["data"])
+        search_result = SearchResult.make(resp)
+        return search_result
+
+    @classmethod
+    def get_student(cls, student_id: str):
+        """
+        根据学号获得学生课表
+
+        :param student_id: 学号
+        :return:
+        """
+        resp = HttpRpc.call(method="GET",
+                            url='{}/v2/student/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                          student_id),
+                            retry=True)
+        if resp["status"] != "success":
+            raise RpcException('API Server returns non-success status')
+        search_result = StudentResult.make(resp)
         return search_result
 
     @classmethod
     def get_student_timetable(cls, student_id: str, semester: str):
         """
-        根据学期和教工号获得学生课表
+        根据学期和学号获得学生课表
 
         :param student_id: 学号
         :param semester: 学期，如 2018-2019-1

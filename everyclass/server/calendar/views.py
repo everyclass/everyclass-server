@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 import elasticapm
 from flask import Blueprint
 
-from everyclass.server.rpc import handle_exception
+from everyclass.server.rpc import handle_exception_with_error_page
 from everyclass.server.utils.decorators import disallow_in_maintenance
 
 cal_blueprint = Blueprint('calendar', __name__)
@@ -26,17 +26,17 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
 
     # 检查 URL 参数
     try:
-        decoded_res_type, res_id = decrypt(url_res_identifier)
+        res_type, res_id = decrypt(url_res_identifier)
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
-    if url_res_type not in ('student', 'teacher') or url_res_type != decoded_res_type:
+    if url_res_type not in ('student', 'teacher') or url_res_type != res_type:
         return render_template("common/error.html", message=MSG_400)
 
     if url_res_type == 'student':
         try:
             student = APIServer.get_student_timetable(res_id, url_semester)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
         # 检查是否有权限访问日历订阅页面
         with elasticapm.capture_span('get_privacy_settings'):
@@ -53,7 +53,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
         try:
             teacher = APIServer.get_teacher_timetable(res_id, url_semester)
         except Exception as e:
-            return handle_exception(e)
+            return handle_exception_with_error_page(e)
 
         token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=url_res_type,
                                                            identifier=teacher.teacher_id,
@@ -109,7 +109,7 @@ def ics_download(calendar_token: str):
                                              week=course.week,
                                              week_string=course.week_string,
                                              classroom=course.room,
-                                             cid=course.course_id_encrypted))
+                                             cid=course.course_id_encoded))
 
     ics_generator.generate(name=rpc_result.name,
                            courses=courses,
@@ -126,24 +126,22 @@ def ics_download(calendar_token: str):
 def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
-    from flask import current_app as app, jsonify
-    from everyclass.server.rpc.http import HttpRpc
+    from flask import jsonify
+    from everyclass.server.rpc.api_server import APIServer
 
-    with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_message('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                               identifier))
-        if isinstance(rpc_result, tuple):
-            return rpc_result
-        api_response = rpc_result
+    try:
+        search_result = APIServer.search(identifier)
+    except Exception as e:
+        return handle_exception_with_error_page(e)
 
-    if len(api_response['student']) == 1:
+    if len(search_result.students) == 1:
         return jsonify({'type'     : 'student',
-                        'sid'      : api_response['student'][0]['sid'],
-                        'semesters': sorted(api_response['student'][0]['semester'])})
-    if len(api_response['teacher']) == 1:
+                        'sid'      : search_result.students[0].student_id_encoded,
+                        'semesters': search_result.students[0].semesters})
+    if len(search_result.teachers) == 1:
         return jsonify({'type'     : 'teacher',
-                        'tid'      : api_response['teacher'][0]['tid'],
-                        'semesters': sorted(api_response['teacher'][0]['semester'])})
+                        'tid'      : search_result.teachers[0].teacher_id_encoded,
+                        'semesters': search_result.teachers[0].semesters})
     return "Bad request (got multiple people)", 400
 
 
@@ -157,32 +155,38 @@ def android_client_get_ics(resource_type, identifier, semester):
     If the privacy mode is on and there is no HTTP basic authentication, return a 401(unauthorized)
     status code and the Android client ask user for password to try again.
     """
-    from flask import current_app as app, redirect, url_for, request
+    from flask import redirect, url_for, request
 
-    from everyclass.server.rpc.http import HttpRpc
     from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO, UserDAO
+    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.server.utils.resource_identifier_encrypt import decrypt
 
-    if resource_type not in ('student', 'teacher'):
+    # 检查 URL 参数
+    try:
+        res_type, res_id = decrypt(identifier)
+    except ValueError:
+        return "Invalid identifier", 400
+    if resource_type not in ('student', 'teacher') or resource_type != res_type:
         return "Unknown resource type", 400
 
-    with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_handle_message('{}/v1/{}/{}/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                              resource_type,
-                                                                              identifier,
-                                                                              semester))
-        if isinstance(rpc_result, tuple):
-            return rpc_result
-        api_response = rpc_result
-
     if resource_type == 'teacher':
+        try:
+            teacher = APIServer.get_teacher_timetable(res_id, semester)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
+
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               identifier=rpc_result["tid"],
+                                                               identifier=teacher.teacher_id,
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
-    else:
-        # student
+    else:  # student
+        try:
+            student = APIServer.get_student_timetable(res_id, semester)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
+
         with elasticapm.capture_span('get_privacy_settings'):
-            privacy_level = PrivacySettingsDAO.get_level(api_response['sid'])
+            privacy_level = PrivacySettingsDAO.get_level(student.student_id)
 
         # get authorization from HTTP header and verify password if privacy is on
         if privacy_level != 0:
@@ -191,11 +195,11 @@ def android_client_get_ics(resource_type, identifier, semester):
             username, password = request.authorization
             if not UserDAO.check_password(username, password):
                 return "Unauthorized (password wrong)", 401
-            if api_response['sid'] != username:
+            if student.student_id != username:
                 return "Unauthorized (username mismatch)", 401
 
         cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               identifier=rpc_result["sid"],
+                                                               identifier=student.student_id,
                                                                semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
 
@@ -204,17 +208,12 @@ def android_client_get_ics(resource_type, identifier, semester):
 @disallow_in_maintenance
 def legacy_get_ics(student_id, semester_str):
     """
-    legacy iCalendar endpoint
-
-    query the student first, if the student is not privacy protected, redirect to new ics. else return 401.
-
-    this route is bad. however, many users have already been using it. breaking experience is bad. so we have
-    to keep the route here for now. and (maybe) remove it in the future.
+    早期 iCalendar 订阅端点，出于兼容性考虑保留，仅支持未设定隐私等级的学生，其他情况使用新的日历订阅令牌获得 ics 文件。
     """
-    from flask import current_app as app, abort, redirect, url_for
+    from flask import abort, redirect, url_for
 
     from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
-    from everyclass.server.rpc.http import HttpRpc
+    from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.models import Semester
 
     # fix parameters
@@ -224,28 +223,23 @@ def legacy_get_ics(student_id, semester_str):
 
     semester = Semester(semester_str)
 
-    with elasticapm.capture_span('rpc_search'):
-        rpc_result = HttpRpc.call_with_error_page('{}/v1/search/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                           student_id), retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
+    search_result = APIServer.search(student_id)
 
-    if len(api_response['student']) != 1:
+    if len(search_result.students) != 1:
         # bad request
         return abort(400)
 
-    if semester.to_str() not in api_response['student'][0]['semester']:
+    if semester.to_str() not in search_result.students[0].semesters:
         return abort(400)
 
     with elasticapm.capture_span('get_privacy_settings'):
-        privacy_settings = PrivacySettingsDAO.get_level(api_response['student'][0]['sid_orig'])
+        privacy_settings = PrivacySettingsDAO.get_level(search_result.students[0].student_id)
 
     if privacy_settings != 0:
         # force user to get a calendar token when the user is privacy-protected but accessed through legacy interface
         return "Visit {} to get your calendar".format(url_for("main.main", _external=True)), 401
     else:
         token = CalendarTokenDAO.get_or_set_calendar_token(resource_type="student",
-                                                           identifier=api_response['student'][0]['sid_orig'],
+                                                           identifier=search_result.students[0].student_id,
                                                            semester=semester.to_str())
         return redirect(url_for('calendar.ics_download', calendar_token=token))
