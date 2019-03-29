@@ -91,12 +91,11 @@ class CalendarTokenDAO(MongoDAOBase):
     """
     {
         "type": "student",                          # "student" or "teacher"
-        "create_time": 2019-02-24T13:33:05.123Z,    # token create time (added later)
-        "sid": "zp9ApTs9Ln2LO8T",                   # student id(not original) if this is a student (legacy)
-        "tid": "zp9ApTs9Ln2LO8T",                   # teacher id(not original) if this is a teacher (legacy)
+        "create_time": 2019-02-24T13:33:05.123Z,    # token 创建时间（新增字段）
         "identifier": "390xx"                       # 学生或老师的原始学号
         "semester": "2018-2019-1",                  # 学期
-        "token": ""                                 # calendar token, uuid type (not string!)
+        "token": ""                                 # 令牌, uuid 类型（不是字符串！）
+        "last_used": 2019-02-24T13:33:05.123Z       # v1.6.3版本新增，最后使用时间
     }
     """
     collection_name = "calendar_token"
