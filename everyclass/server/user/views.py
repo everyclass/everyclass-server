@@ -137,7 +137,7 @@ def email_verification():
 
         # 密码强度检查
         pwd_strength_report = zxcvbn(password=request.form["password"])
-        if pwd_strength_report['score'] < 3:
+        if pwd_strength_report['score'] < 2:
             SimplePasswordDAO.new(password=request.form["password"], sid_orig=sid_orig)
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.email_verification"))
@@ -194,7 +194,7 @@ def register_by_password():
 
         # 密码强度检查
         pwd_strength_report = zxcvbn(password=request.form["password"])
-        if pwd_strength_report['score'] < 3:
+        if pwd_strength_report['score'] < 2:
             SimplePasswordDAO.new(password=request.form["password"],
                                   sid_orig=session[SESSION_LAST_VIEWED_STUDENT].sid_orig)
             flash(MSG_WEAK_PASSWORD)
