@@ -1,14 +1,11 @@
-from typing import Dict, Tuple, Union
+from typing import Dict
 
 import gevent
 import requests
 
-from everyclass.server import logger, sentry
-from everyclass.server.consts import MSG_400, MSG_404, MSG_INTERNAL_ERROR, MSG_TIMEOUT
+from everyclass.server import logger
 from everyclass.server.exceptions import RpcBadRequestException, \
     RpcClientException, RpcResourceNotFoundException, RpcServerException, RpcTimeoutException
-from everyclass.server.rpc import _error_page
-from everyclass.server.utils import plugin_available
 
 
 class HttpRpc:
@@ -28,14 +25,6 @@ class HttpRpc:
             if status_code == 400:
                 raise RpcBadRequestException(status_code, response.text)
             raise RpcClientException(status_code, response.text)
-
-    @classmethod
-    def _return_string(cls, status_code, string, sentry_capture=False, log=None):
-        if sentry_capture and plugin_available("sentry"):
-            sentry.captureException()
-        if log:
-            logger.info(log)
-        return string, status_code
 
     @classmethod
     def call(cls, method: str, url: str, params=None, retry: bool = False, data=None) -> Dict:
@@ -66,49 +55,3 @@ class HttpRpc:
             logger.debug('RPC result: {}'.format(response_json))
             return response_json
         raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
-
-    @classmethod
-    def call_with_error_page(cls, url: str, params=None, retry: bool = False,
-                             data=None, method: str = 'GET') -> Union[Dict, str]:
-        """调用 API 并处理抛出的异常。如有异常，跳转到错误页。
-        todo: remove after all legacy api-server calls removed.
-        """
-        try:
-            api_response = cls.call(method, url, params=params, retry=retry, data=data)
-        except RpcTimeoutException:
-            return _error_page(MSG_TIMEOUT, sentry_capture=True)
-        except RpcResourceNotFoundException:
-            return _error_page(MSG_404, sentry_capture=True)
-        except RpcBadRequestException as e:
-            return _error_page(MSG_400,
-                               log="Got bad request, upstream returned status code {} with message {}.".format(*e.args),
-                               sentry_capture=True)
-        except RpcClientException:
-            return _error_page(MSG_400, sentry_capture=True)
-        except RpcServerException:
-            return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
-        except Exception:
-            return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
-
-        return api_response
-
-    @classmethod
-    def call_with_handle_message(cls, url, params=None, retry=False, data=None) -> Union[Dict, Tuple]:
-        """call API and handle exceptions.
-        if exception, return a message
-        """
-        try:
-            api_response = cls.call("GET", url, params=params, retry=retry, data=data)
-        except RpcTimeoutException:
-            return cls._return_string(408, "Backend timeout", sentry_capture=True)
-        except RpcResourceNotFoundException:
-            return cls._return_string(404, "Resource not found", sentry_capture=True)
-        except RpcBadRequestException:
-            return cls._return_string(400, "Bad request", sentry_capture=True)
-        except RpcClientException:
-            return cls._return_string(400, "Bad request", sentry_capture=True)
-        except RpcServerException:
-            return cls._return_string(500, "Server internal error", sentry_capture=True)
-        except Exception:
-            return cls._return_string(500, "Server internal error", sentry_capture=True)
-        return api_response

@@ -1,4 +1,4 @@
-from typing import Text
+from typing import Text, Tuple
 
 from flask import g, render_template
 
@@ -6,6 +6,14 @@ from everyclass.server import logger, sentry
 from everyclass.server.exceptions import RpcBadRequestException, RpcClientException, RpcResourceNotFoundException, \
     RpcServerException, RpcTimeoutException
 from everyclass.server.utils import plugin_available
+
+
+def _return_string(status_code, string, sentry_capture=False, log=None):
+    if sentry_capture and plugin_available("sentry"):
+        sentry.captureException()
+    if log:
+        logger.info(log)
+    return string, status_code
 
 
 def _error_page(message: str, sentry_capture: bool = False, log: str = None):
@@ -40,3 +48,19 @@ def handle_exception_with_error_page(e: Exception) -> Text:
         return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
     else:
         return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
+
+
+def handle_exception_with_message(e: Exception) -> Tuple:
+    """处理抛出的异常，返回错误消息"""
+    if type(e) == RpcTimeoutException:
+        return _return_string(408, "Backend timeout", sentry_capture=True)
+    elif type(e) == RpcResourceNotFoundException:
+        return _return_string(404, "Resource not found", sentry_capture=True)
+    elif type(e) == RpcBadRequestException:
+        return _return_string(400, "Bad request", sentry_capture=True)
+    elif type(e) == RpcClientException:
+        return _return_string(400, "Bad request", sentry_capture=True)
+    elif type(e) == RpcServerException:
+        return _return_string(500, "Server internal error", sentry_capture=True)
+    else:
+        return _return_string(500, "Server internal error", sentry_capture=True)

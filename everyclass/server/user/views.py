@@ -1,5 +1,5 @@
 import elasticapm
-from flask import Blueprint, current_app as app, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 from zxcvbn import zxcvbn
 
 from everyclass.server import logger, recaptcha
@@ -12,7 +12,7 @@ from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, I
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import handle_exception_with_error_page
 from everyclass.server.rpc.api_server import APIServer
-from everyclass.server.rpc.http import HttpRpc
+from everyclass.server.rpc.auth import Auth
 from everyclass.server.utils.decorators import login_required
 
 user_bp = Blueprint('user', __name__)
@@ -90,18 +90,13 @@ def register_by_email():
 
     request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_SENT)
 
-    # call everyclass-auth to send email
-    with elasticapm.capture_span('rpc_send_email'):
-        rpc_result = HttpRpc.call_with_error_page('{}/register_by_email'.format(app.config['AUTH_BASE_URL']),
-                                                  data={'request_id': request_id,
-                                                        'student_id': sid_orig},
-                                                  method='POST',
-                                                  retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
+    with elasticapm.capture_span('send_email'):
+        try:
+            rpc_result = Auth.register_by_email(request_id, sid_orig)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
 
-    if api_response['acknowledged']:
+    if rpc_result['acknowledged']:
         return render_template('user/emailSent.html', request_id=request_id)
     else:
         return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
@@ -162,17 +157,16 @@ def email_verification():
         if not session.get(SESSION_VER_REQ_ID, None):
             if not request.args.get("token", None):
                 return render_template("common/error.html", message=MSG_400)
-            rpc_result = HttpRpc.call_with_error_page('{}/verify_email_token'.format(app.config['AUTH_BASE_URL']),
-                                                      data={"email_token": request.args.get("token", None)},
-                                                      method='POST',
-                                                      retry=True)
-            if isinstance(rpc_result, str):
-                return rpc_result
-            api_response = rpc_result
 
-            if api_response['success']:
-                session[SESSION_VER_REQ_ID] = api_response['request_id']
-                IdentityVerificationDAO.set_request_status(api_response['request_id'], ID_STATUS_TKN_PASSED)
+            with elasticapm.capture_span('verify_email_token'):
+                try:
+                    rpc_result = Auth.verify_email_token(token=request.args.get("token", None))
+                except Exception as e:
+                    return handle_exception_with_error_page(e)
+
+            if rpc_result['success']:
+                session[SESSION_VER_REQ_ID] = rpc_result['request_id']
+                IdentityVerificationDAO.set_request_status(rpc_result['request_id'], ID_STATUS_TKN_PASSED)
                 return render_template('user/emailVerificationProceed.html')
             else:
                 return render_template("common/error.html", message=MSG_TOKEN_INVALID)
@@ -211,17 +205,15 @@ def register_by_password():
                                                                   password=request.form["password"])
 
         # call everyclass-auth to verify password
-        with elasticapm.capture_span('rpc_submit_auth'):
-            rpc_result = HttpRpc.call_with_error_page('{}/register_by_password'.format(app.config['AUTH_BASE_URL']),
-                                                      data={'request_id': str(request_id),
-                                                            'student_id': session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
-                                                            'password'  : request.form["jwPassword"]},
-                                                      method='POST')
-            if isinstance(rpc_result, str):
-                return rpc_result
-            api_response = rpc_result
+        with elasticapm.capture_span('register_by_password'):
+            try:
+                rpc_result = Auth.register_by_password(request_id=str(request_id),
+                                                       student_id=session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
+                                                       password=request.form["jwPassword"])
+            except Exception as e:
+                return handle_exception_with_error_page(e)
 
-        if api_response['acknowledged']:
+        if rpc_result['acknowledged']:
             session[SESSION_VER_REQ_ID] = request_id
             return render_template('user/passwordRegistrationPending.html', request_id=request_id)
         else:
@@ -244,16 +236,15 @@ def register_by_password_status():
     if req["verification_method"] != "password":
         logger.warn("Non-password verification request is trying get status from password interface")
         return "Invalid request"
-    # fetch status from everyclass-auth
-    with elasticapm.capture_span('rpc_get_auth_state'):
-        rpc_result = HttpRpc.call_with_error_page('{}/get_result'.format(app.config['AUTH_BASE_URL']),
-                                                  data={'request_id': str(request.args.get("request"))},
-                                                  retry=True)
-        if isinstance(rpc_result, str):
-            return rpc_result
-        api_response = rpc_result
 
-    if api_response['success']:
+    # fetch status from everyclass-auth
+    with elasticapm.capture_span('get_result'):
+        try:
+            rpc_result = Auth.get_result(str(request.args.get("request")))
+        except Exception as e:
+            return handle_exception_with_error_page(e)
+
+    if rpc_result['success']:  # 密码验证通过，设置请求状态并新增用户
         IdentityVerificationDAO.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
 
         verification_req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
@@ -278,8 +269,8 @@ def register_by_password_status():
                                                        sid=student.student_id_encoded,
                                                        name=student.name)
         return jsonify({"message": "SUCCESS"})
-    elif api_response["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
-        return jsonify({"message": api_response["message"]})
+    elif rpc_result["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
+        return jsonify({"message": rpc_result["message"]})
     else:
         return jsonify({"message": "next-time"})
 
