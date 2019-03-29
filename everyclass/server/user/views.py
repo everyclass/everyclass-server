@@ -218,7 +218,7 @@ def register_by_password():
             rpc_result = HttpRpc.call_with_error_page('{}/register_by_password'.format(app.config['AUTH_BASE_URL']),
                                                       data={'request_id': str(request_id),
                                                             'student_id': session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
-                                                            'password'  : request.form["jwPassword"]},
+                                                            'password'  : request.form["password"]},
                                                       method='POST')
             if isinstance(rpc_result, str):
                 return rpc_result
