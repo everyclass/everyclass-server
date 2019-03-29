@@ -335,7 +335,7 @@ def js_set_preference():
 @login_required
 def reset_calendar_token():
     """重置日历订阅令牌"""
-    CalendarTokenDAO.reset_tokens(session[SESSION_CURRENT_USER].sid)
+    CalendarTokenDAO.reset_tokens(session[SESSION_CURRENT_USER].sid_orig)
     flash("日历订阅令牌重置成功")
     return redirect(url_for("user.main"))
 

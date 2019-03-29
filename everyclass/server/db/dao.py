@@ -227,10 +227,10 @@ class CalendarTokenDAO(MongoDAOBase):
         return token
 
     @classmethod
-    def reset_tokens(cls, sid: str) -> None:
+    def reset_tokens(cls, student_id: str) -> None:
         """删除学生所有的 token"""
         db = get_mongodb()
-        db.get_collection(cls.collection_name).remove({"sid": sid})
+        db.get_collection(cls.collection_name).delete_many(({"sid": student_id}))
 
     @classmethod
     def create_index(cls) -> None:
