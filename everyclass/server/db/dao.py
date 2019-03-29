@@ -269,12 +269,20 @@ class UserDAO(MongoDAOBase):
         return check_password_hash(doc['password'], password)
 
     @classmethod
-    def add_user(cls, sid_orig: str, password: str) -> None:
-        """add a user"""
+    def add_user(cls, sid_orig: str, password: str, password_encrypted: bool = False) -> None:
+        """add a user
+
+        :param sid_orig: 学号
+        :param password: 密码
+        :param password_encrypted: 密码是否已经被加密过了（否则会被二次加密）
+        """
         db = get_mongodb()
         if db.get_collection(cls.collection_name).find_one({"sid_orig": sid_orig}):
             raise ValueError("Student already exists in database")
-        password_hash = generate_password_hash(password)
+        if not password_encrypted:
+            password_hash = generate_password_hash(password)
+        else:
+            password_hash = password
         db.user.insert({"sid_orig"   : sid_orig,
                         "create_time": datetime.datetime.now(),
                         "password"   : password_hash})
@@ -323,7 +331,7 @@ class IdentityVerificationDAO(MongoDAOBase):
         :param sid_orig: original sid
         :param verification_method: password or email
         :param status: status of the request
-        :param password: if register by password, save everyclass password (not jw password) here
+        :param password: if register by password, fill everyclass password here
         :return: the `request_id`
         """
         if verification_method not in ("email", "password"):

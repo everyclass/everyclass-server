@@ -218,7 +218,7 @@ def register_by_password():
             rpc_result = HttpRpc.call_with_error_page('{}/register_by_password'.format(app.config['AUTH_BASE_URL']),
                                                       data={'request_id': str(request_id),
                                                             'student_id': session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
-                                                            'password'  : request.form["password"]},
+                                                            'password'  : request.form["jwPassword"]},
                                                       method='POST')
             if isinstance(rpc_result, str):
                 return rpc_result
@@ -283,7 +283,8 @@ def register_by_password_success():
             return rpc_result
         api_response = rpc_result
     try:
-        UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"])
+        UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"],
+                         password_encrypted=True)
     except ValueError:
         pass  # 已经注册成功，但不知为何进入了中间状态，没有执行下面的删除 session 的代码，并且用户刷新页面
 
