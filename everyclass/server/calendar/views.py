@@ -80,6 +80,8 @@ def ics_download(calendar_token):
     if not result:
         return 'invalid calendar token', 404
 
+    CalendarTokenDAO.update_last_used_time(calendar_token)
+
     # 获得原始学号或教工号
     with elasticapm.capture_span('rpc_search'):
         rpc_result = HttpRpc.call(method="GET",

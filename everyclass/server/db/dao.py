@@ -227,6 +227,13 @@ class CalendarTokenDAO(MongoDAOBase):
         return token
 
     @classmethod
+    def update_last_used_time(cls, token: str):
+        """更新token最后使用时间"""
+        db = get_mongodb()
+        db.get_collection(cls.collection_name).update_one({'token': uuid.UUID(token)},
+                                                          {'$set': {'last_used': datetime.datetime.now()}})
+
+    @classmethod
     def reset_tokens(cls, student_id: str) -> None:
         """删除学生所有的 token"""
         db = get_mongodb()
