@@ -81,9 +81,10 @@ class SearchResult:
     def make(cls, dct: Dict) -> "SearchResult":
         del dct["status"]
         del dct["info"]
-        dct["students"] = [SearchResultStudentItem.make(x) for x in dct.pop("student_list")]
-        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct.pop("teacher_list")]
-        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct.pop("room_list")]
+        dct["students"] = [SearchResultStudentItem.make(x) for x in dct['data'] if x['type' == 'student']]
+        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct['data'] if x['type' == 'teacher']]
+        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct['data'] if x['type' == 'room']]
+        dct.pop("data")
 
         return cls(**ensure_slots(cls, dct))
 
@@ -291,7 +292,9 @@ class APIServer:
         :return: 搜索结果列表
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/search/{}'.format(app.config['API_SERVER_BASE_URL'], keyword.replace("/", "")),
+                            url='{}/v2/search/query?key={}&pagesize={}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                               keyword.replace("/", ""),
+                                                                               100),
                             retry=True)
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
