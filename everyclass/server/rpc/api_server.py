@@ -4,6 +4,7 @@ from typing import Dict, List, Set
 from flask import current_app as app
 
 from everyclass.server import logger
+from everyclass.server.config import get_config
 from everyclass.server.exceptions import RpcException
 from everyclass.server.rpc.http import HttpRpc
 from everyclass.server.utils.resource_identifier_encrypt import encrypt
@@ -292,10 +293,11 @@ class APIServer:
         :return: 搜索结果列表
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/search/query?key={}&pagesize={}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                               keyword.replace("/", ""),
-                                                                               100),
-                            retry=True)
+                            url='{}/search/query?key={}&pagesize={}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                            keyword.replace("/", ""),
+                                                                            100),
+                            retry=True,
+                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = SearchResult.make(resp)
@@ -310,9 +312,10 @@ class APIServer:
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/student/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                          student_id),
-                            retry=True)
+                            url='{}/student/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                       student_id),
+                            retry=True,
+                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = StudentResult.make(resp)
@@ -328,10 +331,11 @@ class APIServer:
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/student/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                       student_id,
-                                                                       semester),
-                            retry=True)
+                            url='{}/student/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                    student_id,
+                                                                    semester),
+                            retry=True,
+                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = StudentTimetableResult.make(resp)
@@ -347,10 +351,11 @@ class APIServer:
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/teacher/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                       teacher_id,
-                                                                       semester),
-                            retry=True)
+                            url='{}/teacher/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                    teacher_id,
+                                                                    semester),
+                            retry=True,
+                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = TeacherTimetableResult.make(resp)
@@ -365,10 +370,11 @@ class APIServer:
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/room/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                    room_id,
-                                                                    semester),
-                            retry=True)
+                            url='{}/room/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                 room_id,
+                                                                 semester),
+                            retry=True,
+                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = ClassroomTimetableResult.make(resp)
@@ -383,8 +389,9 @@ class APIServer:
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/v2/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'], semester, course_id),
-                            retry=True)
+                            url='{}/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'], semester, course_id),
+                            retry=True,
+                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = CourseResult.make(resp)

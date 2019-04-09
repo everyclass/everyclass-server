@@ -104,6 +104,7 @@ class Config(object):
 
     # other micro-services
     API_SERVER_BASE_URL = 'http://everyclass-api-server'
+    API_SERVER_TOKEN = ''
     AUTH_BASE_URL = 'http://everyclass-auth'
 
     """
@@ -194,7 +195,7 @@ class Config(object):
     RECAPTCHA_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
 
     # define available environments for logs, APM and error tracking
-    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing', 'development')
     APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
     LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
     DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')

@@ -27,13 +27,15 @@ class HttpRpc:
             raise RpcClientException(status_code, response.text)
 
     @classmethod
-    def call(cls, method: str, url: str, params=None, retry: bool = False, data=None) -> Dict:
+    def call(cls, method: str, url: str, params=None, retry: bool = False, data=None, headers=None) -> Dict:
         """call HTTP API. if server returns 4xx or 500 status code, raise exceptions.
+
         :param method: HTTP method. Support GET or POST at the moment.
         :param url: URL of the HTTP endpoint
         :param params: parameters when calling RPC
         :param retry: if set to True, will automatically retry
         :param data: json data along with the request
+        :param headers: custom headers
         """
         api_session = requests.sessions.session()
         trial_total = 5 if retry else 1
@@ -42,9 +44,9 @@ class HttpRpc:
             try:
                 logger.debug('RPC {} {}'.format(method, url))
                 if method == 'GET':
-                    api_response = api_session.get(url, params=params, json=data)
+                    api_response = api_session.get(url, params=params, json=data, headers=headers)
                 elif method == 'POST':
-                    api_response = api_session.post(url, params=params, json=data)
+                    api_response = api_session.post(url, params=params, json=data, headers=headers)
                 else:
                     raise NotImplementedError("Unsupported HTTP method {}".format(method))
             except gevent.timeout.Timeout:
