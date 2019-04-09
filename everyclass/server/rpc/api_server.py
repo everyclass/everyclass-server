@@ -82,9 +82,9 @@ class SearchResult:
     def make(cls, dct: Dict) -> "SearchResult":
         del dct["status"]
         del dct["info"]
-        dct["students"] = [SearchResultStudentItem.make(x) for x in dct['data'] if x['type' == 'student']]
-        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct['data'] if x['type' == 'teacher']]
-        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct['data'] if x['type' == 'room']]
+        dct["students"] = [SearchResultStudentItem.make(x) for x in dct['data'] if x['type'] == 'student']
+        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct['data'] if x['type'] == 'teacher']
+        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct['data'] if x['type'] == 'room']
         dct.pop("data")
 
         return cls(**ensure_slots(cls, dct))
