@@ -2,7 +2,7 @@ import gc
 import sys
 
 import logbook
-from flask import Flask, g, render_template, request, session
+from flask import Flask, g, redirect, render_template, request, session
 from flask_cdn import CDN
 from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
@@ -193,6 +193,13 @@ def create_app() -> Flask:
         """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
         if not session.get('user_id', None) and request.endpoint != "main.health_check":
             session['user_id'] = new_user_id_sequence()
+
+    @app.before_request
+    def delete_old_session():
+        """删除旧的客户端 session（长度过长导致无法在 mongodb 中建立索引）"""
+        if request.cookies.get("session") and len(request.cookies.get("session")) > 50:
+            session.clear()
+            return redirect(request.url)
 
     @app.after_request
     def response_minify(response):
