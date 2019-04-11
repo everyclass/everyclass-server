@@ -34,10 +34,11 @@ class SearchResultStudentItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultStudentItem":
-        dct['semesters'] = dct.pop("semester_list").sort()
+        dct['semesters'] = sorted(dct.pop("semester_list"))
         dct['student_id'] = dct.pop("student_code")  # rename
         dct['student_id_encoded'] = encrypt('student', dct['student_id'])
         dct['klass'] = dct.pop("class")
+        del dct["type"]
         return cls(**ensure_slots(cls, dct))
 
 
@@ -51,9 +52,10 @@ class SearchResultTeacherItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultTeacherItem":
-        dct['semesters'] = dct.pop("semester_list").sort()
+        dct['semesters'] = sorted(dct.pop("semester_list"))
         dct['teacher_id'] = dct.pop("teacher_code")  # rename
         dct['teacher_id_encoded'] = encrypt('teacher', dct['teacher_id'])
+        del dct["type"]
         return cls(**ensure_slots(cls, dct))
 
 
@@ -66,9 +68,10 @@ class SearchResultClassroomItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultClassroomItem":
-        dct['semesters'] = dct.pop("semester_list").sort()
+        dct['semesters'] = sorted(dct.pop("semester_list"))
         dct['room_id'] = dct.pop("room_code")  # rename
         dct['room_id_encoded'] = encrypt('room', dct['room_id'])
+        del dct["type"]
         return cls(**ensure_slots(cls, dct))
 
 
@@ -82,9 +85,12 @@ class SearchResult:
     def make(cls, dct: Dict) -> "SearchResult":
         del dct["status"]
         del dct["info"]
-        dct["students"] = [SearchResultStudentItem.make(x) for x in dct['data'] if x['type'] == 'student']
-        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct['data'] if x['type'] == 'teacher']
-        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct['data'] if x['type'] == 'room']
+        dct["students"] = [SearchResultStudentItem.make(x) for x in dct['data'] if
+                           'type' in x and x['type'] == 'student']
+        dct["teachers"] = [SearchResultTeacherItem.make(x) for x in dct['data'] if
+                           'type' in x and x['type'] == 'teacher']
+        dct["classrooms"] = [SearchResultClassroomItem.make(x) for x in dct['data'] if
+                             'type' in x and x['type'] == 'room']
         dct.pop("data")
 
         return cls(**ensure_slots(cls, dct))
@@ -151,7 +157,7 @@ class ClassroomTimetableResult:
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomTimetableResult":
         del dct["status"]
-        dct['semesters'] = dct.pop('semester_list').sort()
+        dct['semesters'] = sorted(dct.pop('semester_list'))
         dct['room_id'] = dct['room_code']
         dct['room_id_encoded'] = encrypt('room', dct['room_id'])
         return cls(**ensure_slots(cls, dct))
@@ -240,7 +246,7 @@ class TeacherTimetableResult:
     def make(cls, dct: Dict) -> "TeacherTimetableResult":
         del dct["status"]
         dct["courses"] = [CourseItem.make(x) for x in dct.pop("course_list")]
-        dct['semesters'] = dct.pop('semester_list').sort()
+        dct['semesters'] = sorted(dct.pop('semester_list'))
         dct['teacher_id'] = dct.pop('teacher_code')
         dct["teacher_id_encoded"] = encrypt("teacher", dct["teacher_id"])
         return cls(**dct)
@@ -293,9 +299,9 @@ class APIServer:
         :return: 搜索结果列表
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/search/query?key={}&pagesize={}'.format(app.config['API_SERVER_BASE_URL'],
-                                                                            keyword.replace("/", ""),
-                                                                            100),
+                            url='{}/search/query?key={}&page_size={}'.format(app.config['API_SERVER_BASE_URL'],
+                                                                             keyword.replace("/", ""),
+                                                                             100),
                             retry=True,
                             headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":

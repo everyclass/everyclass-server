@@ -73,7 +73,7 @@ def query():
             flash('没有可用学期')
             return redirect(url_for('main.main'))
 
-        return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id,
+        return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id_encoded,
                                                 rpc_result.students[0].semesters[-1]))
     elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # only one teacher
         elasticapm.tag(query_resource_type='single_teacher')
@@ -86,7 +86,7 @@ def query():
             flash('没有可用学期')
             return redirect(url_for('main.main'))
 
-        return redirect('/teacher/{}/{}'.format(rpc_result.teachers[0].teacher_id,
+        return redirect('/teacher/{}/{}'.format(rpc_result.teachers[0].teacher_id_encoded,
                                                 rpc_result.teachers[0].semesters[-1]))
     elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
