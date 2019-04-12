@@ -218,7 +218,7 @@ class CalendarTokenDAO(MongoDAOBase):
                                                   identifier=identifier,
                                                   semester=semester)
             else:
-                token = cls.insert_calendar_token(resource_type="student",
+                token = cls.insert_calendar_token(resource_type="teacher",
                                                   identifier=identifier,
                                                   semester=semester)
         else:
