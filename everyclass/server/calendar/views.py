@@ -93,10 +93,10 @@ def ics_download(calendar_token: str):
 
     # 获得原始学号或教工号
     if result['type'] == 'student':
-        rpc_result = APIServer.get_student_timetable(result['identifier'], result['identifier'])
+        rpc_result = APIServer.get_student_timetable(result['identifier'], result['semester'])
     else:
         # teacher
-        rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['identifier'])
+        rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['semester'])
 
     with elasticapm.capture_span('process_rpc_result'):
         semester = Semester(result['semester'])
@@ -106,7 +106,7 @@ def ics_download(calendar_token: str):
             day, time = lesson_string_to_tuple(course.lesson)
             courses[(day, time)].append(dict(name=course.name,
                                              teacher=teacher_list_to_str(course.teachers),
-                                             week=course.week,
+                                             week=course.weeks,
                                              week_string=course.week_string,
                                              classroom=course.room,
                                              cid=course.course_id_encoded))

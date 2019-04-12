@@ -247,7 +247,7 @@ def register_by_password_status():
     if rpc_result['success']:  # 密码验证通过，设置请求状态并新增用户
         IdentityVerificationDAO.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
 
-        verification_req = IdentityVerificationDAO.get_request_by_id(str(session[SESSION_VER_REQ_ID]))
+        verification_req = IdentityVerificationDAO.get_request_by_id(str(request.args.get("request")))
 
         # 从 api-server 查询学生基本信息
         try:
@@ -268,11 +268,12 @@ def register_by_password_status():
         session[SESSION_CURRENT_USER] = StudentSession(sid_orig=student.student_id,
                                                        sid=student.student_id_encoded,
                                                        name=student.name)
+
         return jsonify({"message": "SUCCESS"})
     elif rpc_result["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
         return jsonify({"message": rpc_result["message"]})
     else:
-        return jsonify({"message": "next-time"})
+        return jsonify({"message": "NEXT_TIME"})
 
 
 @user_bp.route('/register/byPassword/success')

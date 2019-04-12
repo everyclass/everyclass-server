@@ -16,14 +16,14 @@
 
         <h4 class="text-muted">
             {% if config.FEATURE_GATING['user'] %}
-                {% if session.get("current_logged_in_user", None) and session["current_logged_in_user"].sid==sid %}
+                {% if session.get("current_logged_in_user", None) and session["current_logged_in_user"].sid_orig==student.student_id %}
                     <a href="{{ url_for('user.main') }}">个人中心</a>
                 {% else %}
                     <a href="{{ url_for('user.login') }}">登录</a>
                 {% endif %} &nbsp;
             {% endif %}
             <a
-                    href="{{ url_for('calendar.cal_page', resource_type="student", resource_identifier=sid, url_semester=current_semester) }}"
+                    href="{{ url_for('calendar.cal_page', url_res_type="student", url_res_identifier=student.student_id_encoded, url_semester=current_semester) }}"
                     onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a>
         </h4>
     </div>
@@ -106,7 +106,7 @@
 
 {% endblock %}
 {% block scripts %}
-    {% if sid == 'pfnLSeCnvqGOEgnBXHWcahIhoEY++iScO0Okq3AOajY=' %}
+    {% if student.student_id == 'pfnLSeCnvqGOEgnBXHWcahIhoEY++iScO0Okq3AOajY=' %}
         <script type="text/javascript">
             function specialColor() {
                 //special pink color
@@ -127,7 +127,7 @@
     {% endif %}
     <script>
         $("select#semester-select").change(function () {
-            window.location.href = "/student/" + "{{ sid }}" + "/" + $('select#semester-select option:selected').val();
+            window.location.href = "/student/" + "{{ student.student_id }}" + "/" + $('select#semester-select option:selected').val();
         });
 
     </script>

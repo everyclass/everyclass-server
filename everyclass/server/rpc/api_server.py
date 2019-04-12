@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Dict, List, Set
+from typing import Dict, List
 
 from flask import current_app as app
 
@@ -105,7 +105,7 @@ class TeacherItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "TeacherItem":
-        dct['teacher_id'] = dct["teacher_code"]
+        dct['teacher_id'] = dct.pop("teacher_code")
         dct['teacher_id_encoded'] = encrypt('teacher', dct['teacher_id'])
         return cls(**ensure_slots(cls, dct))
 
@@ -118,29 +118,20 @@ class CourseItem:
     room: str
     room_id: str
     room_id_encoded: str
-    week: List[int]
+    weeks: List[int]
     week_string: str
     lesson: str
     teachers: List[TeacherItem]
 
     @classmethod
     def make(cls, dct: Dict) -> "CourseItem":
-        # remove duplicated teachers
-        tid_set: Set[str] = set()
-        unique_teacher_list: List[TeacherItem] = []
-        for teacher in dct["teacher_list"]:
-            if teacher["teacher_code"] in tid_set:
-                continue
-            else:
-                tid_set.add(teacher.tid)
-                unique_teacher_list.append(teacher)
-        dct["teachers"] = unique_teacher_list
+        dct["teachers"] = [TeacherItem.make(x) for x in dct["teacher_list"]]
         del dct["teacher_list"]
         dct['room_id'] = dct.pop('room_code')
         dct['course_id'] = dct.pop('course_code')
-
-        dct['room_id_encoded'] = encrypt('klass', dct['room_id'])
-        dct['course_id_encoded'] = encrypt('class', dct['course_id'])
+        dct['weeks'] = dct.pop('week_list')
+        dct['room_id_encoded'] = encrypt('room', dct['room_id'])
+        dct['course_id_encoded'] = encrypt('klass', dct['course_id'])
         return cls(**ensure_slots(cls, dct))
 
 
@@ -188,7 +179,7 @@ class CourseResultStudentItem:
     def make(cls, dct: Dict) -> "CourseResultStudentItem":
         dct["klass"] = dct.pop("class")
         dct["student_id"] = dct.pop("student_code")
-        dct["student_id_encoded"] = encrypt("student", dct.pop("student_id"))
+        dct["student_id_encoded"] = encrypt("student", dct.get("student_id"))
         return cls(**ensure_slots(cls, dct))
 
 
@@ -204,10 +195,10 @@ class StudentResult:
     @classmethod
     def make(cls, dct: Dict) -> "StudentResult":
         del dct["status"]
-        dct["semesters"] = [CourseItem.make(x) for x in dct.pop("semester_list")]
         dct["student_id"] = dct.pop("student_code")
         dct["student_id_encoded"] = encrypt("student", dct["student_id"])
         dct["klass"] = dct.pop("class")
+        dct["semesters"] = dct.pop('semester_list')
         return cls(**dct)
 
 
@@ -219,13 +210,14 @@ class StudentTimetableResult:
     deputy: str
     klass: str
     courses: List[CourseItem]
+    semester: str
     semesters: List[str] = field(default_factory=list)  # optional field
 
     @classmethod
     def make(cls, dct: Dict) -> "StudentTimetableResult":
         del dct["status"]
         dct["courses"] = [CourseItem.make(x) for x in dct.pop("course_list")]
-        dct["semesters"] = [CourseItem.make(x) for x in dct.pop("semester_list")]
+        dct["semesters"] = dct.pop("semester_list")
         dct["student_id"] = dct.pop("student_code")
         dct["student_id_encoded"] = encrypt("student", dct["student_id"])
         dct["klass"] = dct.pop("class")
@@ -240,6 +232,7 @@ class TeacherTimetableResult:
     title: str
     unit: str
     courses: List[CourseItem]
+    semester: str  # current semester
     semesters: List[str] = field(default_factory=list)  # optional field
 
     @classmethod
@@ -261,13 +254,13 @@ class CourseResult:
     hour: int
     lesson: str
     type: str
-    pick_num: int
+    picked: int
     room: str
     room_id: str
     room_id_encoded: str
     students: List[CourseResultStudentItem]
     teachers: List[CourseResultTeacherItem]
-    week: List[int]
+    weeks: List[int]
     week_string: str
 
     @classmethod
@@ -279,6 +272,7 @@ class CourseResult:
         dct["course_id_encoded"] = encrypt("klass", dct["course_id"])
         dct['room_id'] = dct.pop('room_code')
         dct['room_id_encoded'] = encrypt("room", dct["room_id"])
+        dct['weeks'] = dct.pop("week_list")
         return cls(**ensure_slots(cls, dct))
 
 
@@ -395,7 +389,8 @@ class APIServer:
         :return:
         """
         resp = HttpRpc.call(method="GET",
-                            url='{}/course/{}/{}'.format(app.config['API_SERVER_BASE_URL'], semester, course_id),
+                            url='{}/course/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'], course_id,
+                                                                   semester),
                             retry=True,
                             headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":

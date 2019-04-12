@@ -135,22 +135,21 @@ def get_student(url_sid: str, url_semester: str):
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
-    session[SESSION_LAST_VIEWED_STUDENT] = StudentSession(sid_orig=student.sid,
-                                                          sid=url_sid,
+    session[SESSION_LAST_VIEWED_STUDENT] = StudentSession(sid_orig=student.student_id,
+                                                          sid=student.student_id_encoded,
                                                           name=student.name)
 
     # get privacy level, if current user has no permission to view, return now
     with elasticapm.capture_span('get_privacy_settings'):
-        privacy_level = PrivacySettingsDAO.get_level(student.sid)
+        privacy_level = PrivacySettingsDAO.get_level(student.student_id)
 
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
     if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
-                               session[SESSION_CURRENT_USER].sid_orig != student.sid):
+                               session[SESSION_CURRENT_USER].sid_orig != student.student_id):
         return render_template('query/studentBlocked.html',
                                name=student.name,
                                falculty=student.deputy,
                                class_name=student.klass,
-                               sid=url_sid,
                                level=2)
     # 实名互访
     if privacy_level == 1:
@@ -160,7 +159,6 @@ def get_student(url_sid: str, url_semester: str):
                                    name=student.name,
                                    falculty=student.deputy,
                                    class_name=student.klass,
-                                   sid=url_sid,
                                    level=1)
         # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
         if PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig) == 2:
@@ -168,7 +166,6 @@ def get_student(url_sid: str, url_semester: str):
                                    name=student.name,
                                    falculty=student.deputy,
                                    class_name=student.klass,
-                                   sid=url_sid,
                                    level=3)
 
     with elasticapm.capture_span('process_rpc_result'):
@@ -179,21 +176,20 @@ def get_student(url_sid: str, url_semester: str):
                 courses[(day, time)] = list()
             courses[(day, time)].append(course)
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
-        available_semesters = semester_calculate(url_semester, sorted(student.semester_list))
+        available_semesters = semester_calculate(url_semester, sorted(student.semesters))
 
     # 公开模式或实名互访模式，留下轨迹
     if privacy_level != 2 and \
             session.get(SESSION_CURRENT_USER, None) and \
             session[SESSION_CURRENT_USER] != session[SESSION_LAST_VIEWED_STUDENT]:
-        VisitorDAO.update_track(host=student.sid,
+        VisitorDAO.update_track(host=student.student_id,
                                 visitor=session[SESSION_CURRENT_USER])
 
     # 增加访客记录
-    RedisDAO.add_visitor_count(student.sid, session.get(SESSION_CURRENT_USER, None))
+    RedisDAO.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
 
     return render_template('query/student.html',
                            student=student,
-                           sid=url_sid,
                            classes=courses,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,
@@ -239,11 +235,10 @@ def get_teacher(url_tid, url_semester):
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, teacher.semester_list)
+    available_semesters = semester_calculate(url_semester, teacher.semesters)
 
     return render_template('query/teacher.html',
                            teacher=teacher,
-                           tid_encrypted=url_tid,
                            classes=courses,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,
