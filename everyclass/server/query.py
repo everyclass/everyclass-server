@@ -43,9 +43,6 @@ def query():
     if re.match('^[A-Za-z0-9]*$', request.values.get('id')):  # 学号工号转小写
         keyword = keyword.lower()
 
-    if keyword[0] in ('a', 'b', 'c', 'd') and len(keyword) <= 5:  # 增加‘座‘后缀，因为很多人搜索新校教室不加'座'就搜不到
-        keyword = keyword[0] + '座' + keyword[1:]
-
     # call api-server to search
     with elasticapm.capture_span('rpc_search'):
         try:
