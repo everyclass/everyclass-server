@@ -125,8 +125,7 @@ class CourseItem:
 
     @classmethod
     def make(cls, dct: Dict) -> "CourseItem":
-        dct["teachers"] = [TeacherItem.make(x) for x in dct["teacher_list"]]
-        del dct["teacher_list"]
+        dct["teachers"] = [TeacherItem.make(x) for x in dct.pop("teacher_list")]
         dct['room_id'] = dct.pop('room_code')
         dct['course_id'] = dct.pop('course_code')
         dct['weeks'] = dct.pop('week_list')
@@ -143,13 +142,16 @@ class ClassroomTimetableResult:
     building: str
     campus: str
     semester: str
+    semesters: List[str]
     courses: List[CourseItem]
 
     @classmethod
     def make(cls, dct: Dict) -> "ClassroomTimetableResult":
         del dct["status"]
         dct['semesters'] = sorted(dct.pop('semester_list'))
-        dct['room_id'] = dct['room_code']
+        dct['room_id'] = dct.pop("room_code")
+        dct['courses'] = [CourseItem.make(x) for x in dct.pop('course_list')]
+
         dct['room_id_encoded'] = encrypt('room', dct['room_id'])
         return cls(**ensure_slots(cls, dct))
 
