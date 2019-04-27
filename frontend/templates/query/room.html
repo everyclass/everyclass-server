@@ -63,9 +63,6 @@
                                             {% endfor %}
                                             <br>
                                             {{ every_class.week_string }}
-                                            {% if every_class.location!='None' %}
-                                                ，{{ every_class.location }}
-                                            {% endif %}
                                             <br>
                                             <a href="{{ url_for('query.get_course', url_cid=every_class.course_id_encoded, url_semester=current_semester) }}"
                                                onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class.course_id_encoded }}']);">课程详情</a>

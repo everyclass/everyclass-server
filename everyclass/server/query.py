@@ -279,7 +279,7 @@ def get_classroom(url_rid, url_semester):
 
     empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
 
-    available_semesters = semester_calculate(url_semester, room.semester_list)
+    available_semesters = semester_calculate(url_semester, room.semesters)
 
     return render_template('query/room.html',
                            room=room,
