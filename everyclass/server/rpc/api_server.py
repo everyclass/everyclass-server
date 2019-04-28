@@ -48,7 +48,7 @@ class SearchResultTeacherItem:
     teacher_id_encoded: str
     name: str
     semesters: List[str]
-    deputy: str
+    unit: str
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultTeacherItem":

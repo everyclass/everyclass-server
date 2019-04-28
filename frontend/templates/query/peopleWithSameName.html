@@ -36,7 +36,7 @@
                             <tr>
                                 <td>{{ teacher.name }}</td>
                                 <td>教师</td>
-                                <td>{{ teacher.deputy }}</td>
+                                <td>{{ teacher.unit }}</td>
                                 <td></td>
                                 <td>
                                     <a href="{{ url_for('query.get_teacher', url_tid=teacher.teacher_id_encoded, url_semester=teacher.semesters[-1]) }} "
