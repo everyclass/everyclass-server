@@ -14,10 +14,10 @@ def main():
     return render_template('common/index.html')
 
 
-@main_blueprint.route('/sleep')
-def sleep():
-    """休眠测试"""
-    time.sleep(50)
+@main_blueprint.route('/time')
+def test():
+    """首页"""
+    time.sleep(5)
     return render_template('common/index.html')
 
 
@@ -99,10 +99,4 @@ def page_not_found(error):
         response = jsonify({'error': 'not found'})
         response.status_code = 404
         return response
-    return redirect(url_for('main.main'))
-
-
-# 405跳转回首页
-@main_blueprint.app_errorhandler(405)
-def method_not_allowed(error):
     return redirect(url_for('main.main'))

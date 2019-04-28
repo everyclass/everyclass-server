@@ -35,13 +35,14 @@ RUN cd / \
 
 COPY . /var/app
 
-# install Python dependencies
+# install Python dependencies, make entrypoint executable
 RUN pip3 install --upgrade pip \
     && pip3 install pipenv \
     && pipenv sync \
     && pip3 install uwsgitop \
-    && rm -r /root/.cache
+    && rm -r /root/.cache \
+    && chmod +x ./deploy/docker-cmd.sh
 
 ENV UWSGI_HTTP_SOCKET ":80"
 
-CMD ["bash", "deploy/docker-cmd.sh"]
+CMD ["deploy/docker-cmd.sh"]

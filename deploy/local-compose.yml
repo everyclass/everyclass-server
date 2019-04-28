@@ -7,4 +7,4 @@ services:
     environment:
       MODE: DEVELOPMENT
     ports:
-    - 80:80
+      - 5001:80
