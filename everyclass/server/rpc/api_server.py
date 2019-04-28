@@ -49,6 +49,7 @@ class SearchResultTeacherItem:
     name: str
     semesters: List[str]
     unit: str
+    title: str
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultTeacherItem":
