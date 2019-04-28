@@ -57,7 +57,7 @@ def query():
         elasticapm.tag(query_type='by_name')
 
         rpc_result.classrooms[0].semesters.sort()
-        return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id,
+        return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id_encoded,
                                                   rpc_result.classrooms[0].semesters[-1]))
     elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # only one student
         elasticapm.tag(query_resource_type='single_student')
