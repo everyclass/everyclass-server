@@ -66,6 +66,8 @@ class SearchResultClassroomItem:
     room_id_encoded: str
     name: str
     semesters: List[str]
+    campus: str
+    building: str
 
     @classmethod
     def make(cls, dct: Dict) -> "SearchResultClassroomItem":
@@ -304,6 +306,7 @@ class APIServer:
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = SearchResult.make(resp)
+        # todo: support multi page for huge search results
         return search_result
 
     @classmethod
