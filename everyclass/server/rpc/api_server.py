@@ -98,6 +98,13 @@ class SearchResult:
 
         return cls(**ensure_slots(cls, dct))
 
+    def append(self, to_append: Dict):
+        """对于多页搜索结果，将第一页之后的结果追加到搜索结果对象"""
+        new_result = self.__class__.make(to_append)
+        self.students.extend(new_result.students)
+        self.teachers.extend(new_result.teachers)
+        self.classrooms.extend(new_result.classrooms)
+
 
 @dataclass
 class TeacherItem:
@@ -305,8 +312,23 @@ class APIServer:
                             headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
+        page_num = resp['info']['page_num']
         search_result = SearchResult.make(resp)
-        # todo: support multi page for huge search results
+
+        # 多页结果
+        if page_num > 1:
+            for page_index in range(2, page_num + 1):
+                resp = HttpRpc.call(method="GET",
+                                    url='{}/search/query?key={}&page_size={}&page_index={}'.format(
+                                            app.config['API_SERVER_BASE_URL'],
+                                            keyword.replace("/", ""),
+                                            100, page_index),
+                                    retry=True,
+                                    headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                if resp["status"] != "success":
+                    raise RpcException('API Server returns non-success status')
+                search_result.append(resp)
+
         return search_result
 
     @classmethod
