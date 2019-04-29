@@ -43,7 +43,7 @@ def query():
     if re.match('^[A-Za-z0-9]*$', request.values.get('id')):  # 学号工号转小写
         keyword = keyword.lower()
 
-    # call api-server to search
+    # 调用 api-server 搜索
     with elasticapm.capture_span('rpc_search'):
         try:
             rpc_result = APIServer.search(keyword)
@@ -51,15 +51,18 @@ def query():
             return handle_exception_with_error_page(e)
 
     # render different template for different resource types
-    if len(rpc_result.classrooms) >= 1:  # classroom
+    if len(rpc_result.classrooms) >= 1:  # 优先展示教室
         # we will use service name to filter apm document first, so it's not required to add service name prefix here
         elasticapm.tag(query_resource_type='classroom')
         elasticapm.tag(query_type='by_name')
 
-        rpc_result.classrooms[0].semesters.sort()
+        if len(rpc_result.classrooms) > 1:  # 多个教室选择
+            return render_template('query/multipleClassroomChoice.html',
+                                   name=keyword,
+                                   classrooms=rpc_result.classrooms)
         return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id_encoded,
                                                   rpc_result.classrooms[0].semesters[-1]))
-    elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # only one student
+    elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # 一个学生
         elasticapm.tag(query_resource_type='single_student')
         if contains_chinese(keyword):
             elasticapm.tag(query_type='by_name')
@@ -72,7 +75,7 @@ def query():
 
         return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id_encoded,
                                                 rpc_result.students[0].semesters[-1]))
-    elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # only one teacher
+    elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # 一个老师
         elasticapm.tag(query_resource_type='single_teacher')
         if contains_chinese(keyword):
             elasticapm.tag(query_type='by_name')

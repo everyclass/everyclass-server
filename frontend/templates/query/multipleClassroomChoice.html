@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}搜索结果 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">有{{ classrooms|length }}个教室符合{{ name }}！</h1>
+        <h4 class="text-muted">你想要查询哪个教室呢？</h4>
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>教室名</th>
+                            <th>校区</th>
+                            <th>楼栋</th>
+                            <th>查询</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for classroom in classrooms %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('query.get_classroom', url_rid=classroom.room_id_encoded, url_semester=classroom.semesters[-1]) }} ">{{ classroom.name }}</a>
+                                </td>
+                                <td>{{ classroom.campus }}</td>
+                                <td>{{ classroom.building }}</td>
+                                <td>
+                                    <a href="{{ url_for('query.get_classroom', url_rid=classroom.room_id_encoded, url_semester=classroom.semesters[-1]) }} ">点击查询</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
