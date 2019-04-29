@@ -26,7 +26,6 @@ def query():
     - `query_resource_type`, 查询的资源类型: classroom, single_student, single_teacher, multiple_people, or not_exist.
     - `query_type`, 查询方式（姓名、学工号）: by_name, by_id, other
     """
-    import re
     from everyclass.server.rpc.api_server import APIServer
 
     # if under maintenance, return to maintenance.html
@@ -40,9 +39,6 @@ def query():
         flash('请输入需要查询的姓名、学号、教工号或教室名称')
         return redirect(url_for('main.main'))
 
-    if re.match('^[A-Za-z0-9]*$', request.values.get('id')):  # 学号工号转小写
-        keyword = keyword.lower()
-
     # 调用 api-server 搜索
     with elasticapm.capture_span('rpc_search'):
         try:
@@ -50,9 +46,9 @@ def query():
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-    # render different template for different resource types
+    # 不同类型渲染不同模板
     if len(rpc_result.classrooms) >= 1:  # 优先展示教室
-        # we will use service name to filter apm document first, so it's not required to add service name prefix here
+        # 我们在 kibana 中使用服务名过滤 apm 文档，所以 tag 不用增加服务名前缀
         elasticapm.tag(query_resource_type='classroom')
         elasticapm.tag(query_type='by_name')
 
