@@ -101,18 +101,18 @@ def ics_download(calendar_token: str):
     with elasticapm.capture_span('process_rpc_result'):
         semester = Semester(result['semester'])
 
-        courses: Dict[Tuple[int, int], List[Dict]] = defaultdict(list)
-        for course in rpc_result.courses:
-            day, time = lesson_string_to_tuple(course.lesson)
-            courses[(day, time)].append(dict(name=course.name,
-                                             teacher=teacher_list_to_str(course.teachers),
-                                             week=course.weeks,
-                                             week_string=course.week_string,
-                                             classroom=course.room,
-                                             cid=course.course_id_encoded))
+        cards: Dict[Tuple[int, int], List[Dict]] = defaultdict(list)
+        for card in rpc_result.cards:
+            day, time = lesson_string_to_tuple(card.lesson)
+            cards[(day, time)].append(dict(name=card.name,
+                                           teacher=teacher_list_to_str(card.teachers),
+                                           week=card.weeks,
+                                           week_string=card.week_string,
+                                           classroom=card.room,
+                                           cid=card.card_id_encoded))
 
     ics_generator.generate(name=rpc_result.name,
-                           courses=courses,
+                           cards=cards,
                            semester=semester,
                            ics_token=calendar_token)
 

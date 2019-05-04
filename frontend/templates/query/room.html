@@ -44,7 +44,7 @@
                                 <td>{{ time*2-1 }}-{{ time*2 }}节</td>
                                 {% for day in range(1,8) if not ((day==6 and empty_sat) or (day==7 and empty_sun)) %}
                                     <td>
-                                        {% for every_class in classes[(day, time)] %}
+                                        {% for every_class in cards[(day, time)] %}
                                             <b>{{ every_class.name }}</b><br>
                                             {% for teacher in every_class.teachers %}
                                                 <a href="{{ url_for('query.get_teacher', url_tid=teacher.teacher_id_encoded, url_semester=current_semester) }}">
@@ -54,8 +54,8 @@
                                             <br>
                                             {{ every_class.week_string }}
                                             <br>
-                                            <a href="{{ url_for('query.get_course', url_cid=every_class.course_id_encoded, url_semester=current_semester) }}"
-                                               onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class.course_id_encoded }}']);">课程详情</a>
+                                            <a href="{{ url_for('query.get_card', url_cid=every_class.card_id_encoded, url_semester=current_semester) }}"
+                                               onclick="_czc.push(['_trackEvent', '查询页', '课程详情', '', '{{ every_class.card_id_encoded }}']);">课程详情</a>
                                             <br>
                                         {% endfor %}
                                     </td>

@@ -164,13 +164,13 @@ def get_student(url_sid: str, url_semester: str):
                                    level=3)
 
     with elasticapm.capture_span('process_rpc_result'):
-        courses: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
-        for course in student.courses:
-            day, time = lesson_string_to_tuple(course.lesson)
-            if (day, time) not in courses:
-                courses[(day, time)] = list()
-            courses[(day, time)].append(course)
-        empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
+        cards: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
+        for card in student.cards:
+            day, time = lesson_string_to_tuple(card.lesson)
+            if (day, time) not in cards:
+                cards[(day, time)] = list()
+            cards[(day, time)].append(card)
+        empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
         available_semesters = semester_calculate(url_semester, sorted(student.semesters))
 
     # 公开模式或实名互访模式，留下轨迹
@@ -185,7 +185,7 @@ def get_student(url_sid: str, url_semester: str):
 
     return render_template('query/student.html',
                            student=student,
-                           classes=courses,
+                           cards=cards,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,
                            empty_6=empty_6,
@@ -221,20 +221,20 @@ def get_teacher(url_tid, url_semester):
             return handle_exception_with_error_page(e)
 
     with elasticapm.capture_span('process_rpc_result'):
-        courses = defaultdict(list)
-        for course in teacher.courses:
-            day, time = lesson_string_to_tuple(course.lesson)
-            if (day, time) not in courses:
-                courses[(day, time)] = list()
-            courses[(day, time)].append(course)
+        cards = defaultdict(list)
+        for card in teacher.cards:
+            day, time = lesson_string_to_tuple(card.lesson)
+            if (day, time) not in cards:
+                cards[(day, time)] = list()
+            cards[(day, time)].append(card)
 
-    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
+    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
 
     available_semesters = semester_calculate(url_semester, teacher.semesters)
 
     return render_template('query/teacher.html',
                            teacher=teacher,
-                           classes=courses,
+                           cards=cards,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,
                            empty_6=empty_6,
@@ -270,19 +270,19 @@ def get_classroom(url_rid, url_semester):
             return handle_exception_with_error_page(e)
 
     with elasticapm.capture_span('process_rpc_result'):
-        courses = defaultdict(list)
-        for course in room.courses:
-            day, time = lesson_string_to_tuple(course.lesson)
-            courses[(day, time)].append(course)
+        cards = defaultdict(list)
+        for card in room.cards:
+            day, time = lesson_string_to_tuple(card.lesson)
+            cards[(day, time)].append(card)
 
-    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(courses)
+    empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
 
     available_semesters = semester_calculate(url_semester, room.semesters)
 
     return render_template('query/room.html',
                            room=room,
                            rid=url_rid,
-                           classes=courses,
+                           cards=cards,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,
                            empty_6=empty_6,
@@ -291,10 +291,10 @@ def get_classroom(url_rid, url_semester):
                            current_semester=url_semester)
 
 
-@query_blueprint.route('/course/<string:url_cid>/<string:url_semester>')
+@query_blueprint.route('/card/<string:url_cid>/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
-def get_course(url_cid: str, url_semester: str):
+def get_card(url_cid: str, url_semester: str):
     """课程查询"""
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.utils import get_time_chinese
@@ -305,54 +305,54 @@ def get_course(url_cid: str, url_semester: str):
 
     # decrypt identifier in URL
     try:
-        _, course_id = decrypt(url_cid, resource_type='klass')
+        _, card_id = decrypt(url_cid, resource_type='klass')
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
-    # RPC to get course
-    with elasticapm.capture_span('rpc_get_course'):
+    # RPC to get card
+    with elasticapm.capture_span('rpc_get_card'):
         try:
-            course = APIServer.get_course(url_semester, course_id)
+            card = APIServer.get_card(url_semester, card_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-    day, time = lesson_string_to_tuple(course.lesson)
+    day, time = lesson_string_to_tuple(card.lesson)
 
     # 给“文化素质类”等加上“课”后缀
-    if course.type and course.type[-1] != '课':
-        course.type = course.type + '课'
+    if card.type and card.type[-1] != '课':
+        card.type = card.type + '课'
 
-    return render_template('query/course.html',
-                           course=course,
-                           course_day=get_day_chinese(day),
-                           course_time=get_time_chinese(time),
-                           show_union_class=not course.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
-                           course_teacher=teacher_list_to_str(course.teachers),
+    return render_template('query/card.html',
+                           card=card,
+                           card_day=get_day_chinese(day),
+                           card_time=get_time_chinese(time),
+                           show_union_class=not card.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
+                           teacher_string=teacher_list_to_str(card.teachers),
                            current_semester=url_semester
                            )
 
 
-def _empty_column_check(courses: dict) -> Tuple[bool, bool, bool, bool]:
+def _empty_column_check(cards: dict) -> Tuple[bool, bool, bool, bool]:
     """检查是否周末和晚上有课，返回三个布尔值"""
     with elasticapm.capture_span('_empty_column_check'):
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
         empty_sat = True
         for cls_time in range(1, 7):
-            if (6, cls_time) in courses:
+            if (6, cls_time) in cards:
                 empty_sat = False
 
         empty_sun = True
         for cls_time in range(1, 7):
-            if (7, cls_time) in courses:
+            if (7, cls_time) in cards:
                 empty_sun = False
 
         # 空闲课程判断，考虑到大多数人11-12节都是没有课程的
         empty_6 = True
         for cls_day in range(1, 8):
-            if (cls_day, 6) in courses:
+            if (cls_day, 6) in cards:
                 empty_6 = False
         empty_5 = True
         for cls_day in range(1, 8):
-            if (cls_day, 5) in courses:
+            if (cls_day, 5) in cards:
                 empty_5 = False
     return empty_5, empty_6, empty_sat, empty_sun

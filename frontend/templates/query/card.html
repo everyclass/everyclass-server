@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
-{% block title %}{{ course.name }} - 课程详情 - 每课{% endblock %}
+{% block title %}{{ card.name }} - 课程详情 - 每课{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
-        <h1 class="hero-header">{{ course.name }}</h1>
-        <h4 class="text-muted">{{ course_teacher }}及 {{ course.students|length }} 名学生</h4>
-        <h4 class="text-muted">{{ course.week_string }}{{ course_day }}{{ course_time }}，{{ course.room }}</h4>
-        <h4 class="text-muted">本{{ course.type }}共 {{ course.hour }} 学时{% if show_union_class %}，合班名称：
-            {{ course.union_name }}{% endif %}</h4>
+        <h1 class="hero-header">{{ card.name }}</h1>
+        <h4 class="text-muted">{{ teacher_string }}及 {{ card.students|length }} 名学生</h4>
+        <h4 class="text-muted">{{ card.week_string }}{{ card_day }}{{ card_time }}，{{ card.room }}</h4>
+        <h4 class="text-muted">本{{ card.type }}共 {{ card.hour }} 学时{% if show_union_class %}，合班名称：
+            {{ card.union_name }}{% endif %}</h4>
     </div>
 
     <br>
@@ -24,7 +24,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for each_student in course.students %}
+                        {% for each_student in card.students %}
                             <tr>
                                 <td>{{ each_student.name }}</td>
                                 <td>{{ each_student.deputy }}</td>

@@ -23,12 +23,12 @@ tzs.add('TZOFFSETFROM', timedelta(hours=8))
 tzs.add('TZOFFSETTO', timedelta(hours=8))
 
 
-def generate(name: str, courses: Dict[Tuple[int, int], List[Dict]], semester: Semester, ics_token: str):
+def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Semester, ics_token: str):
     """
     生成 ics 文件并保存到目录
 
     :param name: 姓名
-    :param courses: 参与的课程
+    :param cards: 参与的课程
     :param semester: 当前导出的学期
     :param ics_token: ics 令牌
     :return: None
@@ -52,22 +52,22 @@ def generate(name: str, courses: Dict[Tuple[int, int], List[Dict]], semester: Se
     # 创建 events
     for time in range(1, 7):
         for day in range(1, 8):
-            if (day, time) in courses:
-                for course in courses[(day, time)]:
-                    for week in course['week']:
+            if (day, time) in cards:
+                for card in cards[(day, time)]:
+                    for week in card['week']:
                         dtstart = _get_datetime(week, day, get_time(time)[0], semester)
                         dtend = _get_datetime(week, day, get_time(time)[1], semester)
 
                         if dtstart.year == 1984:
                             continue
 
-                        cal.add_component(_build_event(course_name=course['name'],
+                        cal.add_component(_build_event(card_name=card['name'],
                                                        times=(dtstart, dtend),
-                                                       classroom=course['classroom'],
-                                                       teacher=course['teacher'],
-                                                       week_string=course['week_string'],
+                                                       classroom=card['classroom'],
+                                                       teacher=card['teacher'],
+                                                       week_string=card['week_string'],
                                                        current_week=week,
-                                                       cid=course['cid']))
+                                                       cid=card['cid']))
 
     # 写入文件
     import os
@@ -109,12 +109,12 @@ def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[in
     return dt
 
 
-def _build_event(course_name: str, times: Tuple[datetime, datetime], classroom: str, teacher: str, current_week: int,
+def _build_event(card_name: str, times: Tuple[datetime, datetime], classroom: str, teacher: str, current_week: int,
                  week_string: str, cid: str) -> Event:
     """
     生成 `Event` 对象
 
-    :param course_name: 课程名
+    :param card_name: 课程名
     :param times: 开始和结束时间
     :param classroom: 课程地点
     :param teacher: 任课教师
@@ -123,9 +123,9 @@ def _build_event(course_name: str, times: Tuple[datetime, datetime], classroom: 
 
     event = Event()
     event.add('transp', 'TRANSPARENT')
-    summary = course_name
+    summary = card_name
     if classroom != 'None':
-        summary = course_name + '@' + classroom
+        summary = card_name + '@' + classroom
         event.add('location', classroom)
 
     description = week_string
