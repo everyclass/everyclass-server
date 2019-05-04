@@ -32,11 +32,10 @@ def query():
     if app.config["MAINTENANCE"]:
         return render_template("maintenance.html")
 
-    # transform upper case xh to lower case(currently api-server does not support upper case xh)
     keyword = request.values.get('id')
 
-    if not keyword:
-        flash('请输入需要查询的姓名、学号、教工号或教室名称')
+    if not keyword or len(keyword) < 2:
+        flash('请输入需要查询的姓名、学号、教工号或教室名称，长度不要小于2个字符')
         return redirect(url_for('main.main'))
 
     # 调用 api-server 搜索
