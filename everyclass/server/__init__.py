@@ -103,24 +103,34 @@ try:
         在 gevent 模式下，创建 Flask 对象时无法进行 HTTP 请求。因为此时 urllib2 是 gevent 补丁后的版本，而 gevent 引擎还没启动。
         因此我们只能在 fork 后的每个进程中进行请求。
         """
-        from everyclass.server.rpc.http import HttpRpc
+        cron_update_remote_manifest()
 
-        # 获取安卓客户端下载链接
-        android_manifest = HttpRpc.call(method="GET",
-                                        url="https://everyclass.cdn.admirable.pro/android/manifest.json",
-                                        retry=True)
-        android_ver = android_manifest['latestVersions']['mainstream']['versionCode']
-        __app.config['ANDROID_CLIENT_URL'] = android_manifest['releases'][android_ver]['url']
-
-        # 更新数据最后更新时间
-        _api_server_status = HttpRpc.call(method="GET",
-                                          url=__app.config['API_SERVER_BASE_URL'] + '/info/service',
-                                          retry=True,
-                                          headers={'X-Auth-Token': __app.config['API_SERVER_TOKEN']})
-        __app.config['DATA_LAST_UPDATE_TIME'] = _api_server_status["data_time"]
+    @uwsgidecorators.cron(0, 0, -1, -1, -1)
+    def daily_update_data_time(signum):
+        """每天凌晨更新数据最后更新时间"""
+        cron_update_remote_manifest()
 
 except ModuleNotFoundError:
     pass
+
+
+def cron_update_remote_manifest():
+    """更新数据最后更新时间"""
+    from everyclass.server.rpc.http import HttpRpc
+
+    # 获取安卓客户端下载链接
+    android_manifest = HttpRpc.call(method="GET",
+                                    url="https://everyclass.cdn.admirable.pro/android/manifest.json",
+                                    retry=True)
+    android_ver = android_manifest['latestVersions']['mainstream']['versionCode']
+    __app.config['ANDROID_CLIENT_URL'] = android_manifest['releases'][android_ver]['url']
+
+    # 更新数据最后更新时间
+    _api_server_status = HttpRpc.call(method="GET",
+                                      url=__app.config['API_SERVER_BASE_URL'] + '/info/service',
+                                      retry=True,
+                                      headers={'X-Auth-Token': __app.config['API_SERVER_TOKEN']})
+    __app.config['DATA_LAST_UPDATE_TIME'] = _api_server_status["data_time"]
 
 
 def create_app() -> Flask:
