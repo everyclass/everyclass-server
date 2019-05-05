@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
+from everyclass.server import logger
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import handle_exception_with_error_page
 from everyclass.server.utils import contains_chinese
@@ -96,6 +97,7 @@ def query():
                                students=rpc_result.students,
                                teachers=rpc_result.teachers)
     else:
+        logger.info(f"No result for search {request.values.get('id')}")
         elasticapm.tag(query_resource_type='not_exist')
         elasticapm.tag(query_type='other')
         flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
