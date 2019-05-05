@@ -202,6 +202,7 @@ class StudentResult:
     name: str
     student_id: str
     student_id_encoded: str
+    campus: str
     deputy: str
     klass: str
     semesters: List[str] = field(default_factory=list)  # optional field
@@ -221,6 +222,7 @@ class StudentTimetableResult:
     name: str  # 姓名
     student_id: str  # 学号
     student_id_encoded: str  # 编码后的学号
+    campus: str  # 所在校区
     deputy: str  # 院系
     klass: str  # 班级
     cards: List[CardItem]  # card 列表
@@ -243,6 +245,7 @@ class TeacherTimetableResult:
     name: str  # 姓名
     teacher_id: str  # 教工号
     teacher_id_encoded: str  # 编码后的教工号
+    degree: str  # 教师学历（可能为空）
     title: str  # 职称
     unit: str  # 所在单位
     cards: List[CardItem]  # card 列表
