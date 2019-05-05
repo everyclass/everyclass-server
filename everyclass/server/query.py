@@ -281,7 +281,6 @@ def get_classroom(url_rid, url_semester):
 
     return render_template('query/room.html',
                            room=room,
-                           rid=url_rid,
                            cards=cards,
                            empty_sat=empty_sat,
                            empty_sun=empty_sun,

@@ -112,7 +112,7 @@
     {% endif %}
     <script>
         $("select#semester-select").change(function () {
-            window.location.href = "/student/" + "{{ student.student_id }}" + "/" + $('select#semester-select option:selected').val();
+            window.location.href = "/student/" + "{{ student.student_id_encoded }}" + "/" + $('select#semester-select option:selected').val();
         });
 
     </script>

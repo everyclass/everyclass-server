@@ -74,7 +74,7 @@
 {% block scripts %}
     <script>
         $("select#semester-select").change(function () {
-            window.location.href = "/classroom/" + "{{ rid }}" + "/" + $('select#semester-select option:selected').val();
+            window.location.href = "/classroom/" + "{{ room.room_id_encoded }}" + "/" + $('select#semester-select option:selected').val();
         });
 
     </script>
