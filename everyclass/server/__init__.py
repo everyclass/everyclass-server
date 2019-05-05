@@ -72,7 +72,7 @@ try:
             # set to warning level because we want to monitor restarts
             logger.warning('App (re)started in `{0}` environment'
                            .format(__app.config['CONFIG_NAME']), stack=False)
-            print_config(__app, logger)
+            print_config(__app)
             __first_spawn = False
 
     @uwsgidecorators.postfork
