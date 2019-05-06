@@ -97,7 +97,7 @@ def query():
                                students=rpc_result.students,
                                teachers=rpc_result.teachers)
     else:
-        logger.info(f"No result for search {request.values.get('id')}")
+        logger.info("No result for user search", {"keyword": request.values.get('id')})
         elasticapm.tag(query_resource_type='not_exist')
         elasticapm.tag(query_type='other')
         flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))

@@ -46,7 +46,7 @@ try:
         # Elastic APM
         if __app.config['CONFIG_NAME'] in __app.config['APM_AVAILABLE_IN']:
             ElasticAPM(__app)
-            logger.info('APM is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
+            print('APM is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
 
         # Logstash centralized log
         if __app.config['CONFIG_NAME'] in __app.config['LOGSTASH_AVAILABLE_IN']:
@@ -57,14 +57,14 @@ try:
                                                logger=logger,
                                                filter=lambda r, h: r.level >= 11)  # do not send DEBUG
             logger.handlers.append(logstash_handler)
-            logger.info('LogstashHandler is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
+            print('LogstashHandler is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
 
         # Sentry
         if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='INFO')  # Sentry 只处理 INFO 以上的
             logger.handlers.append(sentry_handler)
-            logger.info('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
+            print('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
 
         # print current configuration
         import uwsgi
