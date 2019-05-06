@@ -228,6 +228,7 @@ def register_by_password():
 
 @user_bp.route('/register/byPassword/statusRefresh')
 def register_by_password_status():
+    """AJAX 刷新教务验证状态"""
     if not request.args.get("request", None) or not isinstance(request.args["request"], str):
         return "Invalid request"
     req = IdentityVerificationDAO.get_request_by_id(request.args.get("request"))
@@ -264,7 +265,8 @@ def register_by_password_status():
 
         # write login state to session
         flash(MSG_REGISTER_SUCCESS)
-        del session[SESSION_VER_REQ_ID]
+        if SESSION_VER_REQ_ID in session:
+            del session[SESSION_VER_REQ_ID]
         session[SESSION_CURRENT_USER] = StudentSession(sid_orig=student.student_id,
                                                        sid=student.student_id_encoded,
                                                        name=student.name)
