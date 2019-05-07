@@ -199,13 +199,15 @@ def create_app() -> Flask:
     from everyclass.server.query import query_blueprint
     from everyclass.server.views import main_blueprint as main_blueprint
     from everyclass.server.user.views import user_bp
+    from everyclass.server.course_review.views import cr_blueprint
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(query_blueprint)
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(user_bp, url_prefix='/user')
 
-    # user feature gating
-    if app.config['FEATURE_GATING']['user']:
-        app.register_blueprint(user_bp, url_prefix='/user')
+    # course review feature gating
+    if app.config['FEATURE_GATING']['course_review']:
+        app.register_blueprint(cr_blueprint, url_prefix='/course_review')
 
     @app.before_request
     def set_user_id():
