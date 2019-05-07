@@ -434,7 +434,7 @@ class COTeachingClass(MongoDAOBase):
                                                                           'teacher_id_str': teacher_list_to_tid_str(
                                                                                   card.teachers)},
                                                                          {"$setOnInsert": {
-                                                                             "cotc_id"         : RedisDAO.new_cot_id(),
+                                                                             "cotc_id"         : RedisDAO.new_cotc_id(),
                                                                              'name'            : card.name,
                                                                              'teachers'        : teachers,
                                                                              'teacher_name_str': teacher_name_str
@@ -578,9 +578,9 @@ class RedisDAO:
         return redis.incr("{}:user_sequence".format(cls.prefix))
 
     @classmethod
-    def new_cot_id(cls) -> int:
+    def new_cotc_id(cls) -> int:
         """生成新的用户 ID（自增）"""
-        return redis.incr("{}:cot_id_sequence".format(cls.prefix))
+        return redis.incr("{}:cotc_id_sequence".format(cls.prefix))
 
     @classmethod
     def init(cls):
