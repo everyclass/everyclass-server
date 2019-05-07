@@ -107,7 +107,7 @@ def register():
 
         # 如果输入的学号已经注册，跳转到登录页面
         if UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
-            flash('你已经注册了，请直接登录。')
+            flash('您已经注册了，请直接登录。')
             return redirect(url_for('user.login'))
 
         return redirect(url_for('user.register'))

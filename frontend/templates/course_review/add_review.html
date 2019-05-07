@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block title %}评价{{ cotc["name"] }} - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">评价{{ cotc["teacher_name_str"] }}“{{ cotc["name"] }}”</h1>
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12 col-md-6 col-md-offset-3">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <form action="{{ url_for("course_review.edit_review", cotc_id=cotc["cotc_id"]) }}" method="POST">
+                        <table class="table table-striped table-bordered table-hover">
+                            <tbody>
+
+                            <tr>
+                                <td>评分</td>
+                                <td>
+                                    <label><input type="radio" name="rate" value="5"
+                                                  {% if my_rating==5 %}checked{% endif %}>非常满意</label>
+                                    <label><input type="radio" name="rate" value="4"
+                                                  {% if my_rating==4 %}checked{% endif %}>挺好</label>
+                                    <label><input type="radio" name="rate" value="3"
+                                                  {% if my_rating==3 %}checked{% endif %}>一般</label>
+                                    <label><input type="radio" name="rate" value="2"
+                                                  {% if my_rating==2 %}checked{% endif %}>我觉得不行</label>
+                                    <label><input type="radio" name="rate" value="1"
+                                                  {% if my_rating==1 %}checked{% endif %}>太差了</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>评价</td>
+                                <td>
+                                    <textarea rows="3" name="review">{{ my_review }}</textarea>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <input type="submit" value="提交">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -415,7 +415,7 @@ class COTeachingClass(MongoDAOBase):
         "course_id"       : "39056X1",
         "name"            : "软件工程基础",
         "teacher_id_str"  : "15643;16490;30216", # 排序后使用分号分隔的教工号列表
-        "teacher_name_str": "杨柳副教授",          # 顿号分隔的老师名称+职称列表
+        "teacher_name_str": "杨柳",          # 顿号分隔的老师名称（此处不加职称是因为职称可能会变，但是这个表目前没法刷新）
         "teachers"        : [{"name": "", "teacher_id": ""}]
     }
     """
@@ -427,7 +427,7 @@ class COTeachingClass(MongoDAOBase):
         从 api-server 返回的 CardResult 获得对应的“教学班集合” ID，如果不存在则新建
         """
         teachers = [{"name": x.name, "teacher_id": x.teacher_id} for x in card.teachers]
-        teacher_name_str = '、'.join([x.name + x.title for x in card.teachers])
+        teacher_name_str = '、'.join([x.name for x in card.teachers])
 
         db = get_mongodb()
         doc = db.get_collection(cls.collection_name).find_one_and_update({'course_id'     : card.course_id,
@@ -464,11 +464,11 @@ class CourseReview(MongoDAOBase):
     课程评价
 
     {
-        "cotc_id"  : 1,
-        "sid"      : "3901160123",
-        "stu_name" : "16级软件工程专业学生", # {}级{}专业学生
-        "rate"     : 5,
-        "review"   : ""
+        "cotc_id"      : 1,
+        "student_id"   : "3901160123",
+        "student_name" : "16级软件工程专业学生", # {}级{}专业学生
+        "rate"         : 5,
+        "review"       : ""
     }
     """
     collection_name = "course_reviews"
@@ -496,9 +496,9 @@ class CourseReview(MongoDAOBase):
         result = db.get_collection(cls.collection_name).aggregate([
             {"$match": {"cotc_id": int(cotc_id)}},
             {"$project": {
-                "_id"    : 0,
-                "sid"    : 0,
-                "cotc_id": 0}},
+                "_id"       : 0,
+                "student_id": 0,
+                "cotc_id"   : 0}},
             {"$group": {"_id"     : None,
                         "avg_rate": {"$avg": "$rate"},
                         "reviews" : {"$push": "$$ROOT"},
@@ -515,19 +515,20 @@ class CourseReview(MongoDAOBase):
         return result
 
     @classmethod
-    def get_my_review(cls, cotc_id: int, sid: str) -> Dict:
+    def get_my_review(cls, cotc_id: int, student_id: str) -> Dict:
         db = get_mongodb()
-        doc = db.get_collection(cls.collection_name).find_one({"cotc_id": cotc_id,
-                                                               "sid"    : sid})
+        doc = db.get_collection(cls.collection_name).find_one({"cotc_id"   : cotc_id,
+                                                               "student_id": student_id})
         return doc
 
     @classmethod
-    def edit_my_review(cls, cotc_id: int, sid: str, rate: int, review: str) -> None:
+    def edit_my_review(cls, cotc_id: int, student_id: str, rate: int, review: str, name: str) -> None:
         db = get_mongodb()
-        db.get_collection(cls.collection_name).update_one(filter={"cotc_id": cotc_id,
-                                                                  "sid"    : sid},
-                                                          update={"$set": {"rate"  : rate,
-                                                                           "review": review}},
+        db.get_collection(cls.collection_name).update_one(filter={"cotc_id"   : cotc_id,
+                                                                  "student_id": student_id},
+                                                          update={"$set": {"rate"        : rate,
+                                                                           "review"      : review,
+                                                                           "student_name": name}},
                                                           upsert=True)
 
     @classmethod
