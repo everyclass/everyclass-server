@@ -1,9 +1,10 @@
 import os
 import time
 
-from flask import Blueprint, Response, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, Response, jsonify, render_template, request
 
 from everyclass.server.config import get_config
+from everyclass.server.consts import MSG_404
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -90,7 +91,6 @@ def exit_maintenance():
 
 @main_blueprint.app_errorhandler(404)
 def page_not_found(error):
-    # 404跳转回首页
     # 404 errors are never handled on the blueprint level
     # unless raised from a view func so actual 404 errors,
     # i.e. "no route for it" defined, need to be handled
@@ -99,4 +99,4 @@ def page_not_found(error):
         response = jsonify({'error': 'not found'})
         response.status_code = 404
         return response
-    return redirect(url_for('main.main'))
+    return render_template('common/error.html', message=MSG_404)
