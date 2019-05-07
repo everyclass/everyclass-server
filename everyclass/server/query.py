@@ -303,7 +303,7 @@ def get_card(url_cid: str, url_semester: str):
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
     from everyclass.server.rpc.api_server import APIServer, teacher_list_to_name_str
     from everyclass.server.consts import MSG_INVALID_IDENTIFIER
-    from everyclass.server.db.dao import COTeachingClass
+    from everyclass.server.db.dao import COTeachingClass, CourseReview
 
     # decrypt identifier in URL
     try:
@@ -324,13 +324,17 @@ def get_card(url_cid: str, url_semester: str):
     if card.type and card.type[-1] != '课':
         card.type = card.type + '课'
 
+    cotc_id = COTeachingClass.get_id_by_card(card)
+    course_review_doc = CourseReview.get_review(cotc_id)
+
     return render_template('query/card.html',
                            card=card,
                            card_day=get_day_chinese(day),
                            card_time=get_time_chinese(time),
                            show_union_class=not card.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
                            teacher_string=teacher_list_to_name_str(card.teachers),
-                           cotc_id=COTeachingClass.get_id_by_card(card),
+                           cotc_id=cotc_id,
+                           cotc_rating=course_review_doc["avg_rate"],
                            current_semester=url_semester
                            )
 

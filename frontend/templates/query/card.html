@@ -7,8 +7,16 @@
         <h4 class="text-muted">{{ card.week_string }}{{ card_day }}{{ card_time }}，{{ card.room }}</h4>
         <h4 class="text-muted">本{{ card.type }}共 {{ card.hour }} 学时{% if show_union_class %}，合班名称：
             {{ card.union_name }}{% endif %}</h4>
-        <h4 class="text-muted">{% if config.FEATURE_GATING['course_review'] %}
-            <a href="{{ url_for('course_review.show_review', cotc_id=cotc_id) }}">查看其他学生对此课程的评价</a>{% endif %}</h4>
+        <h4 class="text-muted">
+            {% if config.FEATURE_GATING['course_review'] %}
+                {% if cotc_rating>0 %}
+                    评分：{{ cotc_rating }}分
+                    <a href="{{ url_for('course_review.show_review', cotc_id=cotc_id) }}">看看学生的评价</a>
+                {% else %}
+                    尚未有人评分，<a href="{{ url_for('course_review.edit_review', cotc_id=cotc_id) }}">快来抢沙发吧</a>！
+                {% endif %}
+            {% endif %}
+        </h4>
     </div>
 
     <br>
