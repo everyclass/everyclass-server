@@ -5,7 +5,12 @@
         <h1 class="hero-header">{{ cotc["teacher_name_str"] }}“{{ cotc["name"] }}”的课程评价</h1>
         <h4 class="text-muted">{% if count==0 %}暂无学生对当前老师的当前课程打分{% else %}平均打分：{{ avg_rate }}（满分5分）{% endif %}</h4>
         {% if session.get("current_logged_in_user", None) %}
-            你没有选这门课，无法对该课程进行评分。
+            {% if user_is_taking %}
+                您选了这门课，可以对此课程评分。
+            {% else %}
+                你没有选这门课，无法对该课程进行评分。
+            {% endif %}
+
         {% else %}
             <a href="{{ url_for('user.login') }}">登录</a>后你可以对此课程进行评分
         {% endif %}

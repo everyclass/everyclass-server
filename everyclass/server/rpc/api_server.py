@@ -302,18 +302,12 @@ class CardResult:
 
 def teacher_list_to_name_str(teachers: List[CardResultTeacherItem]) -> str:
     """CardResultTeacherItem 列表转换为老师姓名列表字符串"""
-    string = ''
-    for teacher in teachers:
-        string = string + teacher.name + teacher.title + '、'
-    return string[:len(string) - 1]
+    return "、".join([t.name + t.title for t in teachers])
 
 
 def teacher_list_to_tid_str(teachers: List[CardResultTeacherItem]) -> str:
-    """CardResultTeacherItem 列表转换为教工号列表字符串"""
-    string = ''
-    for teacher in teachers:
-        string = string + teacher.teacher_id + ';'
-    return string[:len(string) - 1]
+    """CardResultTeacherItem 列表转换为排序的教工号列表字符串"""
+    return ";".join(sorted([t.teacher_id for t in teachers]))
 
 
 class APIServer:
