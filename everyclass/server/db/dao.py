@@ -12,6 +12,7 @@ from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
+from everyclass.server.rpc.api_server import CardResult, teacher_list_to_tid_str
 
 
 def new_user_id_sequence() -> int:
@@ -20,7 +21,7 @@ def new_user_id_sequence() -> int:
 
     :return: last row id
     """
-    return RedisDAO.new_user_id_sequence()
+    return RedisDAO.new_user_id()
 
 
 def mongo_with_retry(method, *args, num_retries: int, **kwargs):
@@ -404,6 +405,137 @@ class VisitorDAO(MongoDAOBase):
         db.get_collection(cls.collection_name).create_index([("host", 1), ("last_time", 1)], unique=True)
 
 
+class COTeachingClass(MongoDAOBase):
+    """
+    教学班集合（Collection of Teaching Class）。某个老师教的一门课的一个班是教学班，而多个教学班的上课内容是一样的，所以需要一个
+    “教学班集合”实体。
+
+    {
+        "cotc_id"         : 1,                   # cot 意为 "collection of teaching classes"，即：“教学班集合”
+        "course_id"       : "39056X1",
+        "name"            : "软件工程基础",
+        "teacher_id_str"  : "15643;16490;30216", # 排序后使用分号分隔的教工号列表
+        "teacher_name_str": "杨柳副教授",          # 顿号分隔的老师名称+职称列表
+        "teachers"        : [{"name": "", "teacher_id": ""}]
+    }
+    """
+    collection_name = "co_tea_classes"
+
+    @classmethod
+    def get_id_by_card(cls, card: CardResult) -> int:
+        """
+        从 api-server 返回的 CardResult 获得对应的“教学班集合” ID，如果不存在则新建
+        """
+        teachers = [{"name": x.name, "teacher_id": x.teacher_id} for x in card.teachers]
+        teacher_name_str = '、'.join([x.name + x.title for x in card.teachers])
+
+        db = get_mongodb()
+        doc = db.get_collection(cls.collection_name).find_one_and_update({'course_id'     : card.course_id,
+                                                                          'teacher_id_str': teacher_list_to_tid_str(
+                                                                                  card.teachers)},
+                                                                         {"$setOnInsert": {
+                                                                             "cotc_id"         : RedisDAO.new_cot_id(),
+                                                                             'name'            : card.name,
+                                                                             'teachers'        : teachers,
+                                                                             'teacher_name_str': teacher_name_str
+                                                                         }},
+                                                                         upsert=True,
+                                                                         new=True)
+        # you must set "new=True" in upsert case
+        # https://stackoverflow.com/questions/32811510/mongoose-findoneandupdate-doesnt-return-updated-document
+
+        return doc['cotc_id']
+
+    @classmethod
+    def get_doc(cls, cotc_id: int) -> Optional[Dict]:
+        """获得 cotc_id 对应的文档，可能为 None """
+        db = get_mongodb()
+        return db.get_collection(cls.collection_name).find_one({'cotc_id': cotc_id})
+
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db.get_collection(cls.collection_name).create_index([("course_id", 1), ("tid_str", 1)], unique=True)
+        db.get_collection(cls.collection_name).create_index([("cotc_id", 1)], unique=True)
+
+
+class CourseReview(MongoDAOBase):
+    """
+    课程评价
+
+    {
+        "cotc_id"  : 1,
+        "sid"      : "3901160123",
+        "stu_name" : "16级软件工程专业学生", # {}级{}专业学生
+        "rate"     : 5,
+        "review"   : ""
+    }
+    """
+    collection_name = "course_reviews"
+
+    @classmethod
+    def get_review(cls, cotc_id: int) -> Dict:
+        """
+        获得一个教学班集合的评价
+        {
+            "avg_rate": 4.3,
+            "count"   : 1,
+            "reviews": [
+                {
+                    "review"  : "老师讲得好",
+                    "rate"    : 5,
+                    "stu_name": "16级软件工程专业学生"
+                },
+            ]
+        }
+
+        :param cotc_id: 教学班集合 ID
+        :return:
+        """
+        db = get_mongodb()
+        result = db.get_collection(cls.collection_name).aggregate([
+            {"$match": {"cotc_id": int(cotc_id)}},
+            {"$project": {
+                "_id"    : 0,
+                "sid"    : 0,
+                "cotc_id": 0}},
+            {"$group": {"_id"     : None,
+                        "avg_rate": {"$avg": "$rate"},
+                        "reviews" : {"$push": "$$ROOT"},
+                        "count"   : {"$sum": 1}}}
+        ])
+        result = list(result)
+
+        if result:
+            result = result[0]
+        else:
+            result = {"avg_rate": 0,
+                      "reviews" : [],
+                      "count"   : 0}
+        return result
+
+    @classmethod
+    def get_my_review(cls, cotc_id: int, sid: str) -> Dict:
+        db = get_mongodb()
+        doc = db.get_collection(cls.collection_name).find_one({"cotc_id": cotc_id,
+                                                               "sid"    : sid})
+        return doc
+
+    @classmethod
+    def edit_my_review(cls, cotc_id: int, sid: str, rate: int, review: str) -> None:
+        db = get_mongodb()
+        db.get_collection(cls.collection_name).update_one(filter={"cotc_id": cotc_id,
+                                                                  "sid"    : sid},
+                                                          update={"$set": {"rate"  : rate,
+                                                                           "review": review}},
+                                                          upsert=True)
+
+    @classmethod
+    def create_index(cls) -> None:
+        db = get_mongodb()
+        db.get_collection(cls.collection_name).create_index([("cotc_id", 1)], unique=True)
+
+
 class RedisDAO:
     prefix = "ec_sv"
 
@@ -440,8 +572,14 @@ class RedisDAO:
         return redis.pfcount("{}:visit_cnt:{}".format(cls.prefix, sid_orig))
 
     @classmethod
-    def new_user_id_sequence(cls) -> int:
+    def new_user_id(cls) -> int:
+        """生成新的用户 ID（自增）"""
         return redis.incr("{}:user_sequence".format(cls.prefix))
+
+    @classmethod
+    def new_cot_id(cls) -> int:
+        """生成新的用户 ID（自增）"""
+        return redis.incr("{}:cot_id_sequence".format(cls.prefix))
 
     @classmethod
     def init(cls):

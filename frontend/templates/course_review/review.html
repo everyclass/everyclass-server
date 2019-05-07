@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}{{ cotc["name"] }} - 课程评价 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">{{ cotc["teacher_name_str"] }}“{{ cotc["name"] }}”的课程评价</h1>
+        <h4 class="text-muted">{% if count==0 %}暂无学生对当前老师的当前课程打分{% else %}平均打分：{{ avg_rate }}{% endif %}</h4>
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12 col-md-8 col-md-offset-2">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>学生</th>
+                            <th>评分</th>
+                            <th>评价</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for review in reviews %}
+                            <tr>
+                                <td>{{ review['stu_name'] }}</td>
+                                <td>{{ review['rate'] }}</td>
+                                <td>{{ review['review'] }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

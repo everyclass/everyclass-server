@@ -82,7 +82,7 @@ def ics_download(calendar_token: str):
     from everyclass.server.db.dao import CalendarTokenDAO
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
-    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_str
+    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_name_str
     from everyclass.server.utils import lesson_string_to_tuple
 
     result = CalendarTokenDAO.find_calendar_token(token=calendar_token)
@@ -105,7 +105,7 @@ def ics_download(calendar_token: str):
         for card in rpc_result.cards:
             day, time = lesson_string_to_tuple(card.lesson)
             cards[(day, time)].append(dict(name=card.name,
-                                           teacher=teacher_list_to_str(card.teachers),
+                                           teacher=teacher_list_to_name_str(card.teachers),
                                            week=card.weeks,
                                            week_string=card.week_string,
                                            classroom=card.room,

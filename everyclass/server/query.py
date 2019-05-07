@@ -301,8 +301,9 @@ def get_card(url_cid: str, url_semester: str):
     from everyclass.server.utils import get_time_chinese
     from everyclass.server.utils import get_day_chinese
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
-    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_str
+    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_name_str
     from everyclass.server.consts import MSG_INVALID_IDENTIFIER
+    from everyclass.server.db.dao import COTeachingClass
 
     # decrypt identifier in URL
     try:
@@ -328,7 +329,8 @@ def get_card(url_cid: str, url_semester: str):
                            card_day=get_day_chinese(day),
                            card_time=get_time_chinese(time),
                            show_union_class=not card.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
-                           teacher_string=teacher_list_to_str(card.teachers),
+                           teacher_string=teacher_list_to_name_str(card.teachers),
+                           cotc_id=COTeachingClass.get_id_by_card(card),
                            current_semester=url_semester
                            )
 

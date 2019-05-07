@@ -300,11 +300,19 @@ class CardResult:
         return cls(**ensure_slots(cls, dct))
 
 
-def teacher_list_to_str(teachers: List[CardResultTeacherItem]) -> str:
-    """CardResultTeacherItem 列表转换为老师列表字符串"""
+def teacher_list_to_name_str(teachers: List[CardResultTeacherItem]) -> str:
+    """CardResultTeacherItem 列表转换为老师姓名列表字符串"""
     string = ''
     for teacher in teachers:
         string = string + teacher.name + teacher.title + '、'
+    return string[:len(string) - 1]
+
+
+def teacher_list_to_tid_str(teachers: List[CardResultTeacherItem]) -> str:
+    """CardResultTeacherItem 列表转换为教工号列表字符串"""
+    string = ''
+    for teacher in teachers:
+        string = string + teacher.teacher_id + ';'
     return string[:len(string) - 1]
 
 
