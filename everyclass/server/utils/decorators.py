@@ -43,7 +43,7 @@ def login_required(func):
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
         if not session.get(SESSION_CURRENT_USER, None):
-            return render_template('common/error.html', message=MSG_NOT_LOGGED_IN)
+            return render_template('common/error.html', message=MSG_NOT_LOGGED_IN, action="login")
         return func(*args, **kwargs)
 
     return wrapped
