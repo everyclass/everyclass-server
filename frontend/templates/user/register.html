@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}注册 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">注册每课账户</h1>
+        <h4 class="text-muted">请输入你的学号以继续。
+        </h4>
+
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12 col-md-6 col-md-offset-3">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <form action="{{ url_for("user.register") }}" method="POST">
+                        <table class="table table-striped table-bordered table-hover">
+                            <tbody>
+
+                            <tr>
+                                <td>学号</td>
+                                <td><input name="xh"></td>
+                            </tr>
+                            <tr>
+                                <td>验证码</td>
+                                <td>{{ recaptcha }}</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <input type="submit" value="继续">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+{% endblock %}

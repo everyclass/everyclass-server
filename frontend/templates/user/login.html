@@ -3,7 +3,7 @@
 {% block body %}
     <div class="hero hero-homepage">
         <h1 class="hero-header">欢迎回来</h1>
-        <h4 class="text-muted">登录后，你可以设置课表的可见性、使用上帝视角及其他高级功能。
+        <h4 class="text-muted">登录后，你可以设置课表的可见性、使用上帝视角及其他高级功能。还没有账号？请<a href="{{ url_for("user.register") }}">注册每课账号</a>。
         </h4>
 
     </div>
@@ -18,7 +18,7 @@
 
                         <tr>
                             <td>学号</td>
-                            <td><input name="xh"><br>留空则作为{{ name }}登录</td>
+                            <td><input name="xh"><br>{% if name %}留空则作为{{ name }}登录{% endif %}</td>
                         </tr>
                         <tr>
                             <td>每课密码</td>
@@ -36,6 +36,7 @@
                         </tr>
                         </tbody>
                     </table>
+
                     </form>
 
                 </div>

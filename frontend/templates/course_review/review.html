@@ -3,9 +3,15 @@
 {% block body %}
     <div class="hero hero-homepage">
         <h1 class="hero-header">{{ cotc["teacher_name_str"] }}“{{ cotc["name"] }}”的课程评价</h1>
-        <h4 class="text-muted">{% if count==0 %}暂无学生对当前老师的当前课程打分{% else %}平均打分：{{ avg_rate }}{% endif %}</h4>
+        <h4 class="text-muted">{% if count==0 %}暂无学生对当前老师的当前课程打分{% else %}平均打分：{{ avg_rate }}（满分5分）{% endif %}</h4>
+        {% if session.get("current_logged_in_user", None) %}
+            你没有选这门课，无法对该课程进行评分。
+        {% else %}
+            <a href="{{ url_for('user.login') }}">登录</a>后你可以对此课程进行评分
+        {% endif %}
     </div>
     <br><br>
+    {% if count > 0 %}
     <div class="row row-backbordered">
         <div class="col-sm-12 col-md-8 col-md-offset-2">
             <div class="panel panel-default panel-floating panel-floating-inline">
@@ -32,4 +38,5 @@
             </div>
         </div>
     </div>
+    {% endif %}
 {% endblock %}

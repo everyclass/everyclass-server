@@ -3,9 +3,10 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 from zxcvbn import zxcvbn
 
 from everyclass.server import logger, recaptcha
-from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, \
-    MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, \
-    MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_VER_REQ_ID
+from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, MSG_INTERNAL_ERROR, \
+    MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, \
+    MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, \
+    SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
@@ -18,6 +19,19 @@ from everyclass.server.utils.decorators import login_required
 user_bp = Blueprint('user', __name__)
 
 
+def _save_last_viewed_student(student_id: str):
+    # 将需要注册的用户并保存到 SESSION_LAST_VIEWED_STUDENT
+    with elasticapm.capture_span('rpc_get_student'):
+        try:
+            student = APIServer.get_student(student_id)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
+
+    session[SESSION_LAST_VIEWED_STUDENT] = StudentSession(sid_orig=student.student_id,
+                                                          sid=student.student_id_encoded,
+                                                          name=student.name)
+
+
 @user_bp.route('/login', methods=["GET", "POST"])
 def login():
     """
@@ -25,16 +39,14 @@ def login():
 
     判断学生是否未注册，若已经注册，渲染登录页。否则跳转到注册页面。
     """
-    if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
-        return render_template('common/error.html', message=MSG_400)
-
     if request.method == 'GET':
-        # if not registered, redirect to register page
-        if not UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
-            return redirect(url_for('user.register'))
+        if session.get(SESSION_LAST_VIEWED_STUDENT, None):
+            user_name = session[SESSION_LAST_VIEWED_STUDENT].name
+        else:
+            user_name = None
 
-        return render_template('user/login.html', name=session[SESSION_LAST_VIEWED_STUDENT].name)
-    else:
+        return render_template('user/login.html', name=user_name)
+    else:  # 表单提交
         if not request.form.get("password", None):
             flash(MSG_EMPTY_PASSWORD)
             return redirect(url_for("user.login"))
@@ -43,18 +55,30 @@ def login():
             return redirect(url_for("user.login"))
 
         if request.form.get("xh", None):  # 已手动填写用户名
-            sid_orig = request.form["xh"]
-        else:  # 没有手动填写，使用获取最后浏览的学生
-            sid_orig = session[SESSION_LAST_VIEWED_STUDENT].sid_orig
-        success = UserDAO.check_password(sid_orig, request.form["password"])
+            student_id = request.form["xh"]
+        else:
+            if session.get(SESSION_LAST_VIEWED_STUDENT, None):
+                student_id = session[SESSION_LAST_VIEWED_STUDENT].sid_orig  # 没有手动填写，使用获取最后浏览的学生
+            else:
+                flash(MSG_EMPTY_USERNAME)  # 没有最后浏览的学生，必须填写用户名
+                return redirect(url_for("user.login"))
+
+        try:
+            success = UserDAO.check_password(student_id, request.form["password"])
+        except ValueError:
+            # 未注册
+            flash(MSG_NOT_REGISTERED)
+            _save_last_viewed_student(student_id)
+            return redirect(url_for("user.register"))
+
         if success:
             try:
-                student = APIServer.get_student(sid_orig)
+                student = APIServer.get_student(student_id)
             except Exception as e:
                 return handle_exception_with_error_page(e)
 
             # 登录态写入 session
-            session[SESSION_CURRENT_USER] = StudentSession(sid_orig=sid_orig,
+            session[SESSION_CURRENT_USER] = StudentSession(sid_orig=student_id,
                                                            sid=student.student_id_encoded,
                                                            name=student.name)
             return redirect(url_for("user.main"))
@@ -63,18 +87,30 @@ def login():
             return redirect(url_for("user.login"))
 
 
-@user_bp.route('/register')
+@user_bp.route('/register', methods=["GET", "POST"])
 def register():
     """学生注册页面"""
-    if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
-        return render_template('common/error.html', message=MSG_400)
+    if request.method == 'GET':
+        if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
+            return render_template('user/register.html')
 
-    # if registered, redirect to login page
-    if UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
-        flash('你已经注册了，请直接登录。')
-        return redirect(url_for('user.login'))
+        return render_template('user/registerChoice.html')
+    else:
+        if not request.form.get("xh", None):  # 表单为空
+            flash(MSG_EMPTY_USERNAME)
+            return redirect(url_for("user.register"))
+        if not recaptcha.verify():  # 验证码未通过
+            flash(MSG_INVALID_CAPTCHA)
+            return redirect(url_for("user.register"))
 
-    return render_template('user/registerChoice.html')
+        _save_last_viewed_student(request.form.get("xh", None))
+
+        # 如果输入的学号已经注册，跳转到登录页面
+        if UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
+            flash('你已经注册了，请直接登录。')
+            return redirect(url_for('user.login'))
+
+        return redirect(url_for('user.register'))
 
 
 @user_bp.route('/register/byEmail')
