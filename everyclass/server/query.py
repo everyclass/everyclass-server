@@ -175,10 +175,10 @@ def get_student(url_sid: str, url_semester: str):
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
         available_semesters = semester_calculate(url_semester, sorted(student.semesters))
 
-    # 公开模式或实名互访模式，留下轨迹
+    # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
     if privacy_level != 2 and \
             session.get(SESSION_CURRENT_USER, None) and \
-            session[SESSION_CURRENT_USER] != session[SESSION_LAST_VIEWED_STUDENT]:
+            session[SESSION_CURRENT_USER].sid_orig != session[SESSION_LAST_VIEWED_STUDENT].sid_orig:
         VisitorDAO.update_track(host=student.student_id,
                                 visitor=session[SESSION_CURRENT_USER])
 
