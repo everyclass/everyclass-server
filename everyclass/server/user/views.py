@@ -92,7 +92,7 @@ def login():
 
 @user_bp.route('/register', methods=["GET", "POST"])
 def register():
-    """注册：输入学号页面"""
+    """注册：第一步：输入学号"""
     if request.method == 'GET':
         return render_template('user/register.html')
     else:
@@ -112,7 +112,7 @@ def register():
 
 @user_bp.route('/register/choice')
 def register_choice():
-    """注册：选择方式页面"""
+    """注册：第二步：选择注册方式"""
     if not session.get(SESSION_STUDENT_TO_REGISTER, None):  # 步骤异常，跳回第一步
         return redirect(url_for('user.register'))
     return render_template('user/registerChoice.html')
@@ -120,7 +120,7 @@ def register_choice():
 
 @user_bp.route('/register/byEmail')
 def register_by_email():
-    """注册：邮件"""
+    """注册：第三步：使用邮箱验证注册"""
     if not session.get(SESSION_STUDENT_TO_REGISTER, None):  # 步骤异常，跳回第一步
         return redirect(url_for('user.register'))
 
@@ -218,7 +218,7 @@ def email_verification():
 
 @user_bp.route('/register/byPassword', methods=['GET', 'POST'])
 def register_by_password():
-    """注册：使用密码验证注册"""
+    """注册：第三步：使用密码验证注册"""
     if request.method == 'POST':
         if any(map(lambda x: not request.form.get(x, None), ("password", "password2", "jwPassword"))):
             flash(MSG_EMPTY_PASSWORD)
