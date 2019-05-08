@@ -92,12 +92,9 @@ def login():
 
 @user_bp.route('/register', methods=["GET", "POST"])
 def register():
-    """学生注册页面"""
+    """注册：输入学号页面"""
     if request.method == 'GET':
-        if not session.get(SESSION_STUDENT_TO_REGISTER, None):
-            return render_template('user/register.html')
-
-        return render_template('user/registerChoice.html')
+        return render_template('user/register.html')
     else:
         if not request.form.get("xh", None):  # 表单为空
             flash(MSG_EMPTY_USERNAME)
@@ -110,14 +107,22 @@ def register():
             flash('您已经注册了，请直接登录。')
             return redirect(url_for('user.login'))
 
+        return redirect(url_for('user.register_choice'))
+
+
+@user_bp.route('/register/choice')
+def register_choice():
+    """注册：选择方式页面"""
+    if not session.get(SESSION_STUDENT_TO_REGISTER, None):  # 步骤异常，跳回第一步
         return redirect(url_for('user.register'))
+    return render_template('user/registerChoice.html')
 
 
 @user_bp.route('/register/byEmail')
 def register_by_email():
-    """学生注册-邮件"""
-    if not session.get(SESSION_STUDENT_TO_REGISTER, None):
-        return render_template('common/error.html', message=MSG_400)
+    """注册：邮件"""
+    if not session.get(SESSION_STUDENT_TO_REGISTER, None):  # 步骤异常，跳回第一步
+        return redirect(url_for('user.register'))
 
     sid_orig = session[SESSION_STUDENT_TO_REGISTER].sid_orig
 
@@ -140,7 +145,7 @@ def register_by_email():
 
 @user_bp.route('/emailVerification', methods=['GET', 'POST'])
 def email_verification():
-    """邮箱验证及注册"""
+    """注册：邮箱验证"""
     if request.method == 'POST':
         # 设置密码表单提交
         if not session.get(SESSION_VER_REQ_ID, None):
@@ -213,7 +218,7 @@ def email_verification():
 
 @user_bp.route('/register/byPassword', methods=['GET', 'POST'])
 def register_by_password():
-    """学生注册-密码"""
+    """注册：使用密码验证注册"""
     if request.method == 'POST':
         if any(map(lambda x: not request.form.get(x, None), ("password", "password2", "jwPassword"))):
             flash(MSG_EMPTY_PASSWORD)
@@ -265,6 +270,7 @@ def register_by_password():
 
 @user_bp.route('/register/passwordStrengthCheck', methods=["POST"])
 def password_strength_check():
+    """AJAX 密码强度检查"""
     if request.form.get("password", None):
         # 密码强度检查
         pwd_strength_report = zxcvbn(password=request.form["password"])
