@@ -71,10 +71,22 @@
                 </div>
             </div>
         </nav>
+
+        {% if config["CONFIG_NAME"] in ("staging","testing") %}
+            <div class="alert alert-warning">
+                <b>你正在浏览我们的内部测试网站</b><br>
+
+                本网站为内部测试网站，非每课公开网站。本网站仅限每课团队及其合作伙伴做内部测试之用。如果你无意访问我们的测试网站，请访问我们的公开网站 <a href="https://everyclass.xyz">everyclass.xyz</a>。<br>
+                如果继续使用本测试网站，则表示你承认并同意本网站仅做测试之用途，页面内的任何商品或服务都不可购买，在本网站创建的帐户都不能作为每课正式帐户之用，仅为内部测试用途的测试帐户。你在测试服务中创建的任何帐户或数据可能会在任何时间被修改或删除。
+            </div>
+        {% endif %}
+
         {% for message in get_flashed_messages() %}
             <div class="alert alert-info">{{ message }}</div>
         {% endfor %}
-        {% block body %}{% endblock %}
+
+        {% block body %}
+        {% endblock %}
     </div>
 
 </div>
