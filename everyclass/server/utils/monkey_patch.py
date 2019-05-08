@@ -24,18 +24,3 @@ class ElasticAPM:
             original_func(self, app, response)
 
         return _patched
-
-
-class ReCaptcha(object):
-    """replace the original google domain to domestic proxy site"""
-
-    def get_code(self):
-        """
-        Returns the new ReCaptcha code
-        :return:
-        """
-        return "" if not self.is_enabled else ("""
-        <script src='//www.recaptcha.net/recaptcha/api.js'></script>
-        <div class="g-recaptcha" data-sitekey="{SITE_KEY}" data-theme="{THEME}" data-type="{TYPE}" data-size="{SIZE}"\
-         data-tabindex="{TABINDEX}"></div>
-        """.format(SITE_KEY=self.site_key, THEME=self.theme, TYPE=self.type, SIZE=self.size, TABINDEX=self.tabindex))

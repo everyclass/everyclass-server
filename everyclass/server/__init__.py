@@ -5,7 +5,6 @@ import logbook
 from flask import Flask, g, redirect, render_template, request, session
 from flask_cdn import CDN
 from flask_moment import Moment
-from flask_recaptcha import ReCaptcha
 from flask_session import Session
 from htmlmin import minify
 from raven.contrib.flask import Sentry
@@ -18,7 +17,6 @@ sentry = Sentry()
 __app = None
 __first_spawn = True
 
-recaptcha = ReCaptcha()
 
 try:
     import uwsgidecorators
@@ -89,13 +87,6 @@ try:
         global __app
         __app.config['SESSION_MONGODB'] = __app.mongo
         Session(__app)
-
-    @uwsgidecorators.postfork
-    def init_recaptcha():
-        """init reCaptcha"""
-        ReCaptcha.VERIFY_URL = "https://www.recaptcha.net/recaptcha/api/siteverify"
-        ReCaptcha.get_code = monkey_patch.ReCaptcha.get_code
-        recaptcha.init_app(__app)
 
     @uwsgidecorators.postfork
     def fetch_remote_manifests():

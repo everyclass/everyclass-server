@@ -2,7 +2,7 @@ import elasticapm
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 from zxcvbn import zxcvbn
 
-from everyclass.server import logger, recaptcha
+from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, MSG_INTERNAL_ERROR, \
     MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, \
     MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, \
@@ -14,6 +14,7 @@ from everyclass.server.models import StudentSession
 from everyclass.server.rpc import handle_exception_with_error_page
 from everyclass.server.rpc.api_server import APIServer
 from everyclass.server.rpc.auth import Auth
+from everyclass.server.rpc.tencent_captcha import TencentCaptcha
 from everyclass.server.utils.decorators import login_required
 
 user_bp = Blueprint('user', __name__)
@@ -50,7 +51,9 @@ def login():
         if not request.form.get("password", None):
             flash(MSG_EMPTY_PASSWORD)
             return redirect(url_for("user.login"))
-        if not recaptcha.verify():
+
+        # captcha
+        if not TencentCaptcha.verify():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.login"))
 
@@ -98,9 +101,6 @@ def register():
     else:
         if not request.form.get("xh", None):  # 表单为空
             flash(MSG_EMPTY_USERNAME)
-            return redirect(url_for("user.register"))
-        if not recaptcha.verify():  # 验证码未通过
-            flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.register"))
 
         _save_last_viewed_student(request.form.get("xh", None))
@@ -231,7 +231,8 @@ def register_by_password():
             flash(MSG_PWD_DIFFERENT)
             return redirect(url_for("user.register_by_password"))
 
-        if not recaptcha.verify():
+        # captcha
+        if not TencentCaptcha.verify():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.register_by_password"))
 

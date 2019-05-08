@@ -191,9 +191,8 @@ class Config(object):
 
     RESOURCE_IDENTIFIER_ENCRYPTION_KEY = ''
 
-    RECAPTCHA_ENABLED = True
-    RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-    RECAPTCHA_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+    TENCENT_CAPTCHA_AID = ''
+    TENCENT_CAPTCHA_SECRET = ''
 
     # define available environments for logs, APM and error tracking
     SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing', 'development')
@@ -204,8 +203,8 @@ class Config(object):
     # fields that should be overwritten in production environment
     PRODUCTION_OVERWRITE_FIELDS = ('CALENDAR_UUID_NAMESPACE',
                                    'SECRET_KEY',
-                                   'RECAPTCHA_SITE_KEY',
-                                   'RECAPTCHA_SECRET_KEY',
+                                   'TENCENT_CAPTCHA_AID',
+                                   'TENCENT_CAPTCHA_SECRET',
                                    'RESOURCE_IDENTIFIER_ENCRYPTION_KEY'
                                    )
 
@@ -218,6 +217,6 @@ class Config(object):
                                 "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
-                                "RECAPTCHA_SECRET_KEY",
+                                "TENCENT_CAPTCHA_SECRET",
                                 "RESOURCE_IDENTIFIER_ENCRYPTION_KEY"
                                 )

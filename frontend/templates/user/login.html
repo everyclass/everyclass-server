@@ -27,12 +27,18 @@
                         </tr>
                         <tr>
                             <td>验证码</td>
-                            <td>{{ recaptcha }}</td>
+                            <td>
+                                <a id="TencentCaptcha" data-appid="2053582977" data-cbfn="captcha_callback">
+                                    点击这里验证你不是机器人
+                                </a>
+                                <input type="hidden" name="captcha-ticket" id="captcha-ticket" value="">
+                                <input type="hidden" name="captcha-rand" id="captcha-rand" value="">
+                            </td>
                         </tr>
                         <tr>
                             <td></td>
                             <td>
-                                <input type="submit" value="登录">
+                                <input type="submit" value="登录" id="submit" disabled>
                             </td>
                         </tr>
                         </tbody>
@@ -48,4 +54,15 @@
 
 {% endblock %}
 {% block scripts %}
+    <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+    <script>
+        window.captcha_callback = function (res) {
+            if (res.ret === 0) {
+                $("input#captcha-ticket").val(res.ticket);
+                $("input#captcha-rand").val(res.randstr);
+                $("input#submit").attr('disabled', false);
+                $("a#TencentCaptcha").text("验证已通过")
+            }
+        }
+    </script>
 {% endblock %}
