@@ -324,8 +324,15 @@ def register_by_password_success():
 @login_required
 def main():
     """用户主页"""
+    try:
+        student = APIServer.get_student(session[SESSION_CURRENT_USER].sid_orig)
+    except Exception as e:
+        return handle_exception_with_error_page(e)
+
     return render_template('user/main.html',
                            name=session[SESSION_CURRENT_USER].name,
+                           student_id_encoded=session[SESSION_CURRENT_USER].sid,
+                           last_semester=student.semesters[-1] if student.semesters else None,
                            privacy_level=PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig))
 
 

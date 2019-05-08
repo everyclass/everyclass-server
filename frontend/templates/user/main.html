@@ -4,6 +4,9 @@
     <div class="hero hero-homepage">
         <h1 class="hero-header">你好，{{ name }}</h1>
         <h4 class="text-muted">
+            {% if last_semester %}
+                <a href="{{ url_for("query.get_student", url_sid=student_id_encoded, url_semester=last_semester) }}">我的课表</a>
+                &nbsp;{% endif %}
             <a href="{{ url_for("user.visitors") }}">我的访客</a> &nbsp;
             <a href="{{ url_for("user.logout") }}">退出登录</a>
         </h4>

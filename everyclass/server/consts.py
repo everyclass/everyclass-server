@@ -14,7 +14,7 @@ SESSION_VER_REQ_ID = "verification_req_id"  # current verification req id, a uui
 """
 Return messages
 """
-MSG_INTERNAL_ERROR = "抱歉。遇到了一个内部错误，请稍后重试或明天再来"
+MSG_INTERNAL_ERROR = "抱歉。遇到了一个内部错误，请稍后重试。"
 MSG_NOT_LOGGED_IN = "您还没有登录，请先登录"
 MSG_TIMEOUT = "请求超时，请稍后重试"
 MSG_404 = "没有找到你想要的页面哦"
