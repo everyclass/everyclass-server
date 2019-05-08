@@ -8,6 +8,7 @@ Session keys
 All session keys should be defined here
 """
 SESSION_LAST_VIEWED_STUDENT = "last_viewed_student"  # a everyclass.server.db.model.StudentSession type
+SESSION_STUDENT_TO_REGISTER = "student_to_register"
 SESSION_CURRENT_USER = "current_logged_in_user"  # a StudentSession type marking the logged in user
 SESSION_VER_REQ_ID = "verification_req_id"  # current verification req id, a uuid.UUID type
 

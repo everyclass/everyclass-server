@@ -6,7 +6,7 @@ from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, MSG_INTERNAL_ERROR, \
     MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, \
     MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, \
-    SESSION_VER_REQ_ID
+    SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
@@ -20,15 +20,15 @@ from everyclass.server.utils.decorators import login_required
 user_bp = Blueprint('user', __name__)
 
 
-def _save_last_viewed_student(student_id: str):
-    # 将需要注册的用户并保存到 SESSION_LAST_VIEWED_STUDENT
+def _session_save_student_to_register_(student_id: str):
+    # 将需要注册的用户并保存到 SESSION_STUDENT_TO_REGISTER
     with elasticapm.capture_span('rpc_get_student'):
         try:
             student = APIServer.get_student(student_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-    session[SESSION_LAST_VIEWED_STUDENT] = StudentSession(sid_orig=student.student_id,
+    session[SESSION_STUDENT_TO_REGISTER] = StudentSession(sid_orig=student.student_id,
                                                           sid=student.student_id_encoded,
                                                           name=student.name)
 
@@ -71,7 +71,7 @@ def login():
         except ValueError:
             # 未注册
             flash(MSG_NOT_REGISTERED)
-            _save_last_viewed_student(student_id)
+            _session_save_student_to_register_(student_id)
             return redirect(url_for("user.register"))
 
         if success:
@@ -94,7 +94,7 @@ def login():
 def register():
     """学生注册页面"""
     if request.method == 'GET':
-        if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
+        if not session.get(SESSION_STUDENT_TO_REGISTER, None):
             return render_template('user/register.html')
 
         return render_template('user/registerChoice.html')
@@ -103,10 +103,10 @@ def register():
             flash(MSG_EMPTY_USERNAME)
             return redirect(url_for("user.register"))
 
-        _save_last_viewed_student(request.form.get("xh", None))
+        _session_save_student_to_register_(request.form.get("xh", None))
 
         # 如果输入的学号已经注册，跳转到登录页面
-        if UserDAO.exist(session[SESSION_LAST_VIEWED_STUDENT].sid_orig):
+        if UserDAO.exist(session[SESSION_STUDENT_TO_REGISTER].sid_orig):
             flash('您已经注册了，请直接登录。')
             return redirect(url_for('user.login'))
 
@@ -116,10 +116,10 @@ def register():
 @user_bp.route('/register/byEmail')
 def register_by_email():
     """学生注册-邮件"""
-    if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
+    if not session.get(SESSION_STUDENT_TO_REGISTER, None):
         return render_template('common/error.html', message=MSG_400)
 
-    sid_orig = session[SESSION_LAST_VIEWED_STUDENT].sid_orig
+    sid_orig = session[SESSION_STUDENT_TO_REGISTER].sid_orig
 
     if UserDAO.exist(sid_orig):
         return render_template("common/error.html", message="您已经注册过了，请勿重复注册。")
@@ -223,7 +223,7 @@ def register_by_password():
         pwd_strength_report = zxcvbn(password=request.form["password"])
         if pwd_strength_report['score'] < 2:
             SimplePasswordDAO.new(password=request.form["password"],
-                                  sid_orig=session[SESSION_LAST_VIEWED_STUDENT].sid_orig)
+                                  sid_orig=session[SESSION_STUDENT_TO_REGISTER].sid_orig)
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.register_by_password"))
 
@@ -236,7 +236,7 @@ def register_by_password():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.register_by_password"))
 
-        request_id = IdentityVerificationDAO.new_register_request(session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
+        request_id = IdentityVerificationDAO.new_register_request(session[SESSION_STUDENT_TO_REGISTER].sid_orig,
                                                                   "password",
                                                                   ID_STATUS_WAIT_VERIFY,
                                                                   password=request.form["password"])
@@ -245,7 +245,7 @@ def register_by_password():
         with elasticapm.capture_span('register_by_password'):
             try:
                 rpc_result = Auth.register_by_password(request_id=str(request_id),
-                                                       student_id=session[SESSION_LAST_VIEWED_STUDENT].sid_orig,
+                                                       student_id=session[SESSION_STUDENT_TO_REGISTER].sid_orig,
                                                        password=request.form["jwPassword"])
             except Exception as e:
                 return handle_exception_with_error_page(e)
@@ -257,10 +257,10 @@ def register_by_password():
             return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
     else:
         # show password registration page
-        if not session.get(SESSION_LAST_VIEWED_STUDENT, None):
+        if not session.get(SESSION_STUDENT_TO_REGISTER, None):
             return render_template('common/error.html', message=MSG_VIEW_SCHEDULE_FIRST)
 
-        return render_template("user/passwordRegistration.html", name=session[SESSION_LAST_VIEWED_STUDENT].name)
+        return render_template("user/passwordRegistration.html", name=session[SESSION_STUDENT_TO_REGISTER].name)
 
 
 @user_bp.route('/register/passwordStrengthCheck', methods=["POST"])
