@@ -88,6 +88,9 @@ def edit_review(cotc_id: int):
         if not request.form.get("review", None):
             flash("请填写评价")
             return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
+        if len(request.form.get("review")) > 200:
+            flash("评论不要超过200个字符")
+            return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
 
         try:
             student = APIServer.get_student(session[SESSION_CURRENT_USER].sid_orig)
