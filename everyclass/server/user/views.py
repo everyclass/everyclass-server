@@ -262,6 +262,20 @@ def register_by_password():
         return render_template("user/passwordRegistration.html", name=session[SESSION_LAST_VIEWED_STUDENT].name)
 
 
+@user_bp.route('/register/passwordStrengthCheck', methods=["POST"])
+def password_strength_check():
+    if request.form.get("password", None):
+        # 密码强度检查
+        pwd_strength_report = zxcvbn(password=request.form["password"])
+        if pwd_strength_report['score'] < 2:
+            return jsonify({"strong": False,
+                            "score" : pwd_strength_report['score']})
+        else:
+            return jsonify({"strong": True,
+                            "score" : pwd_strength_report['score']})
+    return jsonify({"invalid_request": True})
+
+
 @user_bp.route('/register/byPassword/statusRefresh')
 def register_by_password_status():
     """AJAX 刷新教务验证状态"""
