@@ -410,9 +410,12 @@ class COTeachingClass(MongoDAOBase):
     教学班集合（Collection of Teaching Class）。某个老师教的一门课的一个班是教学班，而多个教学班的上课内容是一样的，所以需要一个
     “教学班集合”实体。
 
+    （course_id+teach_type+teacher_id_str）为一个教学班集合的主键。
+
     {
         "cotc_id"         : 1,                   # cot 意为 "collection of teaching classes"，即：“教学班集合”
         "course_id"       : "39056X1",
+        "teach_type"      : 1,                   # 1 为正常，2 为辅修，3 为重修
         "name"            : "软件工程基础",
         "teacher_id_str"  : "15643;16490;30216", # 排序后使用分号分隔的教工号列表
         "teacher_name_str": "杨柳",          # 顿号分隔的老师名称（此处不加职称是因为职称可能会变，但是这个表目前没法刷新）
@@ -429,13 +432,32 @@ class COTeachingClass(MongoDAOBase):
         teachers = [{"name": x.name, "teacher_id": x.teacher_id} for x in card.teachers]
         teacher_name_str = '、'.join([x.name for x in card.teachers])
 
+        card_name = card.name
+
+        teach_type = 1
+        if '辅修' in card.name:
+            teach_type = 2
+        elif '重修' in card.name:
+            teach_type = 3
+            # 教务会有“线性代数-新校区重修班-重修”这样的名字。对于重修班来说，在同一个老师不同校区对授课内容没有影响，所以这里标准化，
+            # 在名字中去掉校区。
+            name_splitted = [x for x in card_name.split("-") if x != '']
+            card_name = ""
+            for item in name_splitted:
+                if '重修' not in item:
+                    card_name = card_name + item
+                else:
+                    card_name = card_name + "-重修"
+                    break
+
         db = get_mongodb()
         doc = db.get_collection(cls.collection_name).find_one_and_update({'course_id'     : card.course_id,
+                                                                          'teach_type'    : teach_type,
                                                                           'teacher_id_str': teacher_list_to_tid_str(
                                                                                   card.teachers)},
                                                                          {"$setOnInsert": {
                                                                              "cotc_id"         : RedisDAO.new_cotc_id(),
-                                                                             'name'            : card.name,
+                                                                             'name'            : card_name,
                                                                              'teachers'        : teachers,
                                                                              'teacher_name_str': teacher_name_str
                                                                          }},
@@ -455,7 +477,10 @@ class COTeachingClass(MongoDAOBase):
     @classmethod
     def create_index(cls) -> None:
         db = get_mongodb()
-        db.get_collection(cls.collection_name).create_index([("course_id", 1), ("tid_str", 1)], unique=True)
+        db.get_collection(cls.collection_name).create_index([("course_id", 1),
+                                                             ("teach_type", 1),
+                                                             ("teacher_id_str", 1)],
+                                                            unique=True)
         db.get_collection(cls.collection_name).create_index([("cotc_id", 1)], unique=True)
 
 
