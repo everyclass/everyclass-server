@@ -26,3 +26,8 @@ class RpcBadRequestException(RpcClientException):
 class RpcServerException(RpcException):
     """HTTP 5xx"""
     pass
+
+
+class RpcServerNotAvailable(RpcServerException):
+    """HTTP 503"""
+    pass

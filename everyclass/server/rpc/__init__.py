@@ -4,7 +4,7 @@ from flask import g, render_template
 
 from everyclass.server import logger, sentry
 from everyclass.server.exceptions import RpcBadRequestException, RpcClientException, RpcResourceNotFoundException, \
-    RpcServerException, RpcTimeoutException
+    RpcServerException, RpcServerNotAvailable, RpcTimeoutException
 from everyclass.server.utils import plugin_available
 
 
@@ -32,7 +32,7 @@ def _error_page(message: str, sentry_capture: bool = False, log: str = None):
 def handle_exception_with_error_page(e: Exception) -> Text:
     """处理抛出的异常，返回错误页。
     """
-    from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR
+    from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503
 
     if type(e) == RpcTimeoutException:
         return _error_page(MSG_TIMEOUT, sentry_capture=True)
@@ -44,6 +44,8 @@ def handle_exception_with_error_page(e: Exception) -> Text:
                            sentry_capture=True)
     elif type(e) == RpcClientException:
         return _error_page(MSG_400, sentry_capture=True)
+    elif type(e) == RpcServerNotAvailable:
+        return _error_page(MSG_503, sentry_capture=True)
     elif type(e) == RpcServerException:
         return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
     else:
