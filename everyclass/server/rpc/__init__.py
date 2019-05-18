@@ -3,8 +3,8 @@ from typing import Text, Tuple
 from flask import g, render_template
 
 from everyclass.server import logger, sentry
-from everyclass.server.exceptions import RpcBadRequestException, RpcClientException, RpcResourceNotFoundException, \
-    RpcServerException, RpcServerNotAvailable, RpcTimeoutException
+from everyclass.server.exceptions import RpcBadRequest, RpcClientException, RpcResourceNotFound, \
+    RpcServerException, RpcServerNotAvailable, RpcTimeout
 from everyclass.server.utils import plugin_available
 
 
@@ -34,11 +34,11 @@ def handle_exception_with_error_page(e: Exception) -> Text:
     """
     from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503
 
-    if type(e) == RpcTimeoutException:
+    if type(e) == RpcTimeout:
         return _error_page(MSG_TIMEOUT, sentry_capture=True)
-    elif type(e) == RpcResourceNotFoundException:
+    elif type(e) == RpcResourceNotFound:
         return _error_page(MSG_404, sentry_capture=True)
-    elif type(e) == RpcBadRequestException:
+    elif type(e) == RpcBadRequest:
         return _error_page(MSG_400,
                            log="Got bad request, upstream returned status code {} with message {}.".format(*e.args),
                            sentry_capture=True)
@@ -54,11 +54,11 @@ def handle_exception_with_error_page(e: Exception) -> Text:
 
 def handle_exception_with_message(e: Exception) -> Tuple:
     """处理抛出的异常，返回错误消息"""
-    if type(e) == RpcTimeoutException:
+    if type(e) == RpcTimeout:
         return _return_string(408, "Backend timeout", sentry_capture=True)
-    elif type(e) == RpcResourceNotFoundException:
+    elif type(e) == RpcResourceNotFound:
         return _return_string(404, "Resource not found", sentry_capture=True)
-    elif type(e) == RpcBadRequestException:
+    elif type(e) == RpcBadRequest:
         return _return_string(400, "Bad request", sentry_capture=True)
     elif type(e) == RpcClientException:
         return _return_string(400, "Bad request", sentry_capture=True)

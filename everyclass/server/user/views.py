@@ -3,15 +3,15 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 from zxcvbn import zxcvbn
 
 from everyclass.server import logger
-from everyclass.server.consts import MSG_400, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, MSG_INTERNAL_ERROR, \
-    MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, MSG_TOKEN_INVALID, \
-    MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, \
-    SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
+from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
+    MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
+    MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
+    SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
 from everyclass.server.models import StudentSession
-from everyclass.server.rpc import RpcResourceNotFoundException, handle_exception_with_error_page
+from everyclass.server.rpc import RpcResourceNotFound, handle_exception_with_error_page
 from everyclass.server.rpc.api_server import APIServer
 from everyclass.server.rpc.auth import Auth
 from everyclass.server.rpc.tencent_captcha import TencentCaptcha
@@ -63,8 +63,8 @@ def login():
             # 检查学号是否存在
             try:
                 _ = APIServer.get_student(student_id)
-            except RpcResourceNotFoundException:
-                flash("用户名输入错误，学生不存在！")
+            except RpcResourceNotFound:
+                flash(MSG_USERNAME_NOT_EXIST)
                 return redirect(url_for("user.login"))
             except Exception as e:
                 return handle_exception_with_error_page(e)
@@ -114,7 +114,7 @@ def register():
 
         # 如果输入的学号已经注册，跳转到登录页面
         if UserDAO.exist(session[SESSION_STUDENT_TO_REGISTER].sid_orig):
-            flash('您已经注册了，请直接登录。')
+            flash(MSG_ALREADY_REGISTERED)
             return redirect(url_for('user.login'))
 
         return redirect(url_for('user.register_choice'))
@@ -137,7 +137,7 @@ def register_by_email():
     sid_orig = session[SESSION_STUDENT_TO_REGISTER].sid_orig
 
     if UserDAO.exist(sid_orig):
-        return render_template("common/error.html", message="您已经注册过了，请勿重复注册。")
+        return render_template("common/error.html", message=MSG_ALREADY_REGISTERED)
 
     request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_SENT)
 

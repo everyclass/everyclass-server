@@ -4,8 +4,8 @@ import gevent
 import requests
 
 from everyclass.server import logger
-from everyclass.server.exceptions import RpcBadRequestException, \
-    RpcClientException, RpcResourceNotFoundException, RpcServerException, RpcTimeoutException
+from everyclass.server.exceptions import RpcBadRequest, \
+    RpcClientException, RpcResourceNotFound, RpcServerException, RpcTimeout
 
 
 class HttpRpc:
@@ -21,9 +21,9 @@ class HttpRpc:
             raise RpcServerException(status_code, response.text)
         if 400 <= status_code < 500:
             if status_code == 404:
-                raise RpcResourceNotFoundException(status_code, response.text)
+                raise RpcResourceNotFound(status_code, response.text)
             if status_code == 400:
-                raise RpcBadRequestException(status_code, response.text)
+                raise RpcBadRequest(status_code, response.text)
             raise RpcClientException(status_code, response.text)
 
     @classmethod
@@ -56,4 +56,4 @@ class HttpRpc:
             response_json = api_response.json()
             logger.debug('RPC result: {}'.format(response_json))
             return response_json
-        raise RpcTimeoutException('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))
+        raise RpcTimeout('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))

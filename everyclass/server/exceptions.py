@@ -3,7 +3,7 @@ class RpcException(ConnectionError):
     pass
 
 
-class RpcTimeoutException(RpcException, TimeoutError):
+class RpcTimeout(RpcException, TimeoutError):
     """timeout"""
     pass
 
@@ -13,12 +13,12 @@ class RpcClientException(RpcException):
     pass
 
 
-class RpcResourceNotFoundException(RpcClientException):
+class RpcResourceNotFound(RpcClientException):
     """HTTP 404"""
     pass
 
 
-class RpcBadRequestException(RpcClientException):
+class RpcBadRequest(RpcClientException):
     """HTTP 400"""
     pass
 
