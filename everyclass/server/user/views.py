@@ -11,7 +11,7 @@ from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, I
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitorDAO
 from everyclass.server.models import StudentSession
-from everyclass.server.rpc import handle_exception_with_error_page
+from everyclass.server.rpc import RpcResourceNotFoundException, handle_exception_with_error_page
 from everyclass.server.rpc.api_server import APIServer
 from everyclass.server.rpc.auth import Auth
 from everyclass.server.rpc.tencent_captcha import TencentCaptcha
@@ -59,6 +59,16 @@ def login():
 
         if request.form.get("xh", None):  # 已手动填写用户名
             student_id = request.form["xh"]
+
+            # 检查学号是否存在
+            try:
+                _ = APIServer.get_student(student_id)
+            except RpcResourceNotFoundException:
+                flash("用户名输入错误，学生不存在！")
+                return redirect(url_for("user.login"))
+            except Exception as e:
+                return handle_exception_with_error_page(e)
+
         else:
             if session.get(SESSION_LAST_VIEWED_STUDENT, None):
                 student_id = session[SESSION_LAST_VIEWED_STUDENT].sid_orig  # 没有手动填写，使用获取最后浏览的学生
