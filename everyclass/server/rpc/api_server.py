@@ -175,12 +175,14 @@ class ClassroomTimetableResult:
 class CardResultTeacherItem:
     name: str
     teacher_id: str
+    teacher_id_encoded: str
     title: str
     unit: str
 
     @classmethod
     def make(cls, dct: Dict) -> "CardResultTeacherItem":
         dct['teacher_id'] = dct.pop('teacher_code')
+        dct['teacher_id_encoded'] = encrypt('teacher', dct['teacher_id'])
         return cls(**ensure_slots(cls, dct))
 
 
