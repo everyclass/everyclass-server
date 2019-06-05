@@ -7,7 +7,7 @@ from everyclass.server import logger
 from everyclass.server.config import get_config
 from everyclass.server.exceptions import RpcException
 from everyclass.server.rpc.http import HttpRpc
-from everyclass.server.utils.resource_identifier_encrypt import encrypt
+from everyclass.server.utils import encrypt, weeks_to_string
 
 
 def ensure_slots(cls, dct: Dict):
@@ -143,6 +143,7 @@ class CardItem:
         dct['room_id'] = dct.pop('room_code')
         dct['card_id'] = dct.pop('card_code')
         dct['weeks'] = dct.pop('week_list')
+        dct['week_string'] = weeks_to_string(dct['weeks'])
         dct['room_id_encoded'] = encrypt('room', dct['room_id'])
         dct['card_id_encoded'] = encrypt('klass', dct['card_id'])
         dct['course_id'] = dct.pop('course_code')
@@ -297,6 +298,7 @@ class CardResult:
         dct['room_id'] = dct.pop('room_code')
         dct['room_id_encoded'] = encrypt("room", dct["room_id"])
         dct['weeks'] = dct.pop("week_list")
+        dct['week_string'] = weeks_to_string(dct['week_string'])
         dct['course_id'] = dct.pop('course_code')
         dct['union_name'] = dct.pop('tea_class')
         return cls(**ensure_slots(cls, dct))

@@ -1,10 +1,10 @@
 import os
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import elasticapm
 
-from everyclass.server.config import get_config
+from everyclass.server.utils.resource_identifier_encrypt import decrypt, encrypt
 
 
 def get_day_chinese(digit: int) -> str:
@@ -103,9 +103,108 @@ def plugin_available(plugin_name: str) -> bool:
     check if a plugin (Sentry, apm, logstash) is available in the current environment.
     :return True if available else False
     """
+    from everyclass.server.config import get_config
     config = get_config()
     mode = os.environ.get("MODE", None)
     if mode:
         return mode.lower() in getattr(config, "{}_AVAILABLE_IN".format(plugin_name).upper())
     else:
         raise EnvironmentError("MODE not in environment variables")
+
+
+def weeks_to_string(weeks: List[int]) -> str:
+    """
+    获得周次列表的字符串表示（鉴于 API Server 转换的效果不好，暂时在本下游服务进行转换）
+
+    :param weeks: int 类型的 list，每一个数字代表一个周次
+    :return: 周次的字符串表示
+    """
+
+    def odd(num: int) -> bool:
+        return num % 2 == 1
+
+    def int_type_to_string(typ: int) -> str:
+        if typ == 0:
+            return "/周"
+        elif typ == 1:
+            return "/单周"
+        elif typ == 2:
+            return "/双周"
+
+    weeks_list: List[Tuple[int, int, int]] = []
+    current_start = weeks[0]
+    current_end: Union[int, None] = None
+    current_type: Union[int, None] = None
+
+    for i in range(len(weeks)):
+        # 当前是最后一个元素
+        if i == len(weeks) - 1:
+            weeks_list.append((current_start,
+                               current_end if current_end else current_start,
+                               current_type if current_type else 0))
+            break
+
+        # 有下一个元素且 current_type 为空（说明当前子序列的第一个元素），根据当前元素和下一个元素判断周次类型并写入到 current_type
+        if current_type is None:
+            if weeks[i + 1] == weeks[i] + 1:  # 间隔一周
+                current_type = 0
+            elif weeks[i + 1] == weeks[i] + 2:  # 间隔两周
+                current_type = 1 if odd(current_start) else 2
+            else:
+                # 间隔大于两周（如：[1, 5]），拆分
+                weeks_list.append((current_start, current_start, 0))
+                current_start = weeks[i + 1]
+                current_end = None
+                current_type = None
+                continue
+
+        # 有下一个元素且当前子序列已经有类型（current_type），判断下一个元素是否符合当前周类型的要求，如能则拓展子序列，不能则分割子序列
+        if current_type == 0:
+            if weeks[i + 1] == weeks[i] + 1:
+                current_end = weeks[i + 1]
+            else:
+                weeks_list.append((current_start, current_end, current_type))
+                current_start = weeks[i + 1]
+                current_end = None
+                current_type = None
+        else:
+            if weeks[i + 1] == weeks[i] + 2:
+                current_end = weeks[i + 1]
+            else:
+                weeks_list.append((current_start, current_end, current_type))
+                current_start = weeks[i + 1]
+                current_end = None
+                current_type = None
+
+    # 检查所有周是否都是单周、都是双周或者都是全周
+    # 是则采用类似于 “1-3, 7-9/单周” 的精简表示，否则采用类似于 “1-3/单周, 4-8/双周” 的表示
+    week_type: Union[int, None] = None
+    week_type_consistent = True
+    for week in weeks_list:
+        if week_type is None:
+            week_type = week[2]
+        if week[2] != week_type:
+            week_type_consistent = False
+
+    weeks_str = ""
+    if week_type_consistent:
+        for week in weeks_list:
+            if week[0] == week[1]:
+                weeks_str += "{}, ".format(week[0])
+            else:
+                weeks_str += "{}-{}, ".format(week[0], week[1])
+        weeks_str = weeks_str[:len(weeks_str) - 2] + int_type_to_string(weeks_list[0][2])
+    else:
+        for week in weeks_list:
+            if week[0] == week[1]:
+                weeks_str += "{}{}, ".format(week[0], int_type_to_string(week[2]))
+            else:
+                weeks_str += "{}-{}{}, ".format(week[0], week[1], int_type_to_string(week[2]))
+        weeks_str = weeks_str[:len(weeks_str) - 2]
+
+    # 如果原始表示字数更短，切换到原始表示
+    plain = ", ".join([str(x) for x in weeks]) + int_type_to_string(0)
+    if len(plain) < len(weeks_str):
+        weeks_str = plain
+
+    return weeks_str
