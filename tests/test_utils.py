@@ -46,3 +46,9 @@ class UtilTest(unittest.TestCase):
     def test_lesson_string_to_tuple(self):
         from everyclass.server.utils import lesson_string_to_tuple
         self.assertTrue(lesson_string_to_tuple('10102') == (1, 1))
+
+    def test_contains_chinese(self):
+        from everyclass.server.utils import contains_chinese
+        self.assertTrue(contains_chinese('你好'))
+        self.assertTrue(contains_chinese('你好 kitty'))
+        self.assertFalse(contains_chinese('no'))
