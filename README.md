@@ -19,9 +19,11 @@ If you wish to discuss the project, you can join our [forum](https://base.admira
 
 ### Technology stack
 
-- uWSGI: the gateway between the program and Nginx reverse proxy
-- Flask: the micro Python web framework
+- Flask: Python web framework
+- uWSGI: WSGI gateway
 - MongoDB: database
+- PostgreSQL: database
+- Redis: sequence dispenser, visitor (HyperLogLog)
 
 
 ### Using the source
