@@ -52,3 +52,21 @@ class UtilTest(unittest.TestCase):
         self.assertTrue(contains_chinese('你好'))
         self.assertTrue(contains_chinese('你好 kitty'))
         self.assertFalse(contains_chinese('no'))
+
+
+class ResourceIdentifierEncryptTest(unittest.TestCase):
+    """everyclass/server/utils/resource_identifier_encrypt.py"""
+    cases = (("student", "3901160407", "8ypVY3OsRhbXuGBXNpY5PEgmh53TmMfONVoRqfJ7fXY="),)
+    key = "z094gikTit;5gt5h"
+
+    def test_encrypt(self):
+        from everyclass.server.utils.resource_identifier_encrypt import encrypt
+        for tp, data, encrypted in self.cases:
+            result = encrypt(tp, data, encryption_key=self.key)
+            print("Encrypt result:", result)
+            self.assertTrue(result == encrypted)
+
+    def test_decrypt(self):
+        from everyclass.server.utils.resource_identifier_encrypt import decrypt
+        for tp, data, encrypted in self.cases:
+            self.assertTrue(decrypt(encrypted, encryption_key=self.key, resource_type=tp) == (tp, data))

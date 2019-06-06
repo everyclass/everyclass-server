@@ -179,7 +179,6 @@ class Config(object):
             }
         }
     }
-    CALENDAR_UUID_NAMESPACE = '12345678123456781234567812345678'  # calendar token base uuid
 
     ANDROID_CLIENT_URL = ''  # apk file for android client, dynamically fetched when starting
 
@@ -189,7 +188,7 @@ class Config(object):
     }
     DEFAULT_PRIVACY_LEVEL = 0
 
-    RESOURCE_IDENTIFIER_ENCRYPTION_KEY = ''
+    RESOURCE_IDENTIFIER_ENCRYPTION_KEY = 'z094gikTit;5gt5h'
 
     TENCENT_CAPTCHA_AID = ''
     TENCENT_CAPTCHA_SECRET = ''
@@ -201,8 +200,7 @@ class Config(object):
     DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
 
     # fields that should be overwritten in production environment
-    PRODUCTION_OVERWRITE_FIELDS = ('CALENDAR_UUID_NAMESPACE',
-                                   'SECRET_KEY',
+    PRODUCTION_OVERWRITE_FIELDS = ('SECRET_KEY',
                                    'TENCENT_CAPTCHA_AID',
                                    'TENCENT_CAPTCHA_SECRET',
                                    'RESOURCE_IDENTIFIER_ENCRYPTION_KEY'
