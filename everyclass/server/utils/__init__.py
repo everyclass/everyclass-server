@@ -164,7 +164,8 @@ def weeks_to_string(original_weeks: List[int]) -> str:
             if original_weeks[i + 1] == original_weeks[i] + 1:
                 current_end = original_weeks[i + 1]
             else:
-                processed_weeks.append((current_start, current_end, current_type))
+                # 结合具体流程可知 current_end 为 int 类型，但 flake8 把它识别为 Optional[int]，导致报错
+                processed_weeks.append((current_start, current_end, current_type))  # noqa: T484
                 current_start = original_weeks[i + 1]
                 current_end = None
                 current_type = None
@@ -172,7 +173,7 @@ def weeks_to_string(original_weeks: List[int]) -> str:
             if original_weeks[i + 1] == original_weeks[i] + 2:
                 current_end = original_weeks[i + 1]
             else:
-                processed_weeks.append((current_start, current_end, current_type))
+                processed_weeks.append((current_start, current_end, current_type))  # noqa: T484
                 current_start = original_weeks[i + 1]
                 current_end = None
                 current_type = None
