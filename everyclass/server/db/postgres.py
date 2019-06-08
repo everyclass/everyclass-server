@@ -18,15 +18,6 @@ def init_pool(current_application) -> None:
                                                                         options=_options)
 
 
-def get_pg_conn() -> psycopg2.extensions.connection:
-    """获得连接"""
-    if has_app_context():
-        return current_app.postgres.getconn()
-    else:
-        return psycopg2.connect(**_config.POSTGRES_CONNECTION,
-                                options=_options)
-
-
 @contextmanager
 def pg_conn_context():
     if has_app_context():
