@@ -16,7 +16,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
-from everyclass.server.db.postgres import get_pg_conn, pg_conn_context, put_pg_conn
+from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc.api_server import CardResult, teacher_list_to_tid_str
@@ -52,30 +52,25 @@ class PrivacySettings(PostgresBase):
     """隐私级别"""
     @classmethod
     def get_level(cls, student_id: str) -> int:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = "SELECT level FROM privacy_settings WHERE student_id=%s"
             cursor.execute(select_query, (student_id,))
             result = cursor.fetchone()
-        put_pg_conn(conn)
         return result[0] if result is not None else get_config().DEFAULT_PRIVACY_LEVEL
 
     @classmethod
     def set_level(cls, student_id: str, new_level: int) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             insert_query = """
             INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s)
                 ON CONFLICT (student_id) DO UPDATE SET level=EXCLUDED.level
             """
             cursor.execute(insert_query, (student_id, new_level, datetime.datetime.now()))
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_table_query = """
             CREATE TABLE IF NOT EXISTS privacy_settings
                 (
@@ -90,21 +85,18 @@ class PrivacySettings(PostgresBase):
             cursor.execute(create_table_query)
 
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def migrate(cls) -> None:
         """migrate data from mongodb"""
         mongo = get_mongodb()
-        pg_conn = get_pg_conn()
-        with pg_conn.cursor() as cursor:
+        with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
             results = mongo.get_collection("privacy_settings").find()
             for each in results:
                 insert_query = "INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s)"
                 cursor.execute(insert_query, (each['sid_orig'], each['level'], each['create_time']))
             pg_conn.commit()
         print("Migration finished.")
-        put_pg_conn(pg_conn)
 
 
 class CalendarToken(PostgresBase):
@@ -123,8 +115,7 @@ class CalendarToken(PostgresBase):
         """
         token = uuid.uuid4()
 
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             register_uuid(cursor)
             insert_query = """
             INSERT INTO calendar_tokens (type, identifier, semester, token, create_time)
@@ -132,7 +123,6 @@ class CalendarToken(PostgresBase):
             """
             cursor.execute(insert_query, (resource_type, identifier, semester, token, datetime.datetime.now()))
             conn.commit()
-        put_pg_conn(conn)
         return str(token)
 
     @classmethod
@@ -206,8 +196,7 @@ class CalendarToken(PostgresBase):
     @classmethod
     def update_last_used_time(cls, token: str):
         """更新token最后使用时间"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             register_uuid(cursor)
 
             insert_query = """
@@ -215,13 +204,11 @@ class CalendarToken(PostgresBase):
             """
             cursor.execute(insert_query, (datetime.datetime.now(), uuid.UUID(token)))
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def reset_tokens(cls, student_id: str, typ: Optional[str] = "student") -> None:
         """删除某用户所有的 token，默认为学生"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             register_uuid(cursor)
 
             insert_query = """
@@ -229,12 +216,10 @@ class CalendarToken(PostgresBase):
             """
             cursor.execute(insert_query, (student_id, typ))
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_type_query = """
             DO $$ BEGIN
                 CREATE TYPE people_type AS enum('student', 'teacher');
@@ -273,14 +258,12 @@ class CalendarToken(PostgresBase):
             cursor.execute(create_index_query2)
 
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def migrate(cls) -> None:
         """migrate data from mongodb"""
         mongo = get_mongodb()
-        pg_conn = get_pg_conn()
-        with pg_conn.cursor() as cursor:
+        with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
             register_uuid(conn_or_curs=cursor)
             results = mongo.get_collection("calendar_token").find()
             for each in results:
@@ -297,7 +280,6 @@ class CalendarToken(PostgresBase):
                                               each['last_used'] if 'last_used' in each else None))
             pg_conn.commit()
         print("Migration finished.")
-        put_pg_conn(pg_conn)
 
 
 class User(PostgresBase):
@@ -307,23 +289,19 @@ class User(PostgresBase):
     @classmethod
     def exist(cls, student_id: str) -> bool:
         """check if a student has registered"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = "SELECT create_time FROM users WHERE student_id=%s"
             cursor.execute(select_query, (student_id,))
             result = cursor.fetchone()
-        put_pg_conn(conn)
         return result is not None
 
     @classmethod
     def check_password(cls, sid_orig: str, password: str) -> bool:
         """verify a user's password. Return True if password is correct, otherwise return False."""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = "SELECT password FROM users WHERE student_id=%s"
             cursor.execute(select_query, (sid_orig,))
             result = cursor.fetchone()
-        put_pg_conn(conn)
         if result is None:
             raise ValueError("Student not registered")
         return check_password_hash(result[0], password)
@@ -343,20 +321,18 @@ class User(PostgresBase):
         else:
             password_hash = password
 
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = "INSERT INTO users (student_id, password, create_time) VALUES (%s,%s,%s)"
             try:
                 cursor.execute(select_query, (sid_orig, password_hash, datetime.datetime.now()))
                 conn.commit()
             except psycopg2.errors.UniqueViolation as e:
                 raise ValueError("Student already exists in database") from e
-        put_pg_conn(conn)
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_table_query = """
             CREATE TABLE IF NOT EXISTS users
                 (
@@ -371,21 +347,19 @@ class User(PostgresBase):
             cursor.execute(create_table_query)
 
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def migrate(cls) -> None:
         """migrate data from mongodb"""
         mongo = get_mongodb()
-        pg_conn = get_pg_conn()
-        with pg_conn.cursor() as cursor:
+
+        with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
             results = mongo.get_collection("user").find()
             for each in results:
                 insert_query = "INSERT INTO users (student_id, password, create_time) VALUES (%s,%s,%s)"
                 cursor.execute(insert_query, (each['sid_orig'], each["password"], each['create_time']))
             pg_conn.commit()
         print("Migration finished.")
-        put_pg_conn(pg_conn)
 
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"  # email verification passed but password may not set
@@ -408,8 +382,8 @@ class IdentityVerification(PostgresBase):
     @classmethod
     def get_request_by_id(cls, req_id: str) -> Optional[Dict]:
         """由 request_id 获得请求，如果找不到则返回 None"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             register_hstore(conn_or_curs=cursor)
 
             insert_query = """
@@ -418,8 +392,6 @@ class IdentityVerification(PostgresBase):
             """
             cursor.execute(insert_query, (uuid.UUID(req_id)))
             result = cursor.fetchone()
-
-        put_pg_conn(conn)
 
         if not result:
             return None
@@ -450,8 +422,7 @@ class IdentityVerification(PostgresBase):
 
         request_id = uuid.uuid4()
 
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             register_hstore(conn_or_curs=cursor)
 
             extra_doc = {}
@@ -469,26 +440,24 @@ class IdentityVerification(PostgresBase):
                                           datetime.datetime.now(),
                                           extra_doc))
             conn.commit()
-        put_pg_conn(conn)
 
         return str(request_id)
 
     @classmethod
     def set_request_status(cls, request_id: str, status: str) -> None:
         """mark a verification request's status as email token passed"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             insert_query = """
             UPDATE identity_verify_requests SET status = %s WHERE request_id = %s;
             """
             cursor.execute(insert_query, (status, uuid.UUID(request_id)))
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_verify_methods_type_query = """
             DO $$ BEGIN
                 CREATE TYPE identity_verify_methods AS enum('password', 'email');
@@ -524,14 +493,13 @@ class IdentityVerification(PostgresBase):
             cursor.execute(create_table_query)
 
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def migrate(cls):
         """migrate data from mongodb"""
         mongo = get_mongodb()
-        pg_conn = get_pg_conn()
-        with pg_conn.cursor() as cursor:
+
+        with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
             register_uuid(conn_or_curs=cursor)
             register_hstore(conn_or_curs=cursor)
             results = mongo.get_collection("verification_requests").find()
@@ -549,7 +517,6 @@ class IdentityVerification(PostgresBase):
                                               {'password': each['password']} if 'password' in each else None))
             pg_conn.commit()
         print("Migration finished.")
-        put_pg_conn(pg_conn)
 
 
 class SimplePassword(PostgresBase):
@@ -561,17 +528,15 @@ class SimplePassword(PostgresBase):
     @classmethod
     def new(cls, password: str, sid_orig: str) -> None:
         """新增一条简单密码记录"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             insert_query = "INSERT INTO simple_passwords (student_id, time, password) VALUES (%s,%s,%s)"
             cursor.execute(insert_query, (sid_orig, datetime.datetime.now(), password))
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_table_query = """
             CREATE TABLE IF NOT EXISTS simple_passwords
                 (
@@ -591,44 +556,39 @@ class SimplePassword(PostgresBase):
             """
             cursor.execute(create_index_query)
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def migrate(cls):
         """migrate data from mongodb"""
         mongo = get_mongodb()
-        pg_conn = get_pg_conn()
-        with pg_conn.cursor() as cursor:
+
+        with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
             results = mongo.get_collection("simple_passwords").find()
             for each in results:
                 insert_query = "INSERT INTO simple_passwords (student_id, time, password) VALUES (%s,%s,%s)"
                 cursor.execute(insert_query, (each['sid_orig'], each['time'], each['password']))
             pg_conn.commit()
         print("Migration finished.")
-        put_pg_conn(pg_conn)
 
 
 class UserIdSequence(PostgresBase):
     @classmethod
     def new(cls):
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             get_sequence_query = """SELECT nextval('user_id_seq')"""
             cursor.execute(get_sequence_query)
             num = cursor.fetchone()[0]
-        put_pg_conn(conn)
+
         return num
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_table_query = """
             CREATE SEQUENCE IF NOT EXISTS user_id_seq START WITH 10000000;
             """
             cursor.execute(create_table_query)
             conn.commit()
-        put_pg_conn(conn)
 
 
 class VisitTrack(PostgresBase):
@@ -640,30 +600,27 @@ class VisitTrack(PostgresBase):
 
     @classmethod
     def update_track(cls, host: str, visitor: StudentSession) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             insert_or_update_query = """
             INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s)
                 ON CONFLICT ON CONSTRAINT unq_host_visitor DO UPDATE SET last_visit_time=EXCLUDED.last_visit_time;
             """
             cursor.execute(insert_or_update_query, (host, visitor.sid_orig, datetime.datetime.now()))
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
         """获得访客列表"""
         from everyclass.server.rpc.api_server import APIServer
 
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = """
             SELECT visitor_id, last_visit_time FROM visit_tracks where host_id=%s ORDER BY last_visit_time DESC;
             """
             cursor.execute(select_query, (sid_orig,))
             result = cursor.fetchall()
             conn.commit()
-        put_pg_conn(conn)
 
         visitor_list = []
         for record in result:
@@ -678,8 +635,8 @@ class VisitTrack(PostgresBase):
 
     @classmethod
     def init(cls) -> None:
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             create_table_query = """
             CREATE TABLE IF NOT EXISTS visit_tracks
                 (
@@ -704,21 +661,18 @@ class VisitTrack(PostgresBase):
             """
             cursor.execute(create_constraint_query)
             conn.commit()
-        put_pg_conn(conn)
 
     @classmethod
     def migrate(cls) -> None:
         """migrate data from mongodb"""
         mongo = get_mongodb()
-        pg_conn = get_pg_conn()
-        with pg_conn.cursor() as cursor:
+        with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
             results = mongo.get_collection("visitor_track").find()
             for each in results:
                 insert_query = "INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s)"
                 cursor.execute(insert_query, (each['host'], each['visitor'], each['last_time']))
             pg_conn.commit()
         print("Migration finished.")
-        put_pg_conn(pg_conn)
 
 
 class COTeachingClass(MongoDAOBase):
