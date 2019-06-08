@@ -75,6 +75,14 @@ class Config(object):
         'port': 6379,
         'db'  : 1
     }
+    POSTGRES_CONNECTION = {
+        'dbname'  : 'everyclass',
+        'user'    : 'everyclass_server',
+        'password': '',
+        'host'    : 'localhost',
+        'port'    : 5432
+    }
+    POSTGRES_SCHEMA = 'everyclass_server'
 
     # server side session
     SESSION_TYPE = 'mongodb'

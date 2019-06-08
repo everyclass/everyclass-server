@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from everyclass.server import logger
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
+from everyclass.server.db.postgres import get_pg_conn, put_pg_conn
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc.api_server import CardResult, teacher_list_to_tid_str
@@ -43,6 +44,14 @@ class MongoDAOBase(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def create_index(cls) -> None:
+        pass
+
+
+class PostgresBase(abc.ABC):
+    @classmethod
+    @abc.abstractmethod
+    def init(cls) -> None:
+        """建立表和索引"""
         pass
 
 
@@ -326,29 +335,60 @@ class IdentityVerificationDAO(MongoDAOBase):
         db.get_collection(cls.collection_name).create_index([("request_id", 1)], unique=True)
 
 
-class SimplePasswordDAO(MongoDAOBase):
+class SimplePasswordDAO(PostgresBase):
     """
     Simple passwords will be rejected when registering. However, it's fun to know what kind of simple passwords are
     being used.
-
-    {
-        "sid_orig": 390xxxx,                   # original sid, str type
-        "time": 2019-02-24T13:33:05.123Z,      # time of trial, datetime type
-        "password": "1234"                     # simple password
-    }
     """
-    collection_name = "simple_passwords"
 
     @classmethod
     def new(cls, password: str, sid_orig: str) -> None:
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).insert({"sid_orig": sid_orig,
-                                                       "time"    : datetime.datetime.now(),
-                                                       "password": password})
+        """新增一条简单密码记录"""
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_query = "INSERT INTO simple_passwords (student_id, time, password) VALUES (%s,%s,%s)"
+            cursor.execute(insert_query, (sid_orig, datetime.datetime.now(), password))
+            conn.commit()
+        put_pg_conn(conn)
 
     @classmethod
-    def create_index(cls) -> None:
-        pass
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS simple_passwords
+                (
+                    student_id character varying(15) NOT NULL,
+                    "time" timestamp with time zone NOT NULL,
+                    password text NOT NULL
+                )
+                WITH (
+                    OIDS = FALSE
+                );
+            """
+            cursor.execute(create_table_query)
+
+            create_index_query = """
+            CREATE INDEX IF NOT EXISTS idx_time
+                ON simple_passwords USING btree("time" DESC);
+            """
+            cursor.execute(create_index_query)
+            conn.commit()
+        put_pg_conn(conn)
+
+    @classmethod
+    def migrate(cls):
+        """migrate data from mongodb"""
+        mongo = get_mongodb()
+        pg_conn = get_pg_conn()
+        with pg_conn.cursor() as cursor:
+            results = mongo.get_collection("simple_passwords").find()
+            for each in results:
+                insert_query = "INSERT INTO simple_passwords (student_id, time, password) VALUES (%s,%s,%s)"
+                cursor.execute(insert_query, (each['sid_orig'], each['time'], each['password']))
+            pg_conn.commit()
+        print("Migration finished.")
+        put_pg_conn(pg_conn)
 
 
 class VisitorDAO(MongoDAOBase):
@@ -610,7 +650,11 @@ class RedisDAO:
     @classmethod
     def init(cls):
         print("Initializing Redis...")
-        redis.set("{}:user_sequence".format(cls.prefix), 5000000)
+        if not redis.exists("{}:user_sequence".format(cls.prefix)):
+            print("Setting user_sequence.")
+            redis.set("{}:user_sequence".format(cls.prefix), 5000000)
+        else:
+            print("user_sequence already exist.")
 
 
 def create_index():
@@ -626,5 +670,17 @@ def create_index():
 
 def init_db():
     """初始化数据库"""
+    import inspect
+    import sys
+
+    # postgresql
+    for cls_name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+        if issubclass(cls, PostgresBase):
+            print("[{}] Initializing...".format(cls_name))
+            cls.init()
+
+    # mongodb
     create_index()
+
+    # redis
     RedisDAO.init()

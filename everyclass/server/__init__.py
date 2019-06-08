@@ -76,10 +76,12 @@ try:
     @uwsgidecorators.postfork
     def init_db():
         """init database connection"""
-        import everyclass.server.db.mongodb
+        from everyclass.server.db.mongodb import init_pool as init_mongo
+        from everyclass.server.db.postgres import init_pool as init_pg
 
         global __app
-        everyclass.server.db.mongodb.init_pool(__app)
+        init_mongo(__app)
+        init_pg(__app)
 
     @uwsgidecorators.postfork
     def init_session():
