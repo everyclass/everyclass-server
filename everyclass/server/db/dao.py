@@ -57,24 +57,24 @@ class PostgresBase(abc.ABC):
 
 class PrivacySettings(PostgresBase):
     @classmethod
-    def get_level(cls, sid_orig: str) -> int:
+    def get_level(cls, student_id: str) -> int:
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             select_query = "SELECT (level) FROM privacy_settings WHERE student_id=%s"
-            cursor.execute(select_query, (sid_orig,))
+            cursor.execute(select_query, (student_id,))
             result = cursor.fetchone()
         put_pg_conn(conn)
         return result[0] if result is not None else get_config().DEFAULT_PRIVACY_LEVEL
 
     @classmethod
-    def set_level(cls, sid_orig: str, new_level: int) -> None:
+    def set_level(cls, student_id: str, new_level: int) -> None:
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             insert_query = """
             INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s) 
                 ON CONFLICT ON CONSTRAINT unq_student_id DO UPDATE SET level=EXCLUDED.level
             """
-            cursor.execute(insert_query, (sid_orig, new_level, datetime.datetime.now()))
+            cursor.execute(insert_query, (student_id, new_level, datetime.datetime.now()))
             conn.commit()
         put_pg_conn(conn)
 
