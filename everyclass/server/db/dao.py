@@ -65,7 +65,7 @@ class PrivacySettings(PostgresBase):
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             insert_query = """
-            INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s) 
+            INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s)
                 ON CONFLICT (student_id) DO UPDATE SET level=EXCLUDED.level
             """
             cursor.execute(insert_query, (student_id, new_level, datetime.datetime.now()))
@@ -127,7 +127,7 @@ class CalendarToken(PostgresBase):
         with conn.cursor() as cursor:
             register_uuid(cursor)
             insert_query = """
-            INSERT INTO calendar_tokens (type, identifier, semester, token, create_time) 
+            INSERT INTO calendar_tokens (type, identifier, semester, token, create_time)
                 VALUES (%s,%s,%s,%s,%s);
             """
             cursor.execute(insert_query, (resource_type, identifier, semester, token, datetime.datetime.now()))
@@ -166,7 +166,7 @@ class CalendarToken(PostgresBase):
 
             if token:
                 select_query = """
-                SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens 
+                SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens
                     WHERE token=%s
                 """
                 cursor.execute(select_query, (uuid.UUID(token),))
@@ -177,7 +177,7 @@ class CalendarToken(PostgresBase):
                 return parsed
             elif (tid or sid) and semester:
                 select_query = """
-                SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens 
+                SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens
                     WHERE type=%s AND identifier=%s AND semester=%s;
                 """
                 cursor.execute(select_query, ("teacher" if tid else "student", tid, semester))
@@ -218,7 +218,7 @@ class CalendarToken(PostgresBase):
             register_uuid(cursor)
 
             insert_query = """
-            UPDATE calendar_tokens SET last_used_time = %s WHERE token = %s; 
+            UPDATE calendar_tokens SET last_used_time = %s WHERE token = %s;
             """
             cursor.execute(insert_query, (datetime.datetime.now(), uuid.UUID(token)))
             conn.commit()
@@ -232,7 +232,7 @@ class CalendarToken(PostgresBase):
             register_uuid(cursor)
 
             insert_query = """
-            DELETE FROM calendar_tokens WHERE identifier = %s AND type = %s; 
+            DELETE FROM calendar_tokens WHERE identifier = %s AND type = %s;
             """
             cursor.execute(insert_query, (student_id, typ))
             conn.commit()
@@ -292,7 +292,7 @@ class CalendarToken(PostgresBase):
             results = mongo.get_collection("calendar_token").find()
             for each in results:
                 insert_query = """
-                INSERT INTO calendar_tokens (type, identifier, semester, token, create_time, last_used_time) 
+                INSERT INTO calendar_tokens (type, identifier, semester, token, create_time, last_used_time)
                     VALUES (%s,%s,%s,%s,%s,%s)
                 """
 
@@ -421,7 +421,7 @@ class IdentityVerification(PostgresBase):
 
             insert_query = """
             SELECT request_id, identifier, method, status, extra
-                FROM identity_verify_requests WHERE request_id = %s; 
+                FROM identity_verify_requests WHERE request_id = %s;
             """
             cursor.execute(insert_query, (uuid.UUID(req_id)))
             result = cursor.fetchone()
@@ -466,8 +466,8 @@ class IdentityVerification(PostgresBase):
                 extra_doc.update({"password": generate_password_hash(password)})
 
             insert_query = """
-            INSERT INTO identity_verify_requests (request_id, identifier, method, status, create_time, extra) 
-                VALUES (%s,%s,%s,%s,%s,%s) 
+            INSERT INTO identity_verify_requests (request_id, identifier, method, status, create_time, extra)
+                VALUES (%s,%s,%s,%s,%s,%s)
             """
             cursor.execute(insert_query, (request_id,
                                           sid_orig,
@@ -486,7 +486,7 @@ class IdentityVerification(PostgresBase):
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             insert_query = """
-            UPDATE identity_verify_requests SET status = %s WHERE request_id = %s; 
+            UPDATE identity_verify_requests SET status = %s WHERE request_id = %s;
             """
             cursor.execute(insert_query, (status, uuid.UUID(request_id)))
             conn.commit()
@@ -650,7 +650,7 @@ class VisitTrack(PostgresBase):
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             insert_or_update_query = """
-            INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s) 
+            INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s)
                 ON CONFLICT ON CONSTRAINT unq_host_visitor DO UPDATE SET last_visit_time=EXCLUDED.last_visit_time;
             """
             cursor.execute(insert_or_update_query, (host, visitor.sid_orig, datetime.datetime.now()))
