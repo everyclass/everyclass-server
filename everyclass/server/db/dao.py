@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Union, overload
 
 import pymongo.errors
 from flask import session
+from psycopg2.extras import register_uuid
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server import logger
@@ -56,6 +57,7 @@ class PostgresBase(abc.ABC):
 
 
 class PrivacySettings(PostgresBase):
+    """隐私级别"""
     @classmethod
     def get_level(cls, student_id: str) -> int:
         conn = get_pg_conn()
@@ -113,33 +115,39 @@ class PrivacySettings(PostgresBase):
         put_pg_conn(pg_conn)
 
 
-class CalendarTokenDAO(MongoDAOBase):
+class CalendarTokenDAO(PostgresBase):
+    """日历订阅令牌
     """
-    {
-        "type": "student",                          # "student" or "teacher"
-        "create_time": 2019-02-24T13:33:05.123Z,    # token 创建时间（新增字段）
-        "identifier": "390xx"                       # 学生或老师的原始学号
-        "semester": "2018-2019-1",                  # 学期
-        "token": ""                                 # 令牌, uuid 类型（不是字符串！）
-        "last_used": 2019-02-24T13:33:05.123Z       # v1.6.3版本新增，最后使用时间
-    }
-    """
-    collection_name = "calendar_token"
 
     @classmethod
     def insert_calendar_token(cls, resource_type: str, semester: str, identifier: str) -> str:
-        """生成日历令牌，写入数据库并返回字符串类型的令牌"""
+        """
+        生成日历令牌，写入数据库并返回字符串类型的令牌。此时的 last_used_time 是 NULL。
+
+        :param resource_type: student/teacher
+        :param semester: 学期字符串
+        :param identifier: 学号或教工号
+        :return: token 字符串
+        """
         token = uuid.uuid4()
 
-        db = get_mongodb()
-        doc = {'type'       : resource_type,
-               "create_time": datetime.datetime.now(),
-               "identifier" : identifier,
-               'semester'   : semester,
-               'token'      : token}
-
-        db.get_collection(cls.collection_name).insert(doc)
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_query = """
+            INSERT INTO calendar_tokens (type, identifier, semester, token, create_time) 
+                VALUES (%s,%s,%s,%s,%s);
+            """
+            cursor.execute(insert_query, (resource_type, identifier, semester, token, datetime.datetime.now()))
+            conn.commit()
+        put_pg_conn(conn)
         return str(token)
+
+    @classmethod
+    def _parse(cls, db_result):
+        return [{"type"      : doc[0],
+                 "identifier": doc[1],
+                 "semester"  : doc[2],
+                 "token"     : doc[3]} for doc in db_result]
 
     @overload  # noqa: F811
     @classmethod
@@ -159,40 +167,30 @@ class CalendarTokenDAO(MongoDAOBase):
     @classmethod  # noqa: F811
     def find_calendar_token(cls, tid=None, sid=None, semester=None, token=None):
         """通过 token 或者 sid/tid + 学期获得 token 文档"""
-        db = get_mongodb()
-        if token:
-            return db.get_collection(cls.collection_name).find_one({'token': uuid.UUID(token)})
-        elif tid and semester:
-            return db.get_collection(cls.collection_name).find_one({'identifier': tid,
-                                                                    'semester'  : semester})
-        elif sid and semester:
-            return db.get_collection(cls.collection_name).find_one({'identifier': sid,
-                                                                    'semester'  : semester})
-        else:
-            raise ValueError("tid/sid together with semester or token must be given to search a token document")
-
-    @classmethod
-    def upgrade(cls):
-        """字段升级"""
-        from everyclass.server.utils.resource_identifier_encrypt import decrypt
-        db = get_mongodb()
-        teacher_docs = db.get_collection(cls.collection_name).find({"tid": {"$exists": True}})
-        for each in teacher_docs:
-            print(each)
-            db.get_collection(cls.collection_name).update_one(each,
-                                                              {"$set"  : {
-                                                                  "identifier": decrypt(each["tid"])[1],
-                                                                  "type"      : "teacher"},
-                                                               "$unset": {"tid": 1}
-                                                               })
-        student_docs = db.get_collection(cls.collection_name).find({"sid": {"$exists": True}})
-        for each in student_docs:
-            print(each)
-            db.get_collection(cls.collection_name).update_one(each,
-                                                              {"$set"     : {
-                                                                  "identifier": decrypt(each["sid"])[1],
-                                                                  "type"      : "student"},
-                                                                  "$unset": {"sid": 1}})
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            if token:
+                select_query = """
+                SELECT (type, identifier, semester, token, create_time, last_used_time) FROM calendar_tokens 
+                    WHERE token=%s
+                """
+                cursor.execute(select_query, (uuid.UUID(token),))
+                result = cursor.fetchall()
+                parsed = cls._parse(result)
+                put_pg_conn(conn)
+                return parsed
+            elif (tid or sid) and semester:
+                select_query = """
+                SELECT (type, identifier, semester, token, create_time, last_used_time) FROM calendar_tokens 
+                    WHERE type=%s AND identifier=%s AND semester=%s;
+                """
+                cursor.execute(select_query, ("teacher" if tid else "student", tid, semester))
+                result = cursor.fetchall()
+                parsed = cls._parse(result)
+                put_pg_conn(conn)
+                return parsed
+            else:
+                raise ValueError("tid/sid together with semester or token must be given to search a token document")
 
     @classmethod
     def get_or_set_calendar_token(cls, resource_type: str, identifier: str, semester: str) -> str:
@@ -218,32 +216,99 @@ class CalendarTokenDAO(MongoDAOBase):
     @classmethod
     def update_last_used_time(cls, token: str):
         """更新token最后使用时间"""
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).update_one({'token': uuid.UUID(token)},
-                                                          {'$set': {'last_used': datetime.datetime.now()}})
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_query = """
+            UPDATE calendar_tokens SET last_used_time = %s WHERE token = %s; 
+            """
+            cursor.execute(insert_query, (datetime.datetime.now(), uuid.UUID(token)))
+            conn.commit()
+        put_pg_conn(conn)
 
     @classmethod
-    def reset_tokens(cls, student_id: str) -> None:
-        """删除学生所有的 token"""
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).delete_many(({"identifier": student_id}))
+    def reset_tokens(cls, student_id: str, typ: Optional[str] = "student") -> None:
+        """删除某用户所有的 token，默认为学生"""
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_query = """
+            DELETE FROM calendar_tokens WHERE identifier = %s AND type = %s; 
+            """
+            cursor.execute(insert_query, (student_id, typ))
+            conn.commit()
+        put_pg_conn(conn)
 
     @classmethod
-    def create_index(cls) -> None:
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).create_index("token", unique=True)
-        db.get_collection(cls.collection_name).create_index([("identifier", 1), ("semester", 1)])
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_type_query = """
+            DO $$ BEGIN
+                CREATE TYPE people_type AS enum('student', 'teacher');
+            EXCEPTION
+                WHEN duplicate_object THEN null;
+            END $$;
+            """
+            cursor.execute(create_type_query)
+
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS calendar_tokens
+                (
+                    "type" people_type NOT NULL,
+                    identifier character varying(15) NOT NULL,
+                    semester character varying(15) NOT NULL,
+                    token uuid NOT NULL,
+                    create_time  timestamp with time zone NOT NULL,
+                    last_used_time  timestamp with time zone
+                )
+                WITH (
+                    OIDS = FALSE
+                );
+            """
+            cursor.execute(create_table_query)
+
+            create_index_query = """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_token
+                ON calendar_tokens USING btree(token);
+            """
+            cursor.execute(create_index_query)
+
+            create_index_query2 = """
+            CREATE INDEX IF NOT EXISTS idx_type_idt_sem
+                ON calendar_tokens USING btree("type", identifier, semester);
+            """
+            cursor.execute(create_index_query2)
+
+            conn.commit()
+        put_pg_conn(conn)
+
+    @classmethod
+    def migrate(cls) -> None:
+        """migrate data from mongodb"""
+        mongo = get_mongodb()
+        pg_conn = get_pg_conn()
+        with pg_conn.cursor() as cursor:
+            register_uuid(conn_or_curs=cursor)
+            results = mongo.get_collection("calendar_token").find()
+            for each in results:
+                insert_query = """
+                INSERT INTO calendar_tokens (type, identifier, semester, token, create_time, last_used_time) 
+                    VALUES (%s,%s,%s,%s,%s,%s)
+                """
+
+                cursor.execute(insert_query, (each['type'],
+                                              each['identifier'],
+                                              each['semester'],
+                                              each['token'],
+                                              each['create_time'],
+                                              each['last_used'] if 'last_used' in each else None))
+            pg_conn.commit()
+        print("Migration finished.")
+        put_pg_conn(pg_conn)
 
 
 class UserDAO(PostgresBase):
+    """用户表
     """
-    {
-        "sid_orig": 390xxxxxx,
-        "create_time": 2019-02-24T13:33:05.123Z,
-        "password": ""
-    }
-    """
-    collection_name = "user"
 
     @classmethod
     def exist(cls, student_id: str) -> bool:
