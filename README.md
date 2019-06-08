@@ -21,9 +21,8 @@ If you wish to discuss the project, you can join our [forum](https://base.admira
 
 - Flask: Python web framework
 - uWSGI: WSGI gateway
-- MongoDB: database
 - PostgreSQL: database
-- Redis: sequence dispenser, visitor (HyperLogLog)
+- Redis: cache/HyperLogLog
 
 
 ### Using the source
