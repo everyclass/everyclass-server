@@ -252,7 +252,7 @@ def register_by_password():
             return redirect(url_for("user.register_by_password"))
 
         request_id = IdentityVerification.new_register_request(session[SESSION_STUDENT_TO_REGISTER].sid_orig,
-                                                                  "password",
+                                                               "password",
                                                                ID_STATUS_WAIT_VERIFY,
                                                                password=request.form["password"])
 

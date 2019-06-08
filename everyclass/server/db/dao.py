@@ -1,10 +1,17 @@
+"""
+
+CREATE ROLE everyclass_admin WITH NOLOGIN;
+CREATE USER everyclass_server WITH LOGIN;
+CREATE SCHEMA everyclass_server AUTHORIZATION everyclass_server;
+CREATE EXTENSION hstore SCHEMA everyclass_server;
+"""
 import abc
 import datetime
 import uuid
 from typing import Dict, List, Optional, Union, overload
 
 from flask import session
-from psycopg2.extras import register_uuid
+from psycopg2.extras import register_hstore, register_uuid
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server.config import get_config
@@ -384,35 +391,51 @@ ID_STATUS_SENT = "EMAIL_SENT"  # email request sent to everyclass-auth(cannot ma
 ID_STATUS_PASSWORD_SET = "PASSWORD_SET"
 ID_STATUS_WAIT_VERIFY = "VERIFY_WAIT"  # wait everyclass-auth to verify
 ID_STATUS_PWD_SUCCESS = "PASSWORD_PASSED"
+ID_STATUSES = (ID_STATUS_TKN_PASSED,
+               ID_STATUS_SENT,
+               ID_STATUS_PASSWORD_SET,
+               ID_STATUS_WAIT_VERIFY,
+               ID_STATUS_PWD_SUCCESS)
 
 
-class IdentityVerification(MongoDAOBase):
+class IdentityVerification(PostgresBase):
     """
-    identity verification related manipulations
-
-    The documents stored in MongoDB is like:
-    {
-        "request_id": "",                         # UUID request id
-        "create_time: 2019-02-24T13:33:05.123Z,   # create time
-        "sid_orig": "",                           # the original sid (not encoded by api server)
-        "verification_method":"password",         # "password" or "email"
-        "email_token": "token",                   # UUID token if it's a email verification
-        "status": "",                             # a status constant
-        "password": "xxxx"                        # encrypted password if this is a password verification request
-    }
+    身份验证请求
     """
-    collection_name = "verification_requests"
 
     @classmethod
     def get_request_by_id(cls, req_id: str) -> Optional[Dict]:
-        db = get_mongodb()
-        return db.get_collection(cls.collection_name).find_one({'request_id': uuid.UUID(req_id)})
+        """由 request_id 获得请求，如果找不到则返回 None"""
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            register_hstore(conn_or_curs=cursor)
+
+            insert_query = """
+            SELECT (request_id, identifier, method, status, extra) 
+                FROM identity_verify_requests WHERE request_id = %s; 
+            """
+            cursor.execute(insert_query, (uuid.UUID(req_id)))
+            result = cursor.fetchone()
+
+        put_pg_conn(conn)
+
+        if not result:
+            return None
+
+        doc = {"request_id"         : result[0],
+               "sid_orig"           : result[1],
+               "verification_method": result[2],
+               "status"             : result[3]}
+        if result[4]:
+            if "password" in result[4]:
+                doc["password"] = result[4]["password"]
+        return doc
 
     @classmethod
     def new_register_request(cls, sid_orig: str, verification_method: str, status: str,
                              password: str = None) -> str:
         """
-        add a new register request
+        新增一条注册请求
 
         :param sid_orig: original sid
         :param verification_method: password or email
@@ -422,29 +445,109 @@ class IdentityVerification(MongoDAOBase):
         """
         if verification_method not in ("email", "password"):
             raise ValueError("verification_method must be one of email, password")
-        db = get_mongodb()
-        doc = {"request_id"         : uuid.uuid4(),
-               "create_time"        : datetime.datetime.now(),
-               "sid_orig"           : sid_orig,
-               "verification_method": verification_method,
-               "status"             : status}
-        if password:
-            doc.update({"password": generate_password_hash(password)})
-        db.get_collection(cls.collection_name).insert(doc)
-        return str(doc["request_id"])
+
+        request_id = uuid.uuid4()
+
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            register_hstore(conn_or_curs=cursor)
+
+            extra_doc = {}
+            if password:
+                extra_doc.update({"password": generate_password_hash(password)})
+
+            insert_query = """
+            INSERT INTO identity_verify_requests (request_id, identifier, method, status, create_time, extra) 
+                VALUES (%s,%s,%s,%s,%s,%s) 
+            """
+            cursor.execute(insert_query, (request_id,
+                                          sid_orig,
+                                          verification_method,
+                                          status,
+                                          datetime.datetime.now(),
+                                          extra_doc))
+            conn.commit()
+        put_pg_conn(conn)
+
+        return str(request_id)
 
     @classmethod
     def set_request_status(cls, request_id: str, status: str) -> None:
         """mark a verification request's status as email token passed"""
-        db = get_mongodb()
-        query = {"request_id": uuid.UUID(request_id)}
-        new_values = {"$set": {"status": status}}
-        db.get_collection(cls.collection_name).update_one(query, new_values)
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_query = """
+            UPDATE identity_verify_requests SET status = %s WHERE request_id = %s; 
+            """
+            cursor.execute(insert_query, (status, uuid.UUID(request_id)))
+            conn.commit()
+        put_pg_conn(conn)
 
     @classmethod
-    def create_index(cls) -> None:
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).create_index([("request_id", 1)], unique=True)
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_verify_methods_type_query = """
+            DO $$ BEGIN
+                CREATE TYPE identity_verify_methods AS enum('password', 'email');
+            EXCEPTION
+                WHEN duplicate_object THEN null;
+            END $$;
+            """
+            cursor.execute(create_verify_methods_type_query)
+
+            create_status_type_query = f"""
+            DO $$ BEGIN
+                CREATE TYPE identity_verify_statuses AS enum({','.join(["'" + x + "'" for x in ID_STATUSES])});
+            EXCEPTION
+                WHEN duplicate_object THEN null;
+            END $$;
+            """
+            cursor.execute(create_status_type_query)
+
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS identity_verify_requests
+                (
+                    request_id uuid PRIMARY KEY,
+                    identifier character varying(15) NOT NULL,
+                    method identity_verify_methods NOT NULL,
+                    status identity_verify_statuses NOT NULL,
+                    create_time  timestamp with time zone NOT NULL,
+                    extra hstore
+                )
+                WITH (
+                    OIDS = FALSE
+                );
+            """
+            cursor.execute(create_table_query)
+
+            conn.commit()
+        put_pg_conn(conn)
+
+    @classmethod
+    def migrate(cls):
+        """migrate data from mongodb"""
+        mongo = get_mongodb()
+        pg_conn = get_pg_conn()
+        with pg_conn.cursor() as cursor:
+            register_uuid(conn_or_curs=cursor)
+            register_hstore(conn_or_curs=cursor)
+            results = mongo.get_collection("verification_requests").find()
+            for each in results:
+                insert_query = """
+                INSERT INTO identity_verify_requests (request_id, identifier, method, status, create_time, extra)
+                    VALUES (%s,%s,%s,%s,%s,%s)
+                """
+
+                cursor.execute(insert_query, (each['request_id'],
+                                              each['sid_orig'],
+                                              each['verification_method'],
+                                              each['status'],
+                                              each['create_time'],
+                                              {'password': each['password']} if 'password' in each else None))
+            pg_conn.commit()
+        print("Migration finished.")
+        put_pg_conn(pg_conn)
 
 
 class SimplePassword(PostgresBase):
