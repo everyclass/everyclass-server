@@ -55,41 +55,73 @@ class PostgresBase(abc.ABC):
         pass
 
 
-class PrivacySettingsDAO(MongoDAOBase):
-    """
-    {
-        "create_time": 2019-02-24T13:33:05.123Z,     # create time
-        "sid_orig": "390xx",                         # original sid
-        "level": 0                                   # 0: public, 1: half-public, 2: private
-    }
-    """
-    collection_name = "privacy_settings"
-
+class PrivacySettings(PostgresBase):
     @classmethod
     def get_level(cls, sid_orig: str) -> int:
-        """获得学生的隐私级别。0为公开，1为实名互访，2为自己可见。默认为配置文件中定义的 DEFAULT_PRIVACY_LEVEL"""
-        db = get_mongodb()
-        doc = mongo_with_retry(db.get_collection(cls.collection_name).find_one, {"sid_orig": sid_orig}, num_retries=1)
-        return doc["level"] if doc else get_config().DEFAULT_PRIVACY_LEVEL
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            select_query = "SELECT (level) FROM privacy_settings WHERE student_id=%s"
+            cursor.execute(select_query, (sid_orig,))
+            result = cursor.fetchone()
+        put_pg_conn(conn)
+        return result[0] if result is not None else get_config().DEFAULT_PRIVACY_LEVEL
 
     @classmethod
     def set_level(cls, sid_orig: str, new_level: int) -> None:
-        """Set privacy level for a student"""
-        db = get_mongodb()
-        criteria = {"sid_orig": sid_orig}
-        doc = db.get_collection(cls.collection_name).find_one(criteria)
-        if doc:
-            db.get_collection(cls.collection_name).update_one(criteria,
-                                                              {"$set": {"level": new_level}})
-        else:
-            db.get_collection(cls.collection_name).insert({"create_time": datetime.datetime.now(),
-                                                           "sid_orig"   : sid_orig,
-                                                           "level"      : new_level})
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_query = """
+            INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s) 
+                ON CONFLICT ON CONSTRAINT unq_student_id DO UPDATE SET level=EXCLUDED.level
+            """
+            cursor.execute(insert_query, (sid_orig, new_level, datetime.datetime.now()))
+            conn.commit()
+        put_pg_conn(conn)
 
     @classmethod
-    def create_index(cls) -> None:
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).create_index([("sid_orig", 1)], unique=True)
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS privacy_settings
+                (
+                    student_id character varying(15) NOT NULL,
+                    level smallint NOT NULL,
+                    create_time  timestamp with time zone NOT NULL
+                )
+                WITH (
+                    OIDS = FALSE
+                );
+            """
+            cursor.execute(create_table_query)
+
+            create_index_query = """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_student_id
+                ON privacy_settings USING btree("student_id");
+            """
+            cursor.execute(create_index_query)
+
+            create_constraint_query = """
+            ALTER TABLE privacy_settings ADD CONSTRAINT unq_student_id UNIQUE (student_id);
+            """
+            cursor.execute(create_constraint_query)
+
+            conn.commit()
+        put_pg_conn(conn)
+
+    @classmethod
+    def migrate(cls) -> None:
+        """migrate data from mongodb"""
+        mongo = get_mongodb()
+        pg_conn = get_pg_conn()
+        with pg_conn.cursor() as cursor:
+            results = mongo.get_collection("privacy_settings").find()
+            for each in results:
+                insert_query = "INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s)"
+                cursor.execute(insert_query, (each['sid_orig'], each['level'], each['create_time']))
+            pg_conn.commit()
+        print("Migration finished.")
+        put_pg_conn(pg_conn)
 
 
 class CalendarTokenDAO(MongoDAOBase):

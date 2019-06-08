@@ -8,7 +8,7 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
-    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
+    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettings, RedisDAO, \
     SimplePasswordDAO, UserDAO, VisitTrack
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import RpcResourceNotFound, handle_exception_with_error_page
@@ -364,7 +364,7 @@ def main():
                            name=session[SESSION_CURRENT_USER].name,
                            student_id_encoded=session[SESSION_CURRENT_USER].sid,
                            last_semester=student.semesters[-1] if student.semesters else None,
-                           privacy_level=PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig))
+                           privacy_level=PrivacySettings.get_level(session[SESSION_CURRENT_USER].sid_orig))
 
 
 @user_bp.route('/logout')
@@ -388,7 +388,7 @@ def js_set_preference():
             return jsonify({"acknowledged": False,
                             "message"     : "Invalid value"})
 
-        PrivacySettingsDAO.set_level(session[SESSION_CURRENT_USER].sid_orig, privacy_level)
+        PrivacySettings.set_level(session[SESSION_CURRENT_USER].sid_orig, privacy_level)
     return jsonify({"acknowledged": True})
 
 

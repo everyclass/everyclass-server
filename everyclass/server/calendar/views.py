@@ -18,7 +18,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
     from flask import current_app as app, render_template, url_for, session
 
-    from everyclass.server.db.dao import CalendarTokenDAO, PrivacySettingsDAO
+    from everyclass.server.db.dao import CalendarTokenDAO, PrivacySettings
     from everyclass.server.consts import MSG_400, SESSION_CURRENT_USER, MSG_401
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
@@ -40,7 +40,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
 
         # 检查是否有权限访问日历订阅页面
         with elasticapm.capture_span('get_privacy_settings'):
-            privacy_level = PrivacySettingsDAO.get_level(student.student_id)
+            privacy_level = PrivacySettings.get_level(student.student_id)
         if privacy_level != 0:
             if not (session.get(SESSION_CURRENT_USER, None) and
                     session[SESSION_CURRENT_USER].sid_orig == student.student_id):
@@ -157,7 +157,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     """
     from flask import redirect, url_for, request
 
-    from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO, UserDAO
+    from everyclass.server.db.dao import PrivacySettings, CalendarTokenDAO, UserDAO
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
 
@@ -186,7 +186,7 @@ def android_client_get_ics(resource_type, identifier, semester):
             return handle_exception_with_error_page(e)
 
         with elasticapm.capture_span('get_privacy_settings'):
-            privacy_level = PrivacySettingsDAO.get_level(student.student_id)
+            privacy_level = PrivacySettings.get_level(student.student_id)
 
         # get authorization from HTTP header and verify password if privacy is on
         if privacy_level != 0:
@@ -212,7 +212,7 @@ def legacy_get_ics(student_id, semester_str):
     """
     from flask import abort, redirect, url_for
 
-    from everyclass.server.db.dao import PrivacySettingsDAO, CalendarTokenDAO
+    from everyclass.server.db.dao import PrivacySettings, CalendarTokenDAO
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.models import Semester
 
@@ -233,7 +233,7 @@ def legacy_get_ics(student_id, semester_str):
         return abort(400)
 
     with elasticapm.capture_span('get_privacy_settings'):
-        privacy_settings = PrivacySettingsDAO.get_level(search_result.students[0].student_id)
+        privacy_settings = PrivacySettings.get_level(search_result.students[0].student_id)
 
     if privacy_settings != 0:
         # force user to get a calendar token when the user is privacy-protected but accessed through legacy interface

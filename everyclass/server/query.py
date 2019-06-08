@@ -109,7 +109,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
-    from everyclass.server.db.dao import PrivacySettingsDAO, VisitTrack, RedisDAO
+    from everyclass.server.db.dao import PrivacySettings, VisitTrack, RedisDAO
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
@@ -138,7 +138,7 @@ def get_student(url_sid: str, url_semester: str):
 
     # get privacy level, if current user has no permission to view, return now
     with elasticapm.capture_span('get_privacy_settings'):
-        privacy_level = PrivacySettingsDAO.get_level(student.student_id)
+        privacy_level = PrivacySettings.get_level(student.student_id)
 
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
     if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
@@ -158,7 +158,7 @@ def get_student(url_sid: str, url_semester: str):
                                    class_name=student.klass,
                                    level=1)
         # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
-        if PrivacySettingsDAO.get_level(session[SESSION_CURRENT_USER].sid_orig) == 2:
+        if PrivacySettings.get_level(session[SESSION_CURRENT_USER].sid_orig) == 2:
             return render_template('query/studentBlocked.html',
                                    name=student.name,
                                    falculty=student.deputy,
