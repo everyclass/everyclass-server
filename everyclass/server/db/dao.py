@@ -755,6 +755,9 @@ def init_db():
         if issubclass(cls, PostgresBase):
             print("[{}] Initializing...".format(cls_name))
             cls.init()
+            if hasattr(cls, "migrate"):
+                print("[{}] Migrating...".format(cls_name))
+                cls.migrate()
 
     # mongodb
     create_index()
