@@ -18,7 +18,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
     from flask import current_app as app, render_template, url_for, session
 
-    from everyclass.server.db.dao import CalendarTokenDAO, PrivacySettings
+    from everyclass.server.db.dao import CalendarToken, PrivacySettings
     from everyclass.server.consts import MSG_400, SESSION_CURRENT_USER, MSG_401
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
@@ -46,18 +46,18 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
                     session[SESSION_CURRENT_USER].sid_orig == student.student_id):
                 return render_template("common/error.html", message=MSG_401)
 
-        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=url_res_type,
-                                                           identifier=student.student_id,
-                                                           semester=url_semester)
+        token = CalendarToken.get_or_set_calendar_token(resource_type=url_res_type,
+                                                        identifier=student.student_id,
+                                                        semester=url_semester)
     else:
         try:
             teacher = APIServer.get_teacher_timetable(res_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=url_res_type,
-                                                           identifier=teacher.teacher_id,
-                                                           semester=url_semester)
+        token = CalendarToken.get_or_set_calendar_token(resource_type=url_res_type,
+                                                        identifier=teacher.teacher_id,
+                                                        semester=url_semester)
 
     ics_url = url_for('calendar.ics_download', calendar_token=token, _external=True)
     ics_webcal = ics_url.replace('https', 'webcal').replace('http', 'webcal')
@@ -79,17 +79,17 @@ def ics_download(calendar_token: str):
     from collections import defaultdict
 
     from flask import send_from_directory
-    from everyclass.server.db.dao import CalendarTokenDAO
+    from everyclass.server.db.dao import CalendarToken
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
     from everyclass.server.rpc.api_server import APIServer, teacher_list_to_name_str
     from everyclass.server.utils import lesson_string_to_tuple
 
-    result = CalendarTokenDAO.find_calendar_token(token=calendar_token)
+    result = CalendarToken.find_calendar_token(token=calendar_token)
     if not result:
         return 'invalid calendar token', 404
 
-    CalendarTokenDAO.update_last_used_time(calendar_token)
+    CalendarToken.update_last_used_time(calendar_token)
 
     # 获得原始学号或教工号
     if result['type'] == 'student':
@@ -157,7 +157,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     """
     from flask import redirect, url_for, request
 
-    from everyclass.server.db.dao import PrivacySettings, CalendarTokenDAO, UserDAO
+    from everyclass.server.db.dao import PrivacySettings, CalendarToken, User
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
 
@@ -175,9 +175,9 @@ def android_client_get_ics(resource_type, identifier, semester):
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-        cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               identifier=teacher.teacher_id,
-                                                               semester=semester)
+        cal_token = CalendarToken.get_or_set_calendar_token(resource_type=resource_type,
+                                                            identifier=teacher.teacher_id,
+                                                            semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:  # student
         try:
@@ -193,14 +193,14 @@ def android_client_get_ics(resource_type, identifier, semester):
             if not request.authorization:
                 return "Unauthorized (privacy on)", 401
             username, password = request.authorization
-            if not UserDAO.check_password(username, password):
+            if not User.check_password(username, password):
                 return "Unauthorized (password wrong)", 401
             if student.student_id != username:
                 return "Unauthorized (username mismatch)", 401
 
-        cal_token = CalendarTokenDAO.get_or_set_calendar_token(resource_type=resource_type,
-                                                               identifier=student.student_id,
-                                                               semester=semester)
+        cal_token = CalendarToken.get_or_set_calendar_token(resource_type=resource_type,
+                                                            identifier=student.student_id,
+                                                            semester=semester)
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
 
 
@@ -212,7 +212,7 @@ def legacy_get_ics(student_id, semester_str):
     """
     from flask import abort, redirect, url_for
 
-    from everyclass.server.db.dao import PrivacySettings, CalendarTokenDAO
+    from everyclass.server.db.dao import PrivacySettings, CalendarToken
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.models import Semester
 
@@ -239,7 +239,7 @@ def legacy_get_ics(student_id, semester_str):
         # force user to get a calendar token when the user is privacy-protected but accessed through legacy interface
         return "Visit {} to get your calendar".format(url_for("main.main", _external=True)), 401
     else:
-        token = CalendarTokenDAO.get_or_set_calendar_token(resource_type="student",
-                                                           identifier=search_result.students[0].student_id,
-                                                           semester=semester.to_str())
+        token = CalendarToken.get_or_set_calendar_token(resource_type="student",
+                                                        identifier=search_result.students[0].student_id,
+                                                        semester=semester.to_str())
         return redirect(url_for('calendar.ics_download', calendar_token=token))

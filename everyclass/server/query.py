@@ -109,7 +109,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
-    from everyclass.server.db.dao import PrivacySettings, VisitTrack, RedisDAO
+    from everyclass.server.db.dao import PrivacySettings, VisitTrack, Redis
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
@@ -183,7 +183,7 @@ def get_student(url_sid: str, url_semester: str):
                                 visitor=session[SESSION_CURRENT_USER])
 
     # 增加访客记录
-    RedisDAO.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
+    Redis.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
 
     return render_template('query/student.html',
                            student=student,

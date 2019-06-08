@@ -100,7 +100,7 @@ class PrivacySettings(PostgresBase):
         put_pg_conn(pg_conn)
 
 
-class CalendarTokenDAO(PostgresBase):
+class CalendarToken(PostgresBase):
     """日历订阅令牌
     """
 
@@ -291,7 +291,7 @@ class CalendarTokenDAO(PostgresBase):
         put_pg_conn(pg_conn)
 
 
-class UserDAO(PostgresBase):
+class User(PostgresBase):
     """用户表
     """
 
@@ -386,7 +386,7 @@ ID_STATUS_WAIT_VERIFY = "VERIFY_WAIT"  # wait everyclass-auth to verify
 ID_STATUS_PWD_SUCCESS = "PASSWORD_PASSED"
 
 
-class IdentityVerificationDAO(MongoDAOBase):
+class IdentityVerification(MongoDAOBase):
     """
     identity verification related manipulations
 
@@ -447,7 +447,7 @@ class IdentityVerificationDAO(MongoDAOBase):
         db.get_collection(cls.collection_name).create_index([("request_id", 1)], unique=True)
 
 
-class SimplePasswordDAO(PostgresBase):
+class SimplePassword(PostgresBase):
     """
     Simple passwords will be rejected when registering. However, it's fun to know what kind of simple passwords are
     being used.
@@ -667,7 +667,7 @@ class COTeachingClass(MongoDAOBase):
                                                                           'teacher_id_str': teacher_list_to_tid_str(
                                                                                   card.teachers)},
                                                                          {"$setOnInsert": {
-                                                                             "cotc_id"         : RedisDAO.new_cotc_id(),
+                                                                             "cotc_id"         : Redis.new_cotc_id(),
                                                                              'name'            : card_name,
                                                                              'teachers'        : teachers,
                                                                              'teacher_name_str': teacher_name_str
@@ -773,7 +773,7 @@ class CourseReview(MongoDAOBase):
         db.get_collection(cls.collection_name).create_index([("cotc_id", 1)], unique=True)
 
 
-class RedisDAO:
+class Redis:
     prefix = "ec_sv"
 
     @classmethod

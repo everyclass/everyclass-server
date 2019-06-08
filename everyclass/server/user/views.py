@@ -7,9 +7,9 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
-from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
-    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettings, RedisDAO, \
-    SimplePasswordDAO, UserDAO, VisitTrack
+from everyclass.server.db.dao import CalendarToken, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
+    ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerification, PrivacySettings, Redis, \
+    SimplePassword, User, VisitTrack
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import RpcResourceNotFound, handle_exception_with_error_page
 from everyclass.server.rpc.api_server import APIServer
@@ -77,7 +77,7 @@ def login():
                 return redirect(url_for("user.login"))
 
         try:
-            success = UserDAO.check_password(student_id, request.form["password"])
+            success = User.check_password(student_id, request.form["password"])
         except ValueError:
             # 未注册
             flash(MSG_NOT_REGISTERED)
@@ -113,7 +113,7 @@ def register():
         _session_save_student_to_register_(request.form.get("xh", None))
 
         # 如果输入的学号已经注册，跳转到登录页面
-        if UserDAO.exist(session[SESSION_STUDENT_TO_REGISTER].sid_orig):
+        if User.exist(session[SESSION_STUDENT_TO_REGISTER].sid_orig):
             flash(MSG_ALREADY_REGISTERED)
             return redirect(url_for('user.login'))
 
@@ -136,10 +136,10 @@ def register_by_email():
 
     sid_orig = session[SESSION_STUDENT_TO_REGISTER].sid_orig
 
-    if UserDAO.exist(sid_orig):
+    if User.exist(sid_orig):
         return render_template("common/error.html", message=MSG_ALREADY_REGISTERED)
 
-    request_id = IdentityVerificationDAO.new_register_request(sid_orig, "email", ID_STATUS_SENT)
+    request_id = IdentityVerification.new_register_request(sid_orig, "email", ID_STATUS_SENT)
 
     with elasticapm.capture_span('send_email'):
         try:
@@ -161,7 +161,7 @@ def email_verification():
         if not session.get(SESSION_VER_REQ_ID, None):
             return render_template("common/error.html", message=MSG_400)
 
-        req = IdentityVerificationDAO.get_request_by_id(session[SESSION_VER_REQ_ID])
+        req = IdentityVerification.get_request_by_id(session[SESSION_VER_REQ_ID])
         if not req:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
 
@@ -183,13 +183,13 @@ def email_verification():
         # 密码强度检查
         pwd_strength_report = zxcvbn(password=request.form["password"])
         if pwd_strength_report['score'] < 2:
-            SimplePasswordDAO.new(password=request.form["password"], sid_orig=sid_orig)
+            SimplePassword.new(password=request.form["password"], sid_orig=sid_orig)
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.email_verification"))
 
-        UserDAO.add_user(sid_orig=sid_orig, password=request.form['password'])
+        User.add_user(sid_orig=sid_orig, password=request.form['password'])
         del session[SESSION_VER_REQ_ID]
-        IdentityVerificationDAO.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
+        IdentityVerification.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
         flash(MSG_REGISTER_SUCCESS)
 
         # 查询 api-server 获得学生基本信息
@@ -217,7 +217,7 @@ def email_verification():
 
             if rpc_result['success']:
                 session[SESSION_VER_REQ_ID] = rpc_result['request_id']
-                IdentityVerificationDAO.set_request_status(rpc_result['request_id'], ID_STATUS_TKN_PASSED)
+                IdentityVerification.set_request_status(rpc_result['request_id'], ID_STATUS_TKN_PASSED)
                 return render_template('user/emailVerificationProceed.html')
             else:
                 return render_template("common/error.html", message=MSG_TOKEN_INVALID)
@@ -237,8 +237,8 @@ def register_by_password():
         # 密码强度检查
         pwd_strength_report = zxcvbn(password=request.form["password"])
         if pwd_strength_report['score'] < 2:
-            SimplePasswordDAO.new(password=request.form["password"],
-                                  sid_orig=session[SESSION_STUDENT_TO_REGISTER].sid_orig)
+            SimplePassword.new(password=request.form["password"],
+                               sid_orig=session[SESSION_STUDENT_TO_REGISTER].sid_orig)
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.register_by_password"))
 
@@ -251,10 +251,10 @@ def register_by_password():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.register_by_password"))
 
-        request_id = IdentityVerificationDAO.new_register_request(session[SESSION_STUDENT_TO_REGISTER].sid_orig,
+        request_id = IdentityVerification.new_register_request(session[SESSION_STUDENT_TO_REGISTER].sid_orig,
                                                                   "password",
-                                                                  ID_STATUS_WAIT_VERIFY,
-                                                                  password=request.form["password"])
+                                                               ID_STATUS_WAIT_VERIFY,
+                                                               password=request.form["password"])
 
         # call everyclass-auth to verify password
         with elasticapm.capture_span('register_by_password'):
@@ -298,7 +298,7 @@ def register_by_password_status():
     """AJAX 刷新教务验证状态"""
     if not request.args.get("request", None) or not isinstance(request.args["request"], str):
         return "Invalid request"
-    req = IdentityVerificationDAO.get_request_by_id(request.args.get("request"))
+    req = IdentityVerification.get_request_by_id(request.args.get("request"))
     if not req:
         return "Invalid request"
     if req["verification_method"] != "password":
@@ -313,9 +313,9 @@ def register_by_password_status():
             return handle_exception_with_error_page(e)
 
     if rpc_result['success']:  # 密码验证通过，设置请求状态并新增用户
-        IdentityVerificationDAO.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
+        IdentityVerification.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
 
-        verification_req = IdentityVerificationDAO.get_request_by_id(str(request.args.get("request")))
+        verification_req = IdentityVerification.get_request_by_id(str(request.args.get("request")))
 
         # 从 api-server 查询学生基本信息
         try:
@@ -325,8 +325,8 @@ def register_by_password_status():
 
         # 添加用户
         try:
-            UserDAO.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"],
-                             password_encrypted=True)
+            User.add_user(sid_orig=verification_req["sid_orig"], password=verification_req["password"],
+                          password_encrypted=True)
         except ValueError:
             pass  # 已经注册成功，但不知为何进入了中间状态，没有执行下面的删除 session 的代码，并且用户刷新页面
 
@@ -396,7 +396,7 @@ def js_set_preference():
 @login_required
 def reset_calendar_token():
     """重置日历订阅令牌"""
-    CalendarTokenDAO.reset_tokens(session[SESSION_CURRENT_USER].sid_orig)
+    CalendarToken.reset_tokens(session[SESSION_CURRENT_USER].sid_orig)
     flash("日历订阅令牌重置成功")
     return redirect(url_for("user.main"))
 
@@ -406,5 +406,5 @@ def reset_calendar_token():
 def visitors():
     """我的访客页面"""
     visitor_list = VisitTrack.get_visitors(session[SESSION_CURRENT_USER].sid_orig)
-    visitor_count = RedisDAO.get_visitor_count(session[SESSION_CURRENT_USER].sid_orig)
+    visitor_count = Redis.get_visitor_count(session[SESSION_CURRENT_USER].sid_orig)
     return render_template("user/visitors.html", visitor_list=visitor_list, visitor_count=visitor_count)
