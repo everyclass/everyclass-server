@@ -109,7 +109,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
-    from everyclass.server.db.dao import PrivacySettingsDAO, VisitorDAO, RedisDAO
+    from everyclass.server.db.dao import PrivacySettingsDAO, VisitTrack, RedisDAO
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
@@ -179,7 +179,7 @@ def get_student(url_sid: str, url_semester: str):
     if privacy_level != 2 and \
             session.get(SESSION_CURRENT_USER, None) and \
             session[SESSION_CURRENT_USER].sid_orig != session[SESSION_LAST_VIEWED_STUDENT].sid_orig:
-        VisitorDAO.update_track(host=student.student_id,
+        VisitTrack.update_track(host=student.student_id,
                                 visitor=session[SESSION_CURRENT_USER])
 
     # 增加访客记录

@@ -414,58 +414,94 @@ class UserIdSequence(PostgresBase):
         put_pg_conn(conn)
 
 
-class VisitorDAO(MongoDAOBase):
+class VisitTrack(PostgresBase):
     """
-    If privacy level is 1, logged-in users can view each other's schedule with their visiting track saved.
+    访客记录
 
-    {
-        "host": "390xxx",                      # original sid of host
-        "visitor": "390xxx",                   # original sid of visitor
-        "visitor_type": "student"              # reserved for future
-        "last_time": 2019-02-24T13:33:05.123Z  # last visit time
-    }
+    目前只考虑了学生互访的情况，如果将来老师支持注册，这里需要改动
     """
-    collection_name = "visitor_track"
 
     @classmethod
     def update_track(cls, host: str, visitor: StudentSession) -> None:
-        """
-        Update time of visit. If this is first time visit, add a new document.
-
-        @:param host: original sid of host
-        @:param visitor_sid_orig: original sid of visitor
-        @:return None
-        """
-        db = get_mongodb()
-        criteria = {"host"        : host,
-                    "visitor"     : visitor.sid_orig,
-                    "visitor_type": "student"}
-        new_val = {"$set": {"last_time": datetime.datetime.now()}}
-        db.get_collection(cls.collection_name).update_one(criteria, new_val, upsert=True)
-
-        RedisDAO.set_student(student=visitor)
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            insert_or_update_query = """
+            INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s) 
+                ON CONFLICT ON CONSTRAINT unq_host_visitor DO UPDATE SET last_visit_time=EXCLUDED.last_visit_time;
+            """
+            cursor.execute(insert_or_update_query, (host, visitor.sid_orig, datetime.datetime.now()))
+            conn.commit()
+        put_pg_conn(conn)
 
     @classmethod
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
         """获得访客列表"""
         from everyclass.server.rpc.api_server import APIServer
-        db = get_mongodb()
-        result = db.get_collection(cls.collection_name).find({"host": sid_orig}).sort("last_time", -1).limit(50)
+
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            select_query = """
+            SELECT (visitor_id, last_visit_time) FROM visit_tracks where host_id=%s ORDER BY last_visit_time DESC;
+            """
+            cursor.execute(select_query, (sid_orig,))
+            result = cursor.fetchall()
+            conn.commit()
+        put_pg_conn(conn)
+
         visitor_list = []
-        for people in result:
+        for record in result:
             # query api-server
-            search_result = APIServer.search(people["visitor"])
+            search_result = APIServer.search(record[0])
 
             visitor_list.append({"name"      : search_result.students[0].name,
                                  "sid"       : search_result.students[0].student_id,
                                  "last_sem"  : search_result.students[0].semesters[-1],
-                                 "visit_time": people["last_time"]})
+                                 "visit_time": record[1]})
         return visitor_list
 
     @classmethod
-    def create_index(cls) -> None:
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).create_index([("host", 1), ("last_time", 1)], unique=True)
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS visit_tracks
+                (
+                    host_id character varying(15) NOT NULL,
+                    visitor_id character varying(15) NOT NULL,
+                    last_visit_time timestamp with time zone NOT NULL
+                )
+                WITH (
+                    OIDS = FALSE
+                );
+            """
+            cursor.execute(create_table_query)
+
+            create_index_query = """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_host_time
+                ON visit_tracks USING btree("host_id", "last_visit_time" DESC);
+            """
+            cursor.execute(create_index_query)
+
+            create_constraint_query = """
+            ALTER TABLE visit_tracks ADD CONSTRAINT unq_host_visitor UNIQUE ("host_id", "visitor_id");
+            """
+            cursor.execute(create_constraint_query)
+            conn.commit()
+        put_pg_conn(conn)
+
+    @classmethod
+    def migrate(cls) -> None:
+        """migrate data from mongodb"""
+        mongo = get_mongodb()
+        pg_conn = get_pg_conn()
+        with pg_conn.cursor() as cursor:
+            results = mongo.get_collection("visitor_track").find()
+            for each in results:
+                insert_query = "INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s)"
+                cursor.execute(insert_query, (each['host'], each['visitor'], each['last_time']))
+            pg_conn.commit()
+        print("Migration finished.")
+        put_pg_conn(pg_conn)
 
 
 class COTeachingClass(MongoDAOBase):

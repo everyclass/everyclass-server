@@ -9,7 +9,7 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
 from everyclass.server.db.dao import CalendarTokenDAO, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerificationDAO, PrivacySettingsDAO, RedisDAO, \
-    SimplePasswordDAO, UserDAO, VisitorDAO
+    SimplePasswordDAO, UserDAO, VisitTrack
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import RpcResourceNotFound, handle_exception_with_error_page
 from everyclass.server.rpc.api_server import APIServer
@@ -405,6 +405,6 @@ def reset_calendar_token():
 @login_required
 def visitors():
     """我的访客页面"""
-    visitor_list = VisitorDAO.get_visitors(session[SESSION_CURRENT_USER].sid_orig)
+    visitor_list = VisitTrack.get_visitors(session[SESSION_CURRENT_USER].sid_orig)
     visitor_count = RedisDAO.get_visitor_count(session[SESSION_CURRENT_USER].sid_orig)
     return render_template("user/visitors.html", visitor_list=visitor_list, visitor_count=visitor_count)
