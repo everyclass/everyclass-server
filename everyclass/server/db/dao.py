@@ -734,7 +734,7 @@ class RedisDAO:
         return redis.incr("{}:cotc_id_sequence".format(cls.prefix))
 
 
-def create_index():
+def init_mongo():
     """创建索引"""
     import inspect
     import sys
@@ -745,12 +745,10 @@ def create_index():
             cls.create_index()
 
 
-def init_db():
-    """初始化数据库"""
+def init_postgres():
     import inspect
     import sys
 
-    # postgresql
     for cls_name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass):
         if issubclass(cls, PostgresBase):
             print("[{}] Initializing...".format(cls_name))
@@ -759,5 +757,8 @@ def init_db():
                 print("[{}] Migrating...".format(cls_name))
                 cls.migrate()
 
-    # mongodb
-    create_index()
+
+def init_db():
+    """初始化数据库"""
+    init_postgres()
+    init_mongo()
