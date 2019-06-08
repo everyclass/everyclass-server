@@ -3,12 +3,10 @@ import datetime
 import uuid
 from typing import Dict, List, Optional, Union, overload
 
-import pymongo.errors
 from flask import session
 from psycopg2.extras import register_uuid
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from everyclass.server import logger
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.postgres import get_pg_conn, put_pg_conn
@@ -24,19 +22,6 @@ def new_user_id_sequence() -> int:
     :return: last row id
     """
     return UserIdSequence.new()
-
-
-def mongo_with_retry(method, *args, num_retries: int, **kwargs):
-    while True:
-        try:
-            return method(*args, **kwargs)
-        except (pymongo.errors.AutoReconnect,
-                pymongo.errors.ServerSelectionTimeoutError) as e:
-            if num_retries > 0:
-                logger.info('Retrying MongoDB operation: %s', str(e))
-                num_retries -= 1
-            else:
-                raise
 
 
 class MongoDAOBase(abc.ABC):
