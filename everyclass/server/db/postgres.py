@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import psycopg2
 import psycopg2.extensions
 import psycopg2.pool
@@ -23,6 +25,17 @@ def get_pg_conn() -> psycopg2.extensions.connection:
     else:
         return psycopg2.connect(**_config.POSTGRES_CONNECTION,
                                 options=_options)
+
+
+@contextmanager
+def pg_conn_context():
+    if has_app_context():
+        conn = current_app.postgres.getconn()
+    else:
+        conn = psycopg2.connect(**_config.POSTGRES_CONNECTION,
+                                options=_options)
+    yield conn
+    put_pg_conn(conn)
 
 
 def put_pg_conn(conn) -> None:

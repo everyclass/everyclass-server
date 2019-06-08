@@ -16,7 +16,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
-from everyclass.server.db.postgres import get_pg_conn, put_pg_conn
+from everyclass.server.db.postgres import get_pg_conn, pg_conn_context, put_pg_conn
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc.api_server import CardResult, teacher_list_to_tid_str
@@ -160,8 +160,7 @@ class CalendarToken(PostgresBase):
     @classmethod  # noqa: F811
     def find_calendar_token(cls, tid=None, sid=None, semester=None, token=None):
         """通过 token 或者 sid/tid + 学期获得 token 文档"""
-        conn = get_pg_conn()
-        with conn.cursor() as cursor:
+        with pg_conn_context() as conn, conn.cursor() as cursor:
             register_uuid(cursor)
 
             if token:
@@ -171,10 +170,7 @@ class CalendarToken(PostgresBase):
                 """
                 cursor.execute(select_query, (uuid.UUID(token),))
                 result = cursor.fetchall()
-                parsed = cls._parse(result[0])
-
-                put_pg_conn(conn)
-                return parsed
+                return cls._parse(result[0]) if result else None
             elif (tid or sid) and semester:
                 select_query = """
                 SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens
@@ -182,10 +178,7 @@ class CalendarToken(PostgresBase):
                 """
                 cursor.execute(select_query, ("teacher" if tid else "student", tid, semester))
                 result = cursor.fetchall()
-                parsed = cls._parse(result[0])
-
-                put_pg_conn(conn)
-                return parsed
+                return cls._parse(result[0]) if result else None
             else:
                 raise ValueError("tid/sid together with semester or token must be given to search a token document")
 
