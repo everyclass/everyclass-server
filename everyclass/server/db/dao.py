@@ -54,7 +54,7 @@ class PrivacySettings(PostgresBase):
     def get_level(cls, student_id: str) -> int:
         conn = get_pg_conn()
         with conn.cursor() as cursor:
-            select_query = "SELECT (level) FROM privacy_settings WHERE student_id=%s"
+            select_query = "SELECT level FROM privacy_settings WHERE student_id=%s"
             cursor.execute(select_query, (student_id,))
             result = cursor.fetchone()
         put_pg_conn(conn)
@@ -125,6 +125,7 @@ class CalendarToken(PostgresBase):
 
         conn = get_pg_conn()
         with conn.cursor() as cursor:
+            register_uuid(cursor)
             insert_query = """
             INSERT INTO calendar_tokens (type, identifier, semester, token, create_time) 
                 VALUES (%s,%s,%s,%s,%s);
@@ -135,11 +136,11 @@ class CalendarToken(PostgresBase):
         return str(token)
 
     @classmethod
-    def _parse(cls, db_result):
-        return [{"type"      : doc[0],
-                 "identifier": doc[1],
-                 "semester"  : doc[2],
-                 "token"     : doc[3]} for doc in db_result]
+    def _parse(cls, result):
+        return {"type"      : result[0],
+                "identifier": result[1],
+                "semester"  : result[2],
+                "token"     : result[3]}
 
     @overload  # noqa: F811
     @classmethod
@@ -161,24 +162,28 @@ class CalendarToken(PostgresBase):
         """通过 token 或者 sid/tid + 学期获得 token 文档"""
         conn = get_pg_conn()
         with conn.cursor() as cursor:
+            register_uuid(cursor)
+
             if token:
                 select_query = """
-                SELECT (type, identifier, semester, token, create_time, last_used_time) FROM calendar_tokens 
+                SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens 
                     WHERE token=%s
                 """
                 cursor.execute(select_query, (uuid.UUID(token),))
                 result = cursor.fetchall()
-                parsed = cls._parse(result)
+                parsed = cls._parse(result[0])
+
                 put_pg_conn(conn)
                 return parsed
             elif (tid or sid) and semester:
                 select_query = """
-                SELECT (type, identifier, semester, token, create_time, last_used_time) FROM calendar_tokens 
+                SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens 
                     WHERE type=%s AND identifier=%s AND semester=%s;
                 """
                 cursor.execute(select_query, ("teacher" if tid else "student", tid, semester))
                 result = cursor.fetchall()
-                parsed = cls._parse(result)
+                parsed = cls._parse(result[0])
+
                 put_pg_conn(conn)
                 return parsed
             else:
@@ -210,6 +215,8 @@ class CalendarToken(PostgresBase):
         """更新token最后使用时间"""
         conn = get_pg_conn()
         with conn.cursor() as cursor:
+            register_uuid(cursor)
+
             insert_query = """
             UPDATE calendar_tokens SET last_used_time = %s WHERE token = %s; 
             """
@@ -222,6 +229,8 @@ class CalendarToken(PostgresBase):
         """删除某用户所有的 token，默认为学生"""
         conn = get_pg_conn()
         with conn.cursor() as cursor:
+            register_uuid(cursor)
+
             insert_query = """
             DELETE FROM calendar_tokens WHERE identifier = %s AND type = %s; 
             """
@@ -411,7 +420,7 @@ class IdentityVerification(PostgresBase):
             register_hstore(conn_or_curs=cursor)
 
             insert_query = """
-            SELECT (request_id, identifier, method, status, extra) 
+            SELECT request_id, identifier, method, status, extra
                 FROM identity_verify_requests WHERE request_id = %s; 
             """
             cursor.execute(insert_query, (uuid.UUID(req_id)))
@@ -656,7 +665,7 @@ class VisitTrack(PostgresBase):
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             select_query = """
-            SELECT (visitor_id, last_visit_time) FROM visit_tracks where host_id=%s ORDER BY last_visit_time DESC;
+            SELECT visitor_id, last_visit_time FROM visit_tracks where host_id=%s ORDER BY last_visit_time DESC;
             """
             cursor.execute(select_query, (sid_orig,))
             result = cursor.fetchall()
