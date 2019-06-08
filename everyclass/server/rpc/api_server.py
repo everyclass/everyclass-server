@@ -299,7 +299,7 @@ class CardResult:
         dct['room_id'] = dct.pop('room_code')
         dct['room_id_encoded'] = encrypt("room", dct["room_id"])
         dct['weeks'] = dct.pop("week_list")
-        dct['week_string'] = weeks_to_string(dct['week_string'])
+        dct['week_string'] = weeks_to_string(dct['weeks'])
         dct['course_id'] = dct.pop('course_code')
         dct['union_name'] = dct.pop('tea_class')
         return cls(**ensure_slots(cls, dct))
