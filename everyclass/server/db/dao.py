@@ -246,7 +246,7 @@ class CalendarTokenDAO(MongoDAOBase):
         db.get_collection(cls.collection_name).create_index([("identifier", 1), ("semester", 1)])
 
 
-class UserDAO(MongoDAOBase):
+class UserDAO(PostgresBase):
     """
     {
         "sid_orig": 390xxxxxx,
@@ -257,22 +257,28 @@ class UserDAO(MongoDAOBase):
     collection_name = "user"
 
     @classmethod
-    def exist(cls, sid_orig: str) -> bool:
+    def exist(cls, student_id: str) -> bool:
         """check if a student has registered"""
-        db = get_mongodb()
-        result = db.get_collection(cls.collection_name).find_one({'sid_orig': sid_orig})
-        if result:
-            return True
-        return False
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            select_query = "SELECT create_time FROM users WHERE student_id=%s"
+            cursor.execute(select_query, (student_id,))
+            result = cursor.fetchone()
+        put_pg_conn(conn)
+        return result is not None
 
     @classmethod
     def check_password(cls, sid_orig: str, password: str) -> bool:
         """verify a user's password. Return True if password is correct, otherwise return False."""
-        db = get_mongodb()
-        doc = db.get_collection(cls.collection_name).find_one({'sid_orig': sid_orig})
-        if not doc:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            select_query = "SELECT password FROM users WHERE student_id=%s"
+            cursor.execute(select_query, (sid_orig,))
+            result = cursor.fetchone()
+        put_pg_conn(conn)
+        if result is None:
             raise ValueError("Student not registered")
-        return check_password_hash(doc['password'], password)
+        return check_password_hash(result[0], password)
 
     @classmethod
     def add_user(cls, sid_orig: str, password: str, password_encrypted: bool = False) -> None:
@@ -282,21 +288,56 @@ class UserDAO(MongoDAOBase):
         :param password: 密码
         :param password_encrypted: 密码是否已经被加密过了（否则会被二次加密）
         """
-        db = get_mongodb()
-        if db.get_collection(cls.collection_name).find_one({"sid_orig": sid_orig}):
-            raise ValueError("Student already exists in database")
+        import psycopg2.errors
+
         if not password_encrypted:
             password_hash = generate_password_hash(password)
         else:
             password_hash = password
-        db.user.insert({"sid_orig"   : sid_orig,
-                        "create_time": datetime.datetime.now(),
-                        "password"   : password_hash})
+
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            select_query = "INSERT INTO users (student_id, password, create_time) VALUES (%s,%s,%s)"
+            try:
+                cursor.execute(select_query, (sid_orig, password_hash, datetime.datetime.now()))
+                conn.commit()
+            except psycopg2.errors.UniqueViolation as e:
+                raise ValueError("Student already exists in database") from e
+        put_pg_conn(conn)
 
     @classmethod
-    def create_index(cls) -> None:
-        db = get_mongodb()
-        db.get_collection(cls.collection_name).create_index([("sid_orig", 1)], unique=True)
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS users
+                (
+                    student_id character varying(15) NOT NULL PRIMARY KEY,
+                    password character varying(120) NOT NULL,
+                    create_time  timestamp with time zone NOT NULL
+                )
+                WITH (
+                    OIDS = FALSE
+                );
+            """
+            cursor.execute(create_table_query)
+
+            conn.commit()
+        put_pg_conn(conn)
+
+    @classmethod
+    def migrate(cls) -> None:
+        """migrate data from mongodb"""
+        mongo = get_mongodb()
+        pg_conn = get_pg_conn()
+        with pg_conn.cursor() as cursor:
+            results = mongo.get_collection("user").find()
+            for each in results:
+                insert_query = "INSERT INTO users (student_id, password, create_time) VALUES (%s,%s,%s)"
+                cursor.execute(insert_query, (each['sid_orig'], each["password"], each['create_time']))
+            pg_conn.commit()
+        print("Migration finished.")
+        put_pg_conn(pg_conn)
 
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"  # email verification passed but password may not set
