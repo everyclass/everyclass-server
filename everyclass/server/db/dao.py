@@ -85,7 +85,7 @@ class PrivacySettings(PostgresBase):
             create_table_query = """
             CREATE TABLE IF NOT EXISTS privacy_settings
                 (
-                    student_id character varying(15) NOT NULL,
+                    student_id character varying(15) NOT NULL PRIMARY KEY,
                     level smallint NOT NULL,
                     create_time  timestamp with time zone NOT NULL
                 )
@@ -94,17 +94,6 @@ class PrivacySettings(PostgresBase):
                 );
             """
             cursor.execute(create_table_query)
-
-            create_index_query = """
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_student_id
-                ON privacy_settings USING btree("student_id");
-            """
-            cursor.execute(create_index_query)
-
-            create_constraint_query = """
-            ALTER TABLE privacy_settings ADD CONSTRAINT unq_student_id UNIQUE (student_id);
-            """
-            cursor.execute(create_constraint_query)
 
             conn.commit()
         put_pg_conn(conn)
@@ -480,7 +469,7 @@ class UserIdSequence(PostgresBase):
         conn = get_pg_conn()
         with conn.cursor() as cursor:
             create_table_query = """
-            CREATE SEQUENCE user_id_seq START WITH 10000000;
+            CREATE SEQUENCE IF NOT EXISTS user_id_seq START WITH 10000000;
             """
             cursor.execute(create_table_query)
             conn.commit()
@@ -791,7 +780,7 @@ def init_postgres():
     import sys
 
     for cls_name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass):
-        if issubclass(cls, PostgresBase):
+        if issubclass(cls, PostgresBase) and cls is not PostgresBase:
             print("[{}] Initializing...".format(cls_name))
             cls.init()
             if hasattr(cls, "migrate"):
