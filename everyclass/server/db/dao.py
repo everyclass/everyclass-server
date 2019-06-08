@@ -59,7 +59,7 @@ class PrivacySettings(PostgresBase):
         with conn.cursor() as cursor:
             insert_query = """
             INSERT INTO privacy_settings (student_id, level, create_time) VALUES (%s,%s,%s) 
-                ON CONFLICT ON CONSTRAINT unq_student_id DO UPDATE SET level=EXCLUDED.level
+                ON CONFLICT (student_id) DO UPDATE SET level=EXCLUDED.level
             """
             cursor.execute(insert_query, (student_id, new_level, datetime.datetime.now()))
             conn.commit()
