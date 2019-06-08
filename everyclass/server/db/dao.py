@@ -22,7 +22,7 @@ def new_user_id_sequence() -> int:
 
     :return: last row id
     """
-    return RedisDAO.new_user_id()
+    return UserIdSequence.new()
 
 
 def mongo_with_retry(method, *args, num_retries: int, **kwargs):
@@ -391,6 +391,29 @@ class SimplePasswordDAO(PostgresBase):
         put_pg_conn(pg_conn)
 
 
+class UserIdSequence(PostgresBase):
+    @classmethod
+    def new(cls):
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            get_sequence_query = """SELECT nextval('user_id_seq')"""
+            cursor.execute(get_sequence_query)
+            num = cursor.fetchone()[0]
+        put_pg_conn(conn)
+        return num
+
+    @classmethod
+    def init(cls) -> None:
+        conn = get_pg_conn()
+        with conn.cursor() as cursor:
+            create_table_query = """
+            CREATE SEQUENCE user_id_seq START WITH 10000000;
+            """
+            cursor.execute(create_table_query)
+            conn.commit()
+        put_pg_conn(conn)
+
+
 class VisitorDAO(MongoDAOBase):
     """
     If privacy level is 1, logged-in users can view each other's schedule with their visiting track saved.
@@ -638,23 +661,9 @@ class RedisDAO:
         return redis.pfcount("{}:visit_cnt:{}".format(cls.prefix, sid_orig))
 
     @classmethod
-    def new_user_id(cls) -> int:
-        """生成新的用户 ID（自增）"""
-        return redis.incr("{}:user_sequence".format(cls.prefix))
-
-    @classmethod
     def new_cotc_id(cls) -> int:
-        """生成新的用户 ID（自增）"""
+        """生成新的 ID（自增）"""
         return redis.incr("{}:cotc_id_sequence".format(cls.prefix))
-
-    @classmethod
-    def init(cls):
-        print("Initializing Redis...")
-        if not redis.exists("{}:user_sequence".format(cls.prefix)):
-            print("Setting user_sequence.")
-            redis.set("{}:user_sequence".format(cls.prefix), 5000000)
-        else:
-            print("user_sequence already exist.")
 
 
 def create_index():
@@ -681,6 +690,3 @@ def init_db():
 
     # mongodb
     create_index()
-
-    # redis
-    RedisDAO.init()
