@@ -22,18 +22,17 @@ try:
     import uwsgidecorators
 
     """
-    below are functions that will be executed in **each** process after fork().
-    these functions will be executed in the same order of definition here.
+    使用 `uwsgidecorators.postfork` 装饰的函数会在 fork() 后的**每一个**子进程内被执行，执行顺序与这里的定义顺序一致
     """
 
     @uwsgidecorators.postfork
     def enable_gc():
-        """enable garbage collection"""
+        """重新启用垃圾回收"""
         gc.set_threshold(700)
 
     @uwsgidecorators.postfork
     def init_log_handlers():
-        """init log handlers and print current configuration to log"""
+        """初始化 log handlers 并将当前配置信息打 log"""
         from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
         from everyclass.server.config import print_config
@@ -75,7 +74,7 @@ try:
 
     @uwsgidecorators.postfork
     def init_db():
-        """init database connection"""
+        """初始化数据库连接"""
         from everyclass.server.db.mongodb import init_pool as init_mongo
         from everyclass.server.db.postgres import init_pool as init_pg
 
@@ -85,7 +84,7 @@ try:
 
     @uwsgidecorators.postfork
     def init_session():
-        """init server-side session"""
+        """初始化服务器端 session"""
         global __app
         __app.config['SESSION_MONGODB'] = __app.mongo
         Session(__app)
