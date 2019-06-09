@@ -1,17 +1,14 @@
 from contextlib import contextmanager
+from threading import Semaphore
 
 import psycopg2
-import psycopg2.extensions
-import psycopg2.pool
 from flask import current_app, has_app_context
+from psycopg2.pool import ThreadedConnectionPool
 
 from everyclass.server.config import get_config
 
 _config = get_config()
 _options = f'-c search_path={_config.POSTGRES_SCHEMA}'
-
-from psycopg2.pool import ThreadedConnectionPool
-from threading import Semaphore
 
 
 class ReallyThreadedConnectionPool(ThreadedConnectionPool):
