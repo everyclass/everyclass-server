@@ -399,7 +399,7 @@ class IdentityVerification(PostgresBase):
             SELECT request_id, identifier, method, status, extra
                 FROM identity_verify_requests WHERE request_id = %s;
             """
-            cursor.execute(insert_query, (uuid.UUID(req_id)))
+            cursor.execute(insert_query, (uuid.UUID(req_id),))
             result = cursor.fetchone()
 
         if not result:
