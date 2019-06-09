@@ -6,6 +6,7 @@
 [![Build Status](https://travis-ci.org/everyclass/everyclass-server.svg?branch=develop)](https://travis-ci.org/everyclass/everyclass-server)
 ![works-on](https://img.shields.io/badge/works%20on-my%20computer-brightgreen.svg)
 [![code-coverage](https://codecov.io/gh/everyclass/everyclass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/everyclass/everyclass-server)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a7edbd24a4d844a1833f81ab34758623)](https://www.codacy.com/app/fr0der1c/everyclass-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=everyclass/everyclass-server&amp;utm_campaign=Badge_Grade)
 
 This is the web server part of the [EveryClass](https://github.com/everyclass/everyclass) project.
 
