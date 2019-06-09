@@ -1,9 +1,18 @@
 """
 
+在 PostgreSQL 中以超级用户权限使用下列语句建库：
 CREATE ROLE everyclass_admin WITH NOLOGIN;
+CREATE DATABASE everyclass WITH OWNER = everyclass_admin;
 CREATE USER everyclass_server WITH LOGIN;
 CREATE SCHEMA everyclass_server AUTHORIZATION everyclass_server;
 CREATE EXTENSION hstore SCHEMA everyclass_server;
+
+说明：
+- 与无模式的数据库不同，在 PostgreSQL 中，所有每课的服务只需要使用一个数据库，而不同的微服务之间使用模式(schema) 来区分
+- 这样做充分使用了 PostgreSQL 的特性，并且在特定情况下可以使用一条连接访问其他微服务的表，尽管一个微服务直接访问另一个微服务的数据库增加
+  了耦合性，并不被提倡（PostgreSQL 单条连接不能跨库，MySQL 允许多库实质上是因为 MySQL 没有模式的妥协方案）
+- hstore 是 PostgreSQL 中的 KV 存储插件，开启后我们可以在一个字段中存储 KV 键值对。使用 PostgreSQL 作为数据库的知名论坛系统
+  Discourse 也有使用到此扩展。虽然 crate extension 语句看起来像是“创建扩展”，但实际上是在本模式下“启用扩展”
 """
 import abc
 import datetime
