@@ -17,6 +17,7 @@ def init_pool(current_application) -> None:
                                             mincached=1,
                                             maxcached=4,
                                             maxconnections=4,
+                                            blocking=True,
                                             **_config.POSTGRES_CONNECTION,
                                             options=_options)
 
