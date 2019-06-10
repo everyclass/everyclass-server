@@ -636,10 +636,10 @@ class VisitTrack(PostgresBase):
             # query api-server
             search_result = APIServer.search(record[0])
 
-            visitor_list.append({"name"      : search_result.students[0].name,
-                                 "sid"       : search_result.students[0].student_id,
-                                 "last_sem"  : search_result.students[0].semesters[-1],
-                                 "visit_time": record[1]})
+            visitor_list.append({"name"         : search_result.students[0].name,
+                                 "student_id"   : search_result.students[0].student_id_encoded,
+                                 "last_semester": search_result.students[0].semesters[-1],
+                                 "visit_time"   : record[1]})
         return visitor_list
 
     @classmethod
