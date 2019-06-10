@@ -14,8 +14,8 @@ def init_pool(current_application) -> None:
     """创建连接池，保存在 app 的 postgres 属性中"""
     current_application.postgres = PooledDB(creator=psycopg2,
                                             mincached=1,
-                                            maxcached=3,
-                                            maxconnections=10,
+                                            maxcached=4,
+                                            maxconnections=4,
                                             **_config.POSTGRES_CONNECTION,
                                             options=_options)
 
