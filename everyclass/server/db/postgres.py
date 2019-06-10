@@ -35,5 +35,9 @@ def pg_conn_context():
 
 
 def register_types(conn):
-    register_uuid(conn_or_curs=conn)
-    register_hstore(conn_or_curs=conn)
+    if has_app_context():
+        real_conn = conn._con._con
+    else:
+        real_conn = conn
+    register_uuid(conn_or_curs=real_conn)
+    register_hstore(conn_or_curs=real_conn)
