@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import psycopg2
 from DBUtils.PooledDB import PooledDB
 from flask import current_app, has_app_context
+from psycopg2.extras import register_hstore, register_uuid
 
 from everyclass.server.config import get_config
 
@@ -27,5 +28,11 @@ def pg_conn_context():
     else:
         conn = psycopg2.connect(**_config.POSTGRES_CONNECTION,
                                 options=_options)
+    register_types(conn)
     yield conn
     conn.close()
+
+
+def register_types(conn):
+    register_uuid(conn_or_curs=conn)
+    register_hstore(conn_or_curs=conn)

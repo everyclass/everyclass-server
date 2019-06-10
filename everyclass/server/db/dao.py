@@ -20,7 +20,6 @@ import uuid
 from typing import Dict, List, Optional, Union, overload
 
 from flask import session
-from psycopg2.extras import register_hstore, register_uuid
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from everyclass.server.config import get_config
@@ -125,7 +124,6 @@ class CalendarToken(PostgresBase):
         token = uuid.uuid4()
 
         with pg_conn_context() as conn, conn.cursor() as cursor:
-            register_uuid(cursor)
             insert_query = """
             INSERT INTO calendar_tokens (type, identifier, semester, token, create_time)
                 VALUES (%s,%s,%s,%s,%s);
@@ -160,8 +158,6 @@ class CalendarToken(PostgresBase):
     def find_calendar_token(cls, tid=None, sid=None, semester=None, token=None):
         """通过 token 或者 sid/tid + 学期获得 token 文档"""
         with pg_conn_context() as conn, conn.cursor() as cursor:
-            register_uuid(cursor)
-
             if token:
                 select_query = """
                 SELECT type, identifier, semester, token, create_time, last_used_time FROM calendar_tokens
@@ -206,8 +202,6 @@ class CalendarToken(PostgresBase):
     def update_last_used_time(cls, token: str):
         """更新token最后使用时间"""
         with pg_conn_context() as conn, conn.cursor() as cursor:
-            register_uuid(cursor)
-
             insert_query = """
             UPDATE calendar_tokens SET last_used_time = %s WHERE token = %s;
             """
@@ -218,8 +212,6 @@ class CalendarToken(PostgresBase):
     def reset_tokens(cls, student_id: str, typ: Optional[str] = "student") -> None:
         """删除某用户所有的 token，默认为学生"""
         with pg_conn_context() as conn, conn.cursor() as cursor:
-            register_uuid(cursor)
-
             insert_query = """
             DELETE FROM calendar_tokens WHERE identifier = %s AND type = %s;
             """
@@ -273,7 +265,6 @@ class CalendarToken(PostgresBase):
         """migrate data from mongodb"""
         mongo = get_mongodb()
         with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
-            register_uuid(conn_or_curs=cursor)
             results = mongo.get_collection("calendar_token").find()
             for each in results:
                 insert_query = """
@@ -393,8 +384,6 @@ class IdentityVerification(PostgresBase):
         """由 request_id 获得请求，如果找不到则返回 None"""
 
         with pg_conn_context() as conn, conn.cursor() as cursor:
-            register_hstore(conn_or_curs=cursor)
-
             insert_query = """
             SELECT request_id, identifier, method, status, extra
                 FROM identity_verify_requests WHERE request_id = %s;
@@ -432,8 +421,6 @@ class IdentityVerification(PostgresBase):
         request_id = uuid.uuid4()
 
         with pg_conn_context() as conn, conn.cursor() as cursor:
-            register_hstore(conn_or_curs=cursor)
-
             extra_doc = {}
             if password:
                 extra_doc.update({"password": generate_password_hash(password)})
@@ -509,8 +496,6 @@ class IdentityVerification(PostgresBase):
         mongo = get_mongodb()
 
         with pg_conn_context() as pg_conn, pg_conn.cursor() as cursor:
-            register_uuid(conn_or_curs=cursor)
-            register_hstore(conn_or_curs=cursor)
             results = mongo.get_collection("verification_requests").find()
             for each in results:
                 insert_query = """
