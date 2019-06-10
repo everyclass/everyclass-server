@@ -6,7 +6,8 @@ from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
     MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
-    SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, SESSION_STUDENT_TO_REGISTER, SESSION_VER_REQ_ID
+    SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
+    SESSION_STUDENT_TO_REGISTER
 from everyclass.server.db.dao import CalendarToken, ID_STATUS_PASSWORD_SET, ID_STATUS_PWD_SUCCESS, ID_STATUS_SENT, \
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerification, PrivacySettings, Redis, \
     SimplePassword, User, VisitTrack
@@ -158,15 +159,14 @@ def email_verification():
     """注册：邮箱验证"""
     if request.method == 'POST':
         # 设置密码表单提交
-        if not session.get(SESSION_VER_REQ_ID, None):
+        if not session.get(SESSION_EMAIL_VER_REQ_ID, None):
             return render_template("common/error.html", message=MSG_400)
 
-        req = IdentityVerification.get_request_by_id(session[SESSION_VER_REQ_ID])
+        req = IdentityVerification.get_request_by_id(session[SESSION_EMAIL_VER_REQ_ID])
         if not req:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
 
-        # 由于 SESSION_VER_REQ_ID 在密码验证和邮件验证两个验证方式中共享，当使用密码验证写入了 session 之后，如果马上在邮件验证页面
-        # POST，并且此处不做请求状态的判断，将会绕过验证过程直接设置密码
+        # 此处不是一定需要验证状态，但是为了保险还是判断一下
         if req["status"] != ID_STATUS_TKN_PASSED:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
 
@@ -188,7 +188,7 @@ def email_verification():
             return redirect(url_for("user.email_verification"))
 
         User.add_user(sid_orig=sid_orig, password=request.form['password'])
-        del session[SESSION_VER_REQ_ID]
+        del session[SESSION_EMAIL_VER_REQ_ID]
         IdentityVerification.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
         flash(MSG_REGISTER_SUCCESS)
 
@@ -205,7 +205,7 @@ def email_verification():
         return redirect(url_for("user.main"))
     else:
         # 设置密码页面
-        if not session.get(SESSION_VER_REQ_ID, None):
+        if not session.get(SESSION_EMAIL_VER_REQ_ID, None):
             if not request.args.get("token", None):
                 return render_template("common/error.html", message=MSG_400)
 
@@ -216,7 +216,7 @@ def email_verification():
                     return handle_exception_with_error_page(e)
 
             if rpc_result['success']:
-                session[SESSION_VER_REQ_ID] = rpc_result['request_id']
+                session[SESSION_EMAIL_VER_REQ_ID] = rpc_result['request_id']
                 IdentityVerification.set_request_status(rpc_result['request_id'], ID_STATUS_TKN_PASSED)
                 return render_template('user/emailVerificationProceed.html')
             else:
@@ -266,7 +266,7 @@ def register_by_password():
                 return handle_exception_with_error_page(e)
 
         if rpc_result['acknowledged']:
-            session[SESSION_VER_REQ_ID] = request_id
+            session[SESSION_PWD_VER_REQ_ID] = request_id
             return render_template('user/passwordRegistrationPending.html', request_id=request_id)
         else:
             return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
@@ -332,8 +332,8 @@ def register_by_password_status():
 
         # write login state to session
         flash(MSG_REGISTER_SUCCESS)
-        if SESSION_VER_REQ_ID in session:
-            del session[SESSION_VER_REQ_ID]
+        if SESSION_PWD_VER_REQ_ID in session:
+            del session[SESSION_PWD_VER_REQ_ID]
         session[SESSION_CURRENT_USER] = StudentSession(sid_orig=student.student_id,
                                                        sid=student.student_id_encoded,
                                                        name=student.name)
