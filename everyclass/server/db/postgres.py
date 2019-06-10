@@ -13,6 +13,7 @@ _options = f'-c search_path={_config.POSTGRES_SCHEMA}'
 
 def init_pool(current_application) -> None:
     """创建连接池，保存在 app 的 postgres 属性中"""
+    # more information at https://cito.github.io/DBUtils/UsersGuide.html
     current_application.postgres = PooledDB(creator=psycopg2,
                                             mincached=1,
                                             maxcached=4,
@@ -37,6 +38,7 @@ def pg_conn_context():
 def register_types(conn):
     if has_app_context():
         real_conn = conn._con._con
+        # conn 是 PooledDB（或PersistentDB）的连接，它的 _con 是 SteadyDB。而 SteadyDB 的 _con 是原始的 psycopg2 连接对象
     else:
         real_conn = conn
     register_uuid(conn_or_curs=real_conn)
