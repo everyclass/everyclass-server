@@ -7,6 +7,7 @@ import elasticapm
 from flask import Blueprint
 
 from everyclass.server.rpc import handle_exception_with_error_page
+from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance
 
 cal_blueprint = Blueprint('calendar', __name__)
@@ -16,10 +17,10 @@ cal_blueprint = Blueprint('calendar', __name__)
 @disallow_in_maintenance
 def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
-    from flask import current_app as app, render_template, url_for, session
+    from flask import current_app as app, render_template, url_for
 
-    from everyclass.server.db.dao import CalendarToken, PrivacySettings
-    from everyclass.server.consts import MSG_400, SESSION_CURRENT_USER, MSG_401
+    from everyclass.server.db.dao import CalendarToken
+    from everyclass.server.consts import MSG_400
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
     from everyclass.server.consts import MSG_INVALID_IDENTIFIER
@@ -38,13 +39,10 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-        # 检查是否有权限访问日历订阅页面
-        with elasticapm.capture_span('get_privacy_settings'):
-            privacy_level = PrivacySettings.get_level(student.student_id)
-        if privacy_level != 0:
-            if not (session.get(SESSION_CURRENT_USER, None) and
-                    session[SESSION_CURRENT_USER].sid_orig == student.student_id):
-                return render_template("common/error.html", message=MSG_401)
+        # 权限检查，如果没有权限则返回
+        has_permission, return_val = check_permission(student)
+        if not has_permission:
+            return return_val
 
         token = CalendarToken.get_or_set_calendar_token(resource_type=url_res_type,
                                                         identifier=student.student_id,

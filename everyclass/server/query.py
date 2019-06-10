@@ -10,6 +10,7 @@ from everyclass.server import logger
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import handle_exception_with_error_page
 from everyclass.server.utils import contains_chinese
+from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 
 query_blueprint = Blueprint('query', __name__)
@@ -109,7 +110,7 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
-    from everyclass.server.db.dao import PrivacySettings, VisitTrack, Redis
+    from everyclass.server.db.dao import Redis
     from everyclass.server.utils import lesson_string_to_tuple
     from everyclass.server.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
@@ -123,7 +124,7 @@ def get_student(url_sid: str, url_semester: str):
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
-    # RPC to get student timetable
+    # RPC 获得学生课表
     with elasticapm.capture_span('rpc_get_student_timetable'):
         try:
             student = APIServer.get_student_timetable(student_id, url_semester)
@@ -136,34 +137,10 @@ def get_student(url_sid: str, url_semester: str):
                                                           sid=student.student_id_encoded,
                                                           name=student.name)
 
-    # get privacy level, if current user has no permission to view, return now
-    with elasticapm.capture_span('get_privacy_settings'):
-        privacy_level = PrivacySettings.get_level(student.student_id)
-
-    # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
-    if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
-                               session[SESSION_CURRENT_USER].sid_orig != student.student_id):
-        return render_template('query/studentBlocked.html',
-                               name=student.name,
-                               falculty=student.deputy,
-                               class_name=student.klass,
-                               level=2)
-    # 实名互访
-    if privacy_level == 1:
-        # 未登录，要求登录
-        if not session.get(SESSION_CURRENT_USER, None):
-            return render_template('query/studentBlocked.html',
-                                   name=student.name,
-                                   falculty=student.deputy,
-                                   class_name=student.klass,
-                                   level=1)
-        # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
-        if PrivacySettings.get_level(session[SESSION_CURRENT_USER].sid_orig) == 2:
-            return render_template('query/studentBlocked.html',
-                                   name=student.name,
-                                   falculty=student.deputy,
-                                   class_name=student.klass,
-                                   level=3)
+    # 权限检查，如果没有权限则返回
+    has_permission, return_val = check_permission(student)
+    if not has_permission:
+        return return_val
 
     with elasticapm.capture_span('process_rpc_result'):
         cards: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
@@ -174,13 +151,6 @@ def get_student(url_sid: str, url_semester: str):
             cards[(day, time)].append(card)
         empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
         available_semesters = semester_calculate(url_semester, sorted(student.semesters))
-
-    # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
-    if privacy_level != 2 and \
-            session.get(SESSION_CURRENT_USER, None) and \
-            session[SESSION_CURRENT_USER].sid_orig != session[SESSION_LAST_VIEWED_STUDENT].sid_orig:
-        VisitTrack.update_track(host=student.student_id,
-                                visitor=session[SESSION_CURRENT_USER])
 
     # 增加访客记录
     Redis.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
