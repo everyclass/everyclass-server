@@ -1,12 +1,11 @@
 # EveryClass-server
 
-![status](https://img.shields.io/badge/status-stable-green.svg)
+![status](https://img.shields.io/badge/status-maintaining-green.svg)
 ![python version](https://img.shields.io/badge/python-3.7-blue.svg)
-![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
 [![Build Status](https://travis-ci.org/everyclass/everyclass-server.svg?branch=develop)](https://travis-ci.org/everyclass/everyclass-server)
-![works-on](https://img.shields.io/badge/works%20on-my%20computer-brightgreen.svg)
 [![code-coverage](https://codecov.io/gh/everyclass/everyclass-server/branch/master/graph/badge.svg)](https://codecov.io/gh/everyclass/everyclass-server)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8a7163a6848c48c590bbd5e2f5fdc228)](https://www.codacy.com/app/fr0der1c/everyclass-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=everyclass/everyclass-server&amp;utm_campaign=Badge_Grade)
+![license](https://img.shields.io/badge/license-MPL_2.0-orange.svg)
 
 This is the web server part of the [EveryClass](https://github.com/everyclass/everyclass) project.
 
