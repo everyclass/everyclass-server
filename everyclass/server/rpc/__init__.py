@@ -54,15 +54,15 @@ def handle_exception_with_error_page(e: Exception) -> Text:
 
 def handle_exception_with_message(e: Exception) -> Tuple:
     """处理抛出的异常，返回错误消息"""
-    if type(e) == RpcTimeout:
+    if isinstance(e, RpcTimeout):
         return _return_string(408, "Backend timeout", sentry_capture=True)
-    elif type(e) == RpcResourceNotFound:
+    elif isinstance(e, RpcResourceNotFound):
         return _return_string(404, "Resource not found", sentry_capture=True)
-    elif type(e) == RpcBadRequest:
+    elif isinstance(e, RpcBadRequest):
         return _return_string(400, "Bad request", sentry_capture=True)
-    elif type(e) == RpcClientException:
+    elif isinstance(e, RpcClientException):
         return _return_string(400, "Bad request", sentry_capture=True)
-    elif type(e) == RpcServerException:
+    elif isinstance(e, RpcServerException):
         return _return_string(500, "Server internal error", sentry_capture=True)
     else:
         return _return_string(500, "Server internal error", sentry_capture=True)

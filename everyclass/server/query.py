@@ -34,7 +34,6 @@ def query():
     - `query_resource_type`, 查询的资源类型: classroom, single_student, single_teacher, multiple_people, or not_exist.
     - `query_type`, 查询方式（姓名、学工号）: by_name, by_id, other
     """
-    from everyclass.server.rpc.api_server import APIServer
 
     # if under maintenance, return to maintenance.html
     if app.config["MAINTENANCE"]:
@@ -169,7 +168,6 @@ def get_student(url_sid: str, url_semester: str):
 @url_semester_check
 def get_teacher(url_tid, url_semester):
     """老师查询"""
-    from collections import defaultdict
 
     # decrypt identifier in URL
     try:
