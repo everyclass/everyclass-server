@@ -1,17 +1,23 @@
 """
 查询相关函数
 """
+from collections import defaultdict
 from typing import Dict, List, Tuple
 
 import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.server import logger
+from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
+from everyclass.server.db.dao import COTeachingClass, CourseReview, Redis
 from everyclass.server.models import StudentSession
 from everyclass.server.rpc import handle_exception_with_error_page
-from everyclass.server.utils import contains_chinese
+from everyclass.server.rpc.api_server import APIServer
+from everyclass.server.utils import contains_chinese, get_day_chinese, get_time_chinese, lesson_string_to_tuple, \
+    semester_calculate
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
+from everyclass.server.utils.resource_identifier_encrypt import decrypt
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -110,14 +116,6 @@ def query():
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
     """学生查询"""
-    from everyclass.server.db.dao import Redis
-    from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.rpc.api_server import APIServer
-    from everyclass.server.utils.resource_identifier_encrypt import decrypt
-    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
-    from everyclass.server.utils import semester_calculate
-    from everyclass.server.consts import SESSION_LAST_VIEWED_STUDENT, SESSION_CURRENT_USER
-
     # decrypt identifier in URL
     try:
         _, student_id = decrypt(url_sid, resource_type='student')
@@ -173,12 +171,6 @@ def get_teacher(url_tid, url_semester):
     """老师查询"""
     from collections import defaultdict
 
-    from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.utils import semester_calculate
-    from everyclass.server.rpc.api_server import APIServer
-    from everyclass.server.utils.resource_identifier_encrypt import decrypt
-    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
-
     # decrypt identifier in URL
     try:
         _, teacher_id = decrypt(url_tid, resource_type='teacher')
@@ -220,14 +212,6 @@ def get_teacher(url_tid, url_semester):
 @disallow_in_maintenance
 def get_classroom(url_rid, url_semester):
     """教室查询"""
-    from collections import defaultdict
-
-    from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.utils import semester_calculate
-    from everyclass.server.rpc.api_server import APIServer
-    from everyclass.server.utils.resource_identifier_encrypt import decrypt
-    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
-
     # decrypt identifier in URL
     try:
         _, room_id = decrypt(url_rid, resource_type='room')
@@ -267,14 +251,6 @@ def get_classroom(url_rid, url_semester):
 @disallow_in_maintenance
 def get_card(url_cid: str, url_semester: str):
     """课程查询"""
-    from everyclass.server.utils import lesson_string_to_tuple
-    from everyclass.server.utils import get_time_chinese
-    from everyclass.server.utils import get_day_chinese
-    from everyclass.server.utils.resource_identifier_encrypt import decrypt
-    from everyclass.server.rpc.api_server import APIServer
-    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
-    from everyclass.server.db.dao import COTeachingClass, CourseReview
-
     # decrypt identifier in URL
     try:
         _, card_id = decrypt(url_cid, resource_type='klass')
