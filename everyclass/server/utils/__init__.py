@@ -136,7 +136,7 @@ def weeks_to_string(original_weeks: List[int]) -> str:
     current_end: Union[int, None] = None
     current_type: Union[int, None] = None
 
-    for i in range(len(original_weeks)):
+    for i, _ in enumerate(original_weeks):
         # 当前是最后一个元素
         if i == len(original_weeks) - 1:
             processed_weeks.append((current_start,

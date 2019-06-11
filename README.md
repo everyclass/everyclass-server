@@ -10,47 +10,41 @@
 
 This is the web server part of the [EveryClass](https://github.com/everyclass/everyclass) project.
 
-
-### Communication
+## Communication
 
 If you find any problems with the code please open an issue and provide as much detail as possible.
-
 If you wish to discuss the project, you can join our [forum](https://base.admirable.pro/c/everyclass) (Chinese).
 
-
-### Technology stack
+## Technology stack
 
 - Flask: Python web framework
 - uWSGI: WSGI gateway
 - PostgreSQL: database
 - Redis: cache/HyperLogLog
 
-
-### Using the source
+## Using the source
 
 1. Use ``pipenv sync`` to build a virtualenv with dependencies installed
 2. Copy `everyclass/api_server/config/default.py` and name it `development.py`. Change settings to adjust to your local development environment
-4. Set the environment variable `MODE` to `DEVELOPMENT`, then run `server.py`
+3. Set the environment variable `MODE` to `DEVELOPMENT`, then run `server.py`
 
-### Contributions, Bug Reports, Feature Requests
+## Contributions, Bug Reports, Feature Requests
 
 This is an open source project and we would be happy to have contributors who report bugs, file feature requests and submit pull requests. Please report issues here: [https://github.com/AdmirablePro/everyclass/issues](https://github.com/everyclass/everyclass/issues) (not issue tracker of this repository!)
 
-### Branch Policy
+## Branch Policy
 
 - All development goes on the **feature/feature-name** branch. To commit a change make a pull request or merge to the `master` branch if you have permission
 - Tagged commits following the pattern `vX.X.X` will be watched by Travis, our continuous integration tool, which runs unit-tests, builds the Docker image, pushes the image to our private registry and updates services in the `staging` environment. Tags following the pattern `vX.X.X_testing` will upgrade the `testing` environment.
 - Commits should be tested in the staging environment before they are deployed to the production environment.
 
-
-### Contributions Best Practices
-#### Commits
+## Contributions Best Practices
+### Commits
 
 - Write clear and meaningful git commit messages
 - Make sure your pull request description contains GitHub's special keyword references that automatically close the related issue when merged. (More info at  [https://github.com/blog/1506-closing-issues-via-pull-requests](https://github.com/blog/1506-closing-issues-via-pull-requests))
-- When you make minor changes to a pull request (like for example fixing a failing travis build or some small style corrections or minor changes requested by reviewers) squash your commits afterwards so that you don't have an absurd number of commits for a small fix. (Learn how to squash at https://davidwalsh.name/squash-commits-git )
+- When you make minor changes to a pull request (like for example fixing a failing travis build or some small style corrections or minor changes requested by reviewers) squash your commits afterwards so that you don't have an absurd number of commits for a small fix. (Learn how to squash at [https://davidwalsh.name/squash-commits-git](https://davidwalsh.name/squash-commits-git) )
 
-
-#### Feature Requests and Bug Reports
+### Feature Requests and Bug Reports
 
 When you file a feature request or submit a bug report to the issue tracker, add the necessary steps to reproduce it. This is very important for weird/rare bugs.

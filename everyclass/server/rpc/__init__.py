@@ -34,19 +34,19 @@ def handle_exception_with_error_page(e: Exception) -> Text:
     """
     from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503
 
-    if type(e) == RpcTimeout:
+    if isinstance(e, RpcTimeout):
         return _error_page(MSG_TIMEOUT, sentry_capture=True)
-    elif type(e) == RpcResourceNotFound:
+    elif isinstance(e, RpcResourceNotFound):
         return _error_page(MSG_404, sentry_capture=True)
-    elif type(e) == RpcBadRequest:
+    elif isinstance(e, RpcBadRequest):
         return _error_page(MSG_400,
                            log="Got bad request, upstream returned status code {} with message {}.".format(*e.args),
                            sentry_capture=True)
-    elif type(e) == RpcClientException:
+    elif isinstance(e, RpcClientException):
         return _error_page(MSG_400, sentry_capture=True)
-    elif type(e) == RpcServerNotAvailable:
+    elif isinstance(e, RpcServerNotAvailable):
         return _error_page(MSG_503, sentry_capture=True)
-    elif type(e) == RpcServerException:
+    elif isinstance(e, RpcServerException):
         return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
     else:
         return _error_page(MSG_INTERNAL_ERROR, sentry_capture=True)
