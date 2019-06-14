@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple, Union
 
 from flask import current_app as app
 
-from everyclass.rpc import RpcException, _logger
+from everyclass.rpc import RpcException
 from everyclass.rpc.http import HttpRpc
 from everyclass.server.utils.resource_identifier_encrypt import encrypt
 
@@ -17,6 +17,7 @@ def ensure_slots(cls, dct: Dict):
             _del.append(key)
     for key in _del:
         del dct[key]  # delete unexpected keys
+        from everyclass.rpc import _logger
         _logger.warn(
                 "Unexpected field `{}` is removed when converting dict to dataclass `{}`".format(key, cls.__name__))
     return dct

@@ -37,6 +37,7 @@ try:
         from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
         from elasticapm.contrib.flask import ElasticAPM
         from everyclass.server.config import print_config
+        from everyclass.rpc import init as init_rpc
         ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
 
         # Elastic APM
@@ -60,7 +61,10 @@ try:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client, level='INFO')  # Sentry 只处理 INFO 以上的
             logger.handlers.append(sentry_handler)
+            init_rpc(sentry=sentry)
             print('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
+
+        init_rpc(logger=logger)
 
         # 如果当前时间与模块加载时间相差一分钟之内，认为是第一次 spawn（进程随着时间的推移可能会被 uwsgi 回收），
         # 在 1 号 worker 里打印当前配置

@@ -3,8 +3,7 @@ from typing import Dict
 import gevent
 import requests
 
-from everyclass.rpc import RpcBadRequest, RpcClientException, RpcResourceNotFound, RpcServerException, RpcTimeout, \
-    _logger
+from everyclass.rpc import RpcBadRequest, RpcClientException, RpcResourceNotFound, RpcServerException, RpcTimeout
 
 
 class HttpRpc:
@@ -36,6 +35,7 @@ class HttpRpc:
         :param data: json data along with the request
         :param headers: custom headers
         """
+        from everyclass.rpc import _logger
         api_session = requests.sessions.session()
         trial_total = 5 if retry else 1
         trial = 0

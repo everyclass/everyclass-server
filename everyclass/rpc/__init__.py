@@ -1,18 +1,32 @@
+import os
 from typing import Text, Tuple
 
-from flask import g, render_template
-
-from everyclass.server.utils import plugin_available
+from flask import current_app, g, render_template
 
 _logger = None
 _sentry = None
 
 
-def init(logger, sentry):
+def init(logger=None, sentry=None):
     """init everyclass.rpc module"""
     global _logger, _sentry
-    _logger = logger
-    _sentry = sentry
+
+    if logger:
+        _logger = logger
+    if sentry:
+        _sentry = sentry
+
+
+def plugin_available(plugin_name: str) -> bool:
+    """
+    check if a plugin (Sentry, apm, logstash) is available in the current environment.
+    :return True if available else False
+    """
+    mode = os.environ.get("MODE", None)
+    if mode:
+        return mode.lower() in getattr(current_app.config, "{}_AVAILABLE_IN".format(plugin_name).upper())
+    else:
+        raise EnvironmentError("MODE not in environment variables")
 
 
 def _return_string(status_code, string, sentry_capture=False, log=None):
