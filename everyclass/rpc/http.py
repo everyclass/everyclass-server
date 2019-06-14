@@ -3,9 +3,8 @@ from typing import Dict
 import gevent
 import requests
 
-from everyclass.server import logger
-from everyclass.server.exceptions import RpcBadRequest, \
-    RpcClientException, RpcResourceNotFound, RpcServerException, RpcTimeout
+from everyclass.rpc import RpcBadRequest, RpcClientException, RpcResourceNotFound, RpcServerException, RpcTimeout, \
+    _logger
 
 
 class HttpRpc:
@@ -42,7 +41,7 @@ class HttpRpc:
         trial = 0
         while trial < trial_total:
             try:
-                logger.debug('RPC {} {}'.format(method, url))
+                _logger.debug('RPC {} {}'.format(method, url))
                 if method == 'GET':
                     api_response = api_session.get(url, params=params, json=data, headers=headers)
                 elif method == 'POST':
@@ -54,6 +53,6 @@ class HttpRpc:
                 continue
             cls._status_code_raise(api_response)
             response_json = api_response.json()
-            logger.debug('RPC result: {}'.format(response_json))
+            _logger.debug('RPC result: {}'.format(response_json))
             return response_json
         raise RpcTimeout('Timeout when calling {}. Tried {} time(s).'.format(url, trial_total))

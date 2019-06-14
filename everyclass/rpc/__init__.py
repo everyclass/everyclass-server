@@ -2,17 +2,24 @@ from typing import Text, Tuple
 
 from flask import g, render_template
 
-from everyclass.server import logger, sentry
-from everyclass.server.exceptions import RpcBadRequest, RpcClientException, RpcResourceNotFound, \
-    RpcServerException, RpcServerNotAvailable, RpcTimeout
 from everyclass.server.utils import plugin_available
+
+_logger = None
+_sentry = None
+
+
+def init(logger, sentry):
+    """init everyclass.rpc module"""
+    global _logger, _sentry
+    _logger = logger
+    _sentry = sentry
 
 
 def _return_string(status_code, string, sentry_capture=False, log=None):
     if sentry_capture and plugin_available("sentry"):
-        sentry.captureException()
+        _sentry.captureException()
     if log:
-        logger.info(log)
+        _logger.info(log)
     return string, status_code
 
 
@@ -20,12 +27,12 @@ def _error_page(message: str, sentry_capture: bool = False, log: str = None):
     """return a error page with a message. if sentry is available, tell user that they can report the problem."""
     sentry_param = {}
     if sentry_capture and plugin_available("sentry"):
-        sentry.captureException()
+        _sentry.captureException()
         sentry_param.update({"event_id"  : g.sentry_event_id,
-                             "public_dsn": sentry.client.get_public_dsn('https')
+                             "public_dsn": _sentry.client.get_public_dsn('https')
                              })
     if log:
-        logger.info(log)
+        _logger.info(log)
     return render_template('common/error.html', message=message, **sentry_param)
 
 
@@ -66,3 +73,38 @@ def handle_exception_with_message(e: Exception) -> Tuple:
         return _return_string(500, "Server internal error", sentry_capture=True)
     else:
         return _return_string(500, "Server internal error", sentry_capture=True)
+
+
+class RpcException(ConnectionError):
+    """HTTP 4xx or 5xx"""
+    pass
+
+
+class RpcTimeout(RpcException, TimeoutError):
+    """timeout"""
+    pass
+
+
+class RpcClientException(RpcException):
+    """HTTP 4xx"""
+    pass
+
+
+class RpcResourceNotFound(RpcClientException):
+    """HTTP 404"""
+    pass
+
+
+class RpcBadRequest(RpcClientException):
+    """HTTP 400"""
+    pass
+
+
+class RpcServerException(RpcException):
+    """HTTP 5xx"""
+    pass
+
+
+class RpcServerNotAvailable(RpcServerException):
+    """HTTP 503"""
+    pass

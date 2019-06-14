@@ -1,13 +1,10 @@
 from dataclasses import dataclass, field, fields
-from typing import Dict, List
+from typing import Dict, List, Tuple, Union
 
 from flask import current_app as app
 
+from everyclass.rpc import RpcException, _logger
 from everyclass.rpc.http import HttpRpc
-from everyclass.server import logger
-from everyclass.server.config import get_config
-from everyclass.server.exceptions import RpcException
-from everyclass.server.utils import weeks_to_string
 from everyclass.server.utils.resource_identifier_encrypt import encrypt
 
 
@@ -20,7 +17,8 @@ def ensure_slots(cls, dct: Dict):
             _del.append(key)
     for key in _del:
         del dct[key]  # delete unexpected keys
-        logger.warn("Unexpected field `{}` is removed when converting dict to dataclass `{}`".format(key, cls.__name__))
+        _logger.warn(
+                "Unexpected field `{}` is removed when converting dict to dataclass `{}`".format(key, cls.__name__))
     return dct
 
 
@@ -330,7 +328,7 @@ class APIServer:
                                                                              keyword,
                                                                              100),
                             retry=True,
-                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                            headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         page_num = resp['info']['page_num']
@@ -345,7 +343,7 @@ class APIServer:
                                             keyword,
                                             100, page_index),
                                     retry=True,
-                                    headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                                    headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
                 if resp["status"] != "success":
                     raise RpcException('API Server returns non-success status')
                 search_result.append(resp)
@@ -364,7 +362,7 @@ class APIServer:
                             url='{}/student/{}'.format(app.config['API_SERVER_BASE_URL'],
                                                        student_id),
                             retry=True,
-                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                            headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = StudentResult.make(resp)
@@ -384,7 +382,7 @@ class APIServer:
                                                                     student_id,
                                                                     semester),
                             retry=True,
-                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                            headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = StudentTimetableResult.make(resp)
@@ -404,7 +402,7 @@ class APIServer:
                                                                     teacher_id,
                                                                     semester),
                             retry=True,
-                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                            headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = TeacherTimetableResult.make(resp)
@@ -423,7 +421,7 @@ class APIServer:
                                                                  room_id,
                                                                  semester),
                             retry=True,
-                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                            headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = ClassroomTimetableResult.make(resp)
@@ -441,8 +439,110 @@ class APIServer:
                             url='{}/card/{}/timetable/{}'.format(app.config['API_SERVER_BASE_URL'], card_id,
                                                                  semester),
                             retry=True,
-                            headers={'X-Auth-Token': get_config().API_SERVER_TOKEN})
+                            headers={'X-Auth-Token': app.config['API_SERVER_TOKEN']})
         if resp["status"] != "success":
             raise RpcException('API Server returns non-success status')
         search_result = CardResult.make(resp)
         return search_result
+
+
+def weeks_to_string(original_weeks: List[int]) -> str:
+    """
+    获得周次列表的字符串表示（鉴于 API Server 转换的效果不好，暂时在本下游服务进行转换）
+
+    :param original_weeks: int 类型的 list，每一个数字代表一个周次
+    :return: 周次的字符串表示
+    """
+
+    def odd(num: int) -> bool:
+        return num % 2 == 1
+
+    def int_type_to_string(typ: int) -> str:
+        if typ == 0:
+            return "/周"
+        elif typ == 1:
+            return "/单周"
+        elif typ == 2:
+            return "/双周"
+        else:
+            raise ValueError("Unknown week type")
+
+    processed_weeks: List[Tuple[int, int, int]] = []
+    current_start = original_weeks[0]
+    current_end: Union[int, None] = None
+    current_type: Union[int, None] = None
+
+    for i, _ in enumerate(original_weeks):
+        # 当前是最后一个元素
+        if i == len(original_weeks) - 1:
+            processed_weeks.append((current_start,
+                                    current_end if current_end else current_start,
+                                    current_type if current_type else 0))
+            break
+
+        # 存在下一个元素且 current_type 为空（说明当前子序列的第一个元素），则判断当前周次类型
+        # 根据当前元素和下一个元素判断周次类型并保存到 current_type
+        if current_type is None:
+            if original_weeks[i + 1] == original_weeks[i] + 1:  # 间隔一周
+                current_type = 0
+            elif original_weeks[i + 1] == original_weeks[i] + 2:  # 间隔两周
+                current_type = 1 if odd(current_start) else 2
+            else:
+                # 间隔大于两周（如：[1, 5]），拆分
+                processed_weeks.append((current_start, current_start, 0))
+                current_start = original_weeks[i + 1]
+                current_end = None
+                current_type = None
+                continue
+
+        # 有下一个元素且当前子序列已经有类型（current_type），判断下一个元素是否符合当前周类型的要求，如能则拓展子序列，不能则分割子序列
+        if current_type == 0:
+            if original_weeks[i + 1] == original_weeks[i] + 1:
+                current_end = original_weeks[i + 1]
+            else:
+                # 结合具体流程可知 current_end 为 int 类型，但 flake8 把它识别为 Optional[int]，导致报错
+                processed_weeks.append((current_start, current_end, current_type))  # noqa: T484
+                current_start = original_weeks[i + 1]
+                current_end = None
+                current_type = None
+        else:
+            if original_weeks[i + 1] == original_weeks[i] + 2:
+                current_end = original_weeks[i + 1]
+            else:
+                processed_weeks.append((current_start, current_end, current_type))  # noqa: T484
+                current_start = original_weeks[i + 1]
+                current_end = None
+                current_type = None
+
+    # 检查所有周是否都是单周、都是双周或者都是全周
+    # 是则采用类似于 “1-3, 7-9/单周” 的精简表示，否则采用类似于 “1-3/单周, 4-8/双周” 的表示
+    week_type: Union[int, None] = None
+    week_type_consistent = True
+    for week in processed_weeks:
+        if week_type is None:
+            week_type = week[2]
+        if week[2] != week_type:
+            week_type_consistent = False
+
+    weeks_str = ""
+    if week_type_consistent:
+        for week in processed_weeks:
+            if week[0] == week[1]:
+                weeks_str += "{}, ".format(week[0])
+            else:
+                weeks_str += "{}-{}, ".format(week[0], week[1])
+        weeks_str = weeks_str[:len(weeks_str) - 2] + int_type_to_string(processed_weeks[0][2])
+    else:
+        for week in processed_weeks:
+            if week[0] == week[1]:
+                weeks_str += "{}{}, ".format(week[0], int_type_to_string(week[2]))
+            else:
+                weeks_str += "{}-{}{}, ".format(week[0], week[1], int_type_to_string(week[2]))
+        weeks_str = weeks_str[:len(weeks_str) - 2]
+
+    # 如果原始表示字数更短，切换到原始表示
+    plain = ", ".join([str(x) for x in original_weeks]) + int_type_to_string(0)
+    if len(plain) < len(weeks_str):
+        weeks_str = plain
+
+    return weeks_str
