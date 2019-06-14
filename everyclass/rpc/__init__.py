@@ -1,5 +1,6 @@
 import os
-from typing import Text, Tuple
+from dataclasses import fields
+from typing import Dict, Text, Tuple
 
 from flask import current_app, g, render_template
 
@@ -92,6 +93,21 @@ def handle_exception_with_message(e: Exception) -> Tuple:
         return _return_string(500, "Server internal error", sentry_capture=True)
     else:
         return _return_string(500, "Server internal error", sentry_capture=True)
+
+
+def ensure_slots(cls, dct: Dict):
+    """移除 dataclass 中不存在的key，预防 dataclass 的 __init__ 中 unexpected argument 的发生。"""
+    _names = [x.name for x in fields(cls)]
+    _del = []
+    for key in dct:
+        if key not in _names:
+            _del.append(key)
+    for key in _del:
+        del dct[key]  # delete unexpected keys
+        from everyclass.rpc import _logger
+        _logger.warn(
+                "Unexpected field `{}` is removed when converting dict to dataclass `{}`".format(key, cls.__name__))
+    return dct
 
 
 class RpcException(ConnectionError):

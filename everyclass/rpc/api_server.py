@@ -1,9 +1,9 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Union
 
 from flask import current_app as app
 
-from everyclass.rpc import RpcException
+from everyclass.rpc import RpcException, ensure_slots
 from everyclass.rpc.http import HttpRpc
 
 
@@ -14,21 +14,6 @@ def encrypt(resource_type: str, resource_id: str):
         return _resource_id_encrypt(resource_type, resource_id)
     else:
         return resource_id
-
-
-def ensure_slots(cls, dct: Dict):
-    """移除 dataclass 中不存在的key，预防 dataclass 的 __init__ 中 unexpected argument 的发生。"""
-    _names = [x.name for x in fields(cls)]
-    _del = []
-    for key in dct:
-        if key not in _names:
-            _del.append(key)
-    for key in _del:
-        del dct[key]  # delete unexpected keys
-        from everyclass.rpc import _logger
-        _logger.warn(
-                "Unexpected field `{}` is removed when converting dict to dataclass `{}`".format(key, cls.__name__))
-    return dct
 
 
 @dataclass
