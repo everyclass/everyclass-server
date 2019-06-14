@@ -198,6 +198,11 @@ def create_app() -> Flask:
     app.register_blueprint(main_blueprint)
     app.register_blueprint(user_bp, url_prefix='/user')
 
+    # 为 everyclass.rpc 模块注入 encrypt 函数
+    from everyclass.server.utils.resource_identifier_encrypt import encrypt
+    from everyclass.rpc import init as init_rpc
+    init_rpc(resource_id_encrypt_function=encrypt)
+
     # course review feature gating
     if app.config['FEATURE_GATING']['course_review']:
         app.register_blueprint(cr_blueprint, url_prefix='/course_review')

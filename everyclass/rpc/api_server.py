@@ -5,7 +5,15 @@ from flask import current_app as app
 
 from everyclass.rpc import RpcException
 from everyclass.rpc.http import HttpRpc
-from everyclass.server.utils.resource_identifier_encrypt import encrypt
+
+
+def encrypt(resource_type: str, resource_id: str):
+    """资源加密函数的代理，当rpc模块初始化不指定加密函数时，返回待加密的原值"""
+    from everyclass.rpc import _resource_id_encrypt
+    if _resource_id_encrypt:
+        return _resource_id_encrypt(resource_type, resource_id)
+    else:
+        return resource_id
 
 
 def ensure_slots(cls, dct: Dict):

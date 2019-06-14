@@ -5,16 +5,21 @@ from flask import current_app, g, render_template
 
 _logger = None
 _sentry = None
+_resource_id_encrypt = None
 
 
-def init(logger=None, sentry=None):
-    """init everyclass.rpc module"""
-    global _logger, _sentry
+def init(logger=None, sentry=None, resource_id_encrypt_function=None):
+    """初始化 everyclass.rpc 模块
+
+    """
+    global _logger, _sentry, _resource_id_encrypt
 
     if logger:
         _logger = logger
     if sentry:
         _sentry = sentry
+    if resource_id_encrypt_function:
+        _resource_id_encrypt = resource_id_encrypt_function
 
 
 def plugin_available(plugin_name: str) -> bool:
