@@ -3,9 +3,9 @@ from typing import Optional, Tuple
 import elasticapm
 from flask import render_template, session
 
+from everyclass.rpc.api_server import StudentTimetableResult
 from everyclass.server.consts import SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import PrivacySettings, VisitTrack
-from everyclass.server.rpc.api_server import StudentTimetableResult
 
 
 def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[str]]:

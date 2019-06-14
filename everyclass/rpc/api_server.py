@@ -3,10 +3,10 @@ from typing import Dict, List
 
 from flask import current_app as app
 
+from everyclass.rpc.http import HttpRpc
 from everyclass.server import logger
 from everyclass.server.config import get_config
 from everyclass.server.exceptions import RpcException
-from everyclass.server.rpc.http import HttpRpc
 from everyclass.server.utils import weeks_to_string
 from everyclass.server.utils.resource_identifier_encrypt import encrypt
 

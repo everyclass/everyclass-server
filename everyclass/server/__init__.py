@@ -105,7 +105,7 @@ except ModuleNotFoundError:
 
 def cron_update_remote_manifest():
     """更新数据最后更新时间"""
-    from everyclass.server.rpc.http import HttpRpc
+    from everyclass.rpc.http import HttpRpc
 
     # 获取安卓客户端下载链接
     android_manifest = HttpRpc.call(method="GET",

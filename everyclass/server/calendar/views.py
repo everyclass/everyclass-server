@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 import elasticapm
 from flask import Blueprint
 
-from everyclass.server.rpc import handle_exception_with_error_page
+from everyclass.rpc import handle_exception_with_error_page
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance
 
@@ -21,7 +21,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
 
     from everyclass.server.db.dao import CalendarToken
     from everyclass.server.consts import MSG_400
-    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
     from everyclass.server.consts import MSG_INVALID_IDENTIFIER
 
@@ -80,7 +80,7 @@ def ics_download(calendar_token: str):
     from everyclass.server.db.dao import CalendarToken
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
-    from everyclass.server.rpc.api_server import APIServer, teacher_list_to_name_str
+    from everyclass.rpc.api_server import APIServer, teacher_list_to_name_str
     from everyclass.server.utils import lesson_string_to_tuple
 
     result = CalendarToken.find_calendar_token(token=calendar_token)
@@ -125,7 +125,7 @@ def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
     from flask import jsonify
-    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.rpc.api_server import APIServer
 
     try:
         search_result = APIServer.search(identifier)
@@ -156,7 +156,7 @@ def android_client_get_ics(resource_type, identifier, semester):
     from flask import redirect, url_for, request
 
     from everyclass.server.db.dao import PrivacySettings, CalendarToken, User
-    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.rpc.api_server import APIServer
     from everyclass.server.utils.resource_identifier_encrypt import decrypt
 
     # 检查 URL 参数
@@ -211,7 +211,7 @@ def legacy_get_ics(student_id, semester_str):
     from flask import abort, redirect, url_for
 
     from everyclass.server.db.dao import PrivacySettings, CalendarToken
-    from everyclass.server.rpc.api_server import APIServer
+    from everyclass.rpc.api_server import APIServer
     from everyclass.server.models import Semester
 
     # fix parameters

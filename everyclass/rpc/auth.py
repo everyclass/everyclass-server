@@ -1,6 +1,6 @@
 from flask import current_app as app
 
-from everyclass.server.rpc.http import HttpRpc
+from everyclass.rpc.http import HttpRpc
 
 
 class Auth:

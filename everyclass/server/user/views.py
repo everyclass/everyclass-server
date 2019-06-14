@@ -2,6 +2,10 @@ import elasticapm
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 from zxcvbn import zxcvbn
 
+from everyclass.rpc import RpcResourceNotFound, handle_exception_with_error_page
+from everyclass.rpc.api_server import APIServer
+from everyclass.rpc.auth import Auth
+from everyclass.rpc.tencent_captcha import TencentCaptcha
 from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
     MSG_INTERNAL_ERROR, MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
@@ -12,10 +16,6 @@ from everyclass.server.db.dao import CalendarToken, ID_STATUS_PASSWORD_SET, ID_S
     ID_STATUS_TKN_PASSED, ID_STATUS_WAIT_VERIFY, IdentityVerification, PrivacySettings, Redis, \
     SimplePassword, User, VisitTrack
 from everyclass.server.models import StudentSession
-from everyclass.server.rpc import RpcResourceNotFound, handle_exception_with_error_page
-from everyclass.server.rpc.api_server import APIServer
-from everyclass.server.rpc.auth import Auth
-from everyclass.server.rpc.tencent_captcha import TencentCaptcha
 from everyclass.server.utils.decorators import login_required
 
 user_bp = Blueprint('user', __name__)

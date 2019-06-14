@@ -22,12 +22,12 @@ from typing import Dict, List, Optional, Union, overload
 from flask import session
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from everyclass.rpc.api_server import CardResult, teacher_list_to_tid_str
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.db.redis import redis
 from everyclass.server.models import StudentSession
-from everyclass.server.rpc.api_server import CardResult, teacher_list_to_tid_str
 
 
 def new_user_id_sequence() -> int:
@@ -606,7 +606,7 @@ class VisitTrack(PostgresBase):
     @classmethod
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
         """获得访客列表"""
-        from everyclass.server.rpc.api_server import APIServer
+        from everyclass.rpc.api_server import APIServer
 
         with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = """
