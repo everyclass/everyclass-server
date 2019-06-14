@@ -17,8 +17,8 @@ If you wish to discuss the project, you can join our [forum](https://base.admira
 ## Technology stack
 
 - Flask: Python web framework
-- uWSGI: WSGI gateway
 - PostgreSQL: database
+- uWSGI: WSGI gateway
 - Redis: cache/HyperLogLog
 
 ## Using the source
