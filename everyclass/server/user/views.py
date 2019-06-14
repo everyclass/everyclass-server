@@ -215,9 +215,9 @@ def email_verification():
                 except Exception as e:
                     return handle_exception_with_error_page(e)
 
-            if rpc_result['success']:
-                session[SESSION_EMAIL_VER_REQ_ID] = rpc_result['request_id']
-                IdentityVerification.set_request_status(rpc_result['request_id'], ID_STATUS_TKN_PASSED)
+            if rpc_result.success:
+                session[SESSION_EMAIL_VER_REQ_ID] = rpc_result.request_id
+                IdentityVerification.set_request_status(rpc_result.request_id, ID_STATUS_TKN_PASSED)
                 return render_template('user/emailVerificationProceed.html')
             else:
                 return render_template("common/error.html", message=MSG_TOKEN_INVALID)
@@ -312,7 +312,7 @@ def register_by_password_status():
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-    if rpc_result['success']:  # 密码验证通过，设置请求状态并新增用户
+    if rpc_result.success:  # 密码验证通过，设置请求状态并新增用户
         IdentityVerification.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
 
         verification_req = IdentityVerification.get_request_by_id(str(request.args.get("request")))
@@ -339,8 +339,8 @@ def register_by_password_status():
                                                        name=student.name)
 
         return jsonify({"message": "SUCCESS"})
-    elif rpc_result["message"] in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
-        return jsonify({"message": rpc_result["message"]})
+    elif rpc_result.message in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
+        return jsonify({"message": rpc_result.message})
     else:
         return jsonify({"message": "NEXT_TIME"})
 
