@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 import elasticapm
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
-from everyclass.rpc import handle_exception_with_error_page
 from everyclass.rpc.api_server import APIServer
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
@@ -18,6 +17,7 @@ from everyclass.server.utils import contains_chinese, get_day_chinese, get_time_
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 from everyclass.server.utils.resource_identifier_encrypt import decrypt
+from everyclass.server.utils.rpc import handle_exception_with_error_page
 
 query_blueprint = Blueprint('query', __name__)
 

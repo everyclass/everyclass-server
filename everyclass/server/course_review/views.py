@@ -2,11 +2,11 @@ from typing import Dict
 
 from flask import Blueprint, escape, flash, redirect, render_template, request, session, url_for
 
-from everyclass.rpc import handle_exception_with_error_page
 from everyclass.rpc.api_server import APIServer, teacher_list_to_tid_str
 from everyclass.server.consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
 from everyclass.server.db.dao import COTeachingClass, CourseReview
 from everyclass.server.utils.decorators import login_required
+from everyclass.server.utils.rpc import handle_exception_with_error_page
 
 cr_blueprint = Blueprint('course_review', __name__)
 

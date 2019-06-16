@@ -6,9 +6,9 @@ from typing import Dict, List, Tuple
 import elasticapm
 from flask import Blueprint
 
-from everyclass.rpc import handle_exception_with_error_page
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance
+from everyclass.server.utils.rpc import handle_exception_with_error_page
 
 cal_blueprint = Blueprint('calendar', __name__)
 
