@@ -15,3 +15,10 @@ class CustomisedJSONFormatter(json_log_formatter.JSONFormatter):
         if record.exc_info:
             extra['exc_info'] = self.formatException(record.exc_info)
         return extra
+
+
+def log_request():
+    from everyclass.server import logger
+    from flask import request
+
+    logger.info('{} {}'.format(request.method, request.path))

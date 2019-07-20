@@ -3,6 +3,7 @@ import logging
 import os
 
 import gc
+from ddtrace import tracer
 from flask import Flask, g, redirect, render_template, request, session
 from flask_cdn import CDN
 from flask_moment import Moment
@@ -193,13 +194,20 @@ def create_app() -> Flask:
 
     @app.before_request
     def set_user_id():
-        """在请求之前设置 session uid，方便 Elastic APM 记录用户请求"""
+        """在请求之前设置 session uid，方便 APM 标识用户"""
+        from everyclass.server.consts import SESSION_CURRENT_USER
+
         if not session.get('user_id', None) and request.endpoint != "main.health_check":
             session['user_id'] = new_user_id_sequence()
+        if session.get('user_id', None):
+            tracer.current_span().set_tag("user_id", session['user_id'])  # 唯一用户 ID
+        if session.get(SESSION_CURRENT_USER, None):
+            tracer.current_span().set_tag("username", session[SESSION_CURRENT_USER])  # 学号
 
     @app.before_request
     def log_request():
-        logger.info('{} {}'.format(request.method, request.path))
+        from everyclass.server.utils.log import log_request as log
+        log()
 
     @app.before_request
     def delete_old_session():
