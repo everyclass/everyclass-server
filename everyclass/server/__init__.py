@@ -33,8 +33,6 @@ try:
     @uwsgidecorators.postfork
     def init_log_handlers():
         """初始化 log handlers 并将当前配置信息打 log"""
-        from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
-
         from everyclass.server.config import print_config
         from everyclass.rpc import init as init_rpc
 
@@ -113,11 +111,8 @@ def cron_update_remote_manifest():
 def create_app() -> Flask:
     """创建 flask app"""
     from everyclass.server.db.dao import new_user_id_sequence
-    from everyclass.server.utils.logbook_logstash.formatter import LOG_FORMAT_STRING
     from everyclass.server.consts import MSG_INTERNAL_ERROR
     from everyclass.server.utils import plugin_available
-
-    print("Creating app...")
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',

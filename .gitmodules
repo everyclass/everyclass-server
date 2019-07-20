@@ -1,7 +1,3 @@
-[submodule "everyclass/server/utils/logbook_logstash"]
-	path = everyclass/server/utils/logbook_logstash
-	branch = master
-	url = https://github.com/fr0der1c/logbook_logstash
 [submodule "everyclass/rpc"]
 	path = everyclass/rpc
 	branch = master
