@@ -1,6 +1,6 @@
 import datetime
 import logging
-import sys
+import os
 
 import gc
 from flask import Flask, g, redirect, render_template, request, session
@@ -146,16 +146,24 @@ def create_app() -> Flask:
     https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
     - stack 默认是 False
     """
-    from everyclass.server.utils.log import CustomisedJSONFormatter
-    formatter = CustomisedJSONFormatter()
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(formatter)
-
     if app.config['DEBUG']:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    logger.addHandler(stream_handler)
+
+    if _config.CONFIG_NAME != "development":  # 本地不用打文件日志
+        from everyclass.server.utils.log import CustomisedJSONFormatter
+        formatter = CustomisedJSONFormatter()
+
+        log_path = "/var/log/app"
+        log_filename = log_path + 'log.json'
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+
+        file_handler = logging.FileHandler(filename=log_filename)
+        file_handler.setFormatter(formatter)
+
+        logger.addHandler(file_handler)
 
     # CDN
     CDN(app)

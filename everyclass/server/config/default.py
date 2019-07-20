@@ -43,6 +43,7 @@ class Config(object):
     the base class for configuration. all keys must define here.
     """
     DEBUG = True
+    SERVICE_NAME = "everyclass-server"
     SECRET_KEY = 'development_key'
 
     """
