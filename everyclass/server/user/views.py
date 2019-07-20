@@ -64,7 +64,7 @@ def login():
 
             # 检查学号是否存在
             try:
-                _ = APIServer.get_student(student_id)
+                APIServer.get_student(student_id)
             except RpcResourceNotFound:
                 flash(MSG_USERNAME_NOT_EXIST)
                 return redirect(url_for("user.login"))
