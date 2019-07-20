@@ -8,7 +8,6 @@ from flask_cdn import CDN
 from flask_moment import Moment
 from flask_session import Session
 from htmlmin import minify
-from raven.conf import setup_logging
 from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 
@@ -41,7 +40,7 @@ try:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client)
             sentry_handler.setLevel(logging.WARNING)
-            setup_logging(sentry_handler)
+            logger.addHandler(sentry_handler)
 
             init_rpc(sentry=sentry)
             logger.info('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))

@@ -96,19 +96,6 @@ class Config(object):
         'release': '',
         'tags'   : {'environment': 'default'}
     }
-    ELASTIC_APM = {
-        'SERVICE_NAME'                : 'everyclass-server',
-        'SECRET_TOKEN'                : 'token',
-        'SERVER_URL'                  : 'http://127.0.0.1:8200',
-        # https://www.elastic.co/guide/en/apm/agent/python/2.x/configuration.html#config-auto-log-stacks
-        'AUTO_LOG_STACKS'             : False,
-        'SERVICE_VERSION'             : GIT_DESCRIBE,
-        'TRANSACTIONS_IGNORE_PATTERNS': ['GET /_healthCheck']
-    }
-    LOGSTASH = {
-        'HOST': '127.0.0.1',
-        'PORT': 8888
-    }
 
     # other micro-services
     API_SERVER_BASE_URL = 'http://everyclass-api-server'
@@ -204,8 +191,6 @@ class Config(object):
     # define available environments for logs, APM and error tracking
     SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing', 'development')
     APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
-    LOGSTASH_AVAILABLE_IN = ('production', 'staging', 'testing',)
-    DEBUG_LOG_AVAILABLE_IN = ('development', 'testing', 'staging')
 
     # fields that should be overwritten in production environment
     PRODUCTION_OVERWRITE_FIELDS = ('SECRET_KEY',
