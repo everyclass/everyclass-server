@@ -105,7 +105,7 @@ def query():
                                students=rpc_result.students,
                                teachers=rpc_result.teachers)
     else:
-        logger.info("No result for user search", {"keyword": request.values.get('id')})
+        logger.info("No result for user search", extra={"keyword": request.values.get('id')})
         tracer.current_span().set_tag("query_resource_type", "not_exist")
         tracer.current_span().set_tag("query_type", "other")
 

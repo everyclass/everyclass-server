@@ -1,17 +1,18 @@
 import datetime
+import logging
 import sys
 
 import gc
-import logbook
 from flask import Flask, g, redirect, render_template, request, session
 from flask_cdn import CDN
 from flask_moment import Moment
 from flask_session import Session
 from htmlmin import minify
+from raven.conf import setup_logging
 from raven.contrib.flask import Sentry
-from raven.handlers.logbook import SentryHandler
+from raven.handlers.logging import SentryHandler
 
-logger = logbook.Logger(__name__)
+logger = logging.getLogger(__name__)
 sentry = Sentry()
 __app = None
 __load_time = datetime.datetime.now()
@@ -37,24 +38,15 @@ try:
         from everyclass.server.config import print_config
         from everyclass.rpc import init as init_rpc
 
-        # Logstash centralized log
-        if __app.config['CONFIG_NAME'] in __app.config['LOGSTASH_AVAILABLE_IN']:
-            logstash_handler = LogstashHandler(host=__app.config['LOGSTASH']['HOST'],
-                                               port=__app.config['LOGSTASH']['PORT'],
-                                               release=__app.config['GIT_DESCRIBE'],
-                                               bubble=True,
-                                               logger=logger,
-                                               filter=lambda r, h: r.level >= 11)  # do not send DEBUG
-            logger.handlers.append(logstash_handler)
-            print('LogstashHandler is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
-
         # Sentry
         if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
             sentry.init_app(app=__app)
-            sentry_handler = SentryHandler(sentry.client, level='INFO')  # Sentry 只处理 INFO 以上的
-            logger.handlers.append(sentry_handler)
+            sentry_handler = SentryHandler(sentry.client)
+            sentry_handler.setLevel(logging.WARNING)
+            setup_logging(sentry_handler)
+
             init_rpc(sentry=sentry)
-            print('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
+            logger.info('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
 
         init_rpc(logger=logger)
 
@@ -64,8 +56,8 @@ try:
         if uwsgi.worker_id() == 1 and (datetime.datetime.now() - __load_time) < datetime.timedelta(minutes=1):
             # 这里设置等级为 warning 因为我们希望在 sentry 里监控重启情况
             logger.warning('App (re)started in `{0}` environment'
-                           .format(__app.config['CONFIG_NAME']), stack=False)
-            print_config(__app)
+                           .format(__app.config['CONFIG_NAME']))
+            print_config(__app, logger)
 
     @uwsgidecorators.postfork
     def init_db():
@@ -161,17 +153,17 @@ def create_app() -> Flask:
     https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
     - stack 默认是 False
     """
-    if app.config['CONFIG_NAME'] in app.config['DEBUG_LOG_AVAILABLE_IN']:
-        stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: r.level < 13)
-    else:
-        # ignore debug when not in debug
-        stdout_handler = logbook.StreamHandler(stream=sys.stdout, bubble=True, filter=lambda r, h: 10 < r.level < 13)
-    stdout_handler.format_string = LOG_FORMAT_STRING
-    logger.handlers.append(stdout_handler)
+    from json_log_formatter import JSONFormatter
 
-    stderr_handler = logbook.StreamHandler(stream=sys.stderr, bubble=True, level='WARNING')
-    stderr_handler.format_string = LOG_FORMAT_STRING
-    logger.handlers.append(stderr_handler)
+    formatter = JSONFormatter()
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+
+    if app.config['DEBUG']:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    logger.addHandler(stream_handler)
 
     # CDN
     CDN(app)

@@ -28,6 +28,7 @@ pycryptodome = "*"
 flask-moment = "*"
 psycopg2-binary = "~=2.0"
 ddtrace = "*"
+JSON-log-formatter = "*"
 
 [dev-packages]
 coverage = "==4.4.2"

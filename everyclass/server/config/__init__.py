@@ -74,10 +74,10 @@ def get_config():
         return MixedConfig
 
 
-def print_config(app):
+def print_config(app, logger):
     """print config in log"""
-    print('Below are configurations we are using:')
-    print('================================================================')
+    logger.info('Below are configurations we are using:')
+    logger.info('================================================================')
     for key, value in app.config.items():
         if key not in MixedConfig.PRODUCTION_SECURE_FIELDS:
             if any(map(lambda t: isinstance(value, t), (dict,))):
@@ -85,7 +85,7 @@ def print_config(app):
                 for k in value.keys():
                     if "{}.{}".format(key, k) in MixedConfig.PRODUCTION_SECURE_FIELDS:
                         value[k] = '[secret]'
-            print('{}: {}'.format(key, value))
+            logger.info('{}: {}'.format(key, value))
         else:
-            print("{}: [secret]".format(key))
-    print('================================================================')
+            logger.info("{}: [secret]".format(key))
+    logger.info('================================================================')
