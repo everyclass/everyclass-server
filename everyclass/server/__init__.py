@@ -129,10 +129,9 @@ def create_app() -> Flask:
 
 
     规则如下：
-    - WARNING 以下 log 输出到 stdout
-    - WARNING 以上输出到 stderr
-    - DEBUG 以上日志以 json 形式通过 TCP 输出到 Logstash，然后发送到日志中心
-    - WARNING 以上级别的输出到 Sentry
+    - DEBUG 模式下会输出 DEBUG 等级的日志，否则输出 INFO 及以上等级的日志
+    - 日志为 JSON 格式，会被节点上的 agent 采集并发送到 datadog，方便结合 metrics 和 APM 数据分析
+    - WARNING 以上级别的输出到 Sentry 做错误聚合
 
 
     日志等级：
@@ -149,8 +148,10 @@ def create_app() -> Flask:
     - stack 默认是 False
     """
     from json_log_formatter import JSONFormatter
+    import ujson
 
     formatter = JSONFormatter()
+    formatter.json_lib = ujson
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
 
