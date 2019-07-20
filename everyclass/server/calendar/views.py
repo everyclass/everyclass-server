@@ -3,7 +3,7 @@
 """
 from typing import Dict, List, Tuple
 
-import elasticapm
+from ddtrace import tracer
 from flask import Blueprint
 
 from everyclass.server.utils.access_control import check_permission
@@ -96,7 +96,7 @@ def ics_download(calendar_token: str):
         # teacher
         rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['semester'])
 
-    with elasticapm.capture_span('process_rpc_result'):
+    with tracer.trace('process_rpc_result'):
         semester = Semester(result['semester'])
 
         cards: Dict[Tuple[int, int], List[Dict]] = defaultdict(list)
@@ -183,7 +183,7 @@ def android_client_get_ics(resource_type, identifier, semester):
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-        with elasticapm.capture_span('get_privacy_settings'):
+        with tracer.trace('get_privacy_settings'):
             privacy_level = PrivacySettings.get_level(student.student_id)
 
         # get authorization from HTTP header and verify password if privacy is on
@@ -230,7 +230,7 @@ def legacy_get_ics(student_id, semester_str):
     if semester.to_str() not in search_result.students[0].semesters:
         return abort(400)
 
-    with elasticapm.capture_span('get_privacy_settings'):
+    with tracer.trace('get_privacy_settings'):
         privacy_settings = PrivacySettings.get_level(search_result.students[0].student_id)
 
     if privacy_settings != 0:

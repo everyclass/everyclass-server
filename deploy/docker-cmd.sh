@@ -15,4 +15,4 @@ then
         > /gor/goreplay.log &
 fi
 
-exec uwsgi --ini "/var/app/deploy/uwsgi.ini"
+exec /var/app/.venv/bin/ddtrace-run uwsgi --ini "/var/app/deploy/uwsgi.ini"

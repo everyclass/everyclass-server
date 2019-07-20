@@ -1,6 +1,6 @@
 from typing import Optional, Tuple
 
-import elasticapm
+from ddtrace import tracer
 from flask import render_template, session
 
 from everyclass.rpc.api_server import StudentTimetableResult
@@ -15,7 +15,7 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
     :param student: 被访问的学生
     :return: 第一个返回值为布尔类型，True 标识可以访问，False 表示没有权限访问。第二个返回值为没有权限访问时需要返回的模板
     """
-    with elasticapm.capture_span('get_privacy_settings'):
+    with tracer.trace('get_privacy_settings'):
         privacy_level = PrivacySettings.get_level(student.student_id)
 
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问

@@ -11,8 +11,6 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logbook import SentryHandler
 
-from everyclass.server.utils import monkey_patch
-
 logger = logbook.Logger(__name__)
 sentry = Sentry()
 __app = None
@@ -35,15 +33,9 @@ try:
     def init_log_handlers():
         """初始化 log handlers 并将当前配置信息打 log"""
         from everyclass.server.utils.logbook_logstash.handler import LogstashHandler
-        from elasticapm.contrib.flask import ElasticAPM
+
         from everyclass.server.config import print_config
         from everyclass.rpc import init as init_rpc
-        ElasticAPM.request_finished = monkey_patch.ElasticAPM.request_finished(ElasticAPM.request_finished)
-
-        # Elastic APM
-        if __app.config['CONFIG_NAME'] in __app.config['APM_AVAILABLE_IN']:
-            ElasticAPM(__app)
-            print('APM is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
 
         # Logstash centralized log
         if __app.config['CONFIG_NAME'] in __app.config['LOGSTASH_AVAILABLE_IN']:

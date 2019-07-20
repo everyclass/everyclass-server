@@ -2,8 +2,6 @@ import os
 import re
 from typing import List, Tuple
 
-import elasticapm
-
 
 def get_day_chinese(digit: int) -> str:
     """
@@ -70,14 +68,13 @@ def lesson_string_to_tuple(lesson: str) -> Tuple[int, int]:
 
 def semester_calculate(current_semester: str, semester_list: List[str]) -> List[Tuple[str, bool]]:
     """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
-    with elasticapm.capture_span('semester_calculate'):
-        available_semesters = []
+    available_semesters = []
 
-        for each_semester in semester_list:
-            if current_semester == each_semester:
-                available_semesters.append((each_semester, True))
-            else:
-                available_semesters.append((each_semester, False))
+    for each_semester in semester_list:
+        if current_semester == each_semester:
+            available_semesters.append((each_semester, True))
+        else:
+            available_semesters.append((each_semester, False))
     return available_semesters
 
 

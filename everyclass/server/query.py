@@ -4,7 +4,7 @@
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
-import elasticapm
+from ddtrace import tracer
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.rpc.api_server import APIServer
@@ -46,7 +46,7 @@ def query():
         return redirect(url_for('main.main'))
 
     # 调用 api-server 搜索
-    with elasticapm.capture_span('rpc_search'):
+    with tracer.trace('rpc_search'):
         try:
             rpc_result = APIServer.search(keyword)
         except Exception as e:
@@ -55,8 +55,8 @@ def query():
     # 不同类型渲染不同模板
     if len(rpc_result.classrooms) >= 1:  # 优先展示教室
         # 我们在 kibana 中使用服务名过滤 apm 文档，所以 tag 不用增加服务名前缀
-        elasticapm.tag(query_resource_type='classroom')
-        elasticapm.tag(query_type='by_name')
+        tracer.current_span().set_tag("query_resource_type", "classroom")
+        tracer.current_span().set_tag("query_type", "by_name")
 
         if len(rpc_result.classrooms) > 1:  # 多个教室选择
             return render_template('query/multipleClassroomChoice.html',
@@ -65,11 +65,11 @@ def query():
         return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id_encoded,
                                                   rpc_result.classrooms[0].semesters[-1]))
     elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # 一个学生
-        elasticapm.tag(query_resource_type='single_student')
+        tracer.current_span().set_tag("query_resource_type", "single_student")
         if contains_chinese(keyword):
-            elasticapm.tag(query_type='by_name')
+            tracer.current_span().set_tag("query_type", "by_name")
         else:
-            elasticapm.tag(query_type='by_id')
+            tracer.current_span().set_tag("query_type", "by_id")
 
         if len(rpc_result.students[0].semesters) < 1:
             flash('没有可用学期')
@@ -78,11 +78,11 @@ def query():
         return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id_encoded,
                                                 rpc_result.students[0].semesters[-1]))
     elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # 一个老师
-        elasticapm.tag(query_resource_type='single_teacher')
+        tracer.current_span().set_tag("query_resource_type", "single_teacher")
         if contains_chinese(keyword):
-            elasticapm.tag(query_type='by_name')
+            tracer.current_span().set_tag("query_type", "by_name")
         else:
-            elasticapm.tag(query_type='by_id')
+            tracer.current_span().set_tag("query_type", "by_id")
 
         if len(rpc_result.teachers[0].semesters) < 1:
             flash('没有可用学期')
@@ -92,11 +92,13 @@ def query():
                                                 rpc_result.teachers[0].semesters[-1]))
     elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
-        elasticapm.tag(query_resource_type='multiple_people')
+        tracer.current_span().set_tag("query_resource_type", "multiple_people")
+
         if contains_chinese(keyword):
-            elasticapm.tag(query_type='by_name')
+            tracer.current_span().set_tag("query_type", "by_name")
+
         else:
-            elasticapm.tag(query_type='by_id')
+            tracer.current_span().set_tag("query_type", "by_id")
 
         return render_template('query/peopleWithSameName.html',
                                name=keyword,
@@ -104,8 +106,9 @@ def query():
                                teachers=rpc_result.teachers)
     else:
         logger.info("No result for user search", {"keyword": request.values.get('id')})
-        elasticapm.tag(query_resource_type='not_exist')
-        elasticapm.tag(query_type='other')
+        tracer.current_span().set_tag("query_resource_type", "not_exist")
+        tracer.current_span().set_tag("query_type", "other")
+
         flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
         return redirect(url_for('main.main'))
 
@@ -122,7 +125,7 @@ def get_student(url_sid: str, url_semester: str):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC 获得学生课表
-    with elasticapm.capture_span('rpc_get_student_timetable'):
+    with tracer.trace('rpc_get_student_timetable'):
         try:
             student = APIServer.get_student_timetable(student_id, url_semester)
         except Exception as e:
@@ -139,7 +142,7 @@ def get_student(url_sid: str, url_semester: str):
     if not has_permission:
         return return_val
 
-    with elasticapm.capture_span('process_rpc_result'):
+    with tracer.trace('process_rpc_result'):
         cards: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
         for card in student.cards:
             day, time = lesson_string_to_tuple(card.lesson)
@@ -176,13 +179,13 @@ def get_teacher(url_tid, url_semester):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC to get teacher timetable
-    with elasticapm.capture_span('rpc_get_teacher_timetable'):
+    with tracer.trace('rpc_get_teacher_timetable'):
         try:
             teacher = APIServer.get_teacher_timetable(teacher_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-    with elasticapm.capture_span('process_rpc_result'):
+    with tracer.trace('process_rpc_result'):
         cards = defaultdict(list)
         for card in teacher.cards:
             day, time = lesson_string_to_tuple(card.lesson)
@@ -217,13 +220,13 @@ def get_classroom(url_rid, url_semester):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC to get classroom timetable
-    with elasticapm.capture_span('rpc_get_classroom_timetable'):
+    with tracer.trace('rpc_get_classroom_timetable'):
         try:
             room = APIServer.get_classroom_timetable(url_semester, room_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-    with elasticapm.capture_span('process_rpc_result'):
+    with tracer.trace('process_rpc_result'):
         cards = defaultdict(list)
         for card in room.cards:
             day, time = lesson_string_to_tuple(card.lesson)
@@ -256,7 +259,7 @@ def get_card(url_cid: str, url_semester: str):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC to get card
-    with elasticapm.capture_span('rpc_get_card'):
+    with tracer.trace('rpc_get_card'):
         try:
             card = APIServer.get_card(url_semester, card_id)
         except Exception as e:
@@ -284,7 +287,7 @@ def get_card(url_cid: str, url_semester: str):
 
 def _empty_column_check(cards: dict) -> Tuple[bool, bool, bool, bool]:
     """检查是否周末和晚上有课，返回三个布尔值"""
-    with elasticapm.capture_span('_empty_column_check'):
+    with tracer.trace('_empty_column_check'):
         # 空闲周末判断，考虑到大多数人周末都是没有课程的
         empty_sat = True
         for cls_time in range(1, 7):

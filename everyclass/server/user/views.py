@@ -1,4 +1,4 @@
-import elasticapm
+from ddtrace import tracer
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 from zxcvbn import zxcvbn
 
@@ -24,7 +24,7 @@ user_bp = Blueprint('user', __name__)
 
 def _session_save_student_to_register_(student_id: str):
     # 将需要注册的用户并保存到 SESSION_STUDENT_TO_REGISTER
-    with elasticapm.capture_span('rpc_get_student'):
+    with tracer.trace('rpc_get_student'):
         try:
             student = APIServer.get_student(student_id)
         except Exception as e:
@@ -143,7 +143,7 @@ def register_by_email():
 
     request_id = IdentityVerification.new_register_request(sid_orig, "email", ID_STATUS_SENT)
 
-    with elasticapm.capture_span('send_email'):
+    with tracer.trace('send_email'):
         try:
             rpc_result = Auth.register_by_email(request_id, sid_orig)
         except Exception as e:
@@ -210,7 +210,7 @@ def email_verification():
             if not request.args.get("token", None):
                 return render_template("common/error.html", message=MSG_400)
 
-            with elasticapm.capture_span('verify_email_token'):
+            with tracer.trace('verify_email_token'):
                 try:
                     rpc_result = Auth.verify_email_token(token=request.args.get("token", None))
                 except Exception as e:
@@ -258,7 +258,7 @@ def register_by_password():
                                                                password=request.form["password"])
 
         # call everyclass-auth to verify password
-        with elasticapm.capture_span('register_by_password'):
+        with tracer.trace('register_by_password'):
             try:
                 rpc_result = Auth.register_by_password(request_id=str(request_id),
                                                        student_id=session[SESSION_STUDENT_TO_REGISTER].sid_orig,
@@ -307,7 +307,7 @@ def register_by_password_status():
         return "Invalid request"
 
     # fetch status from everyclass-auth
-    with elasticapm.capture_span('get_result'):
+    with tracer.trace('get_result'):
         try:
             rpc_result = Auth.get_result(str(request.args.get("request")))
         except Exception as e:

@@ -1,6 +1,13 @@
+import os
+
 import gc
+from ddtrace import patch_all, tracer
 
 from everyclass.server import create_app
+
+patch_all()
+tracer.configure(hostname=os.environ['DD_AGENT_HOST'],
+                 port=os.environ['DD_TRACE_AGENT_PORT'])
 
 app = create_app()
 
