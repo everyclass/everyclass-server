@@ -146,11 +146,8 @@ def create_app() -> Flask:
     https://docs.sentry.io/clients/python/api/#raven.Client.captureMessage
     - stack 默认是 False
     """
-    from json_log_formatter import JSONFormatter
-    import ujson
-
-    formatter = JSONFormatter()
-    formatter.json_lib = ujson
+    from everyclass.server.utils.log import CustomisedJSONFormatter
+    formatter = CustomisedJSONFormatter()
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
 
