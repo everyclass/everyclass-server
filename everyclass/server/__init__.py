@@ -198,6 +198,10 @@ def create_app() -> Flask:
             session['user_id'] = new_user_id_sequence()
 
     @app.before_request
+    def log_request():
+        logger.info('{} {}'.format(request.method, request.path))
+
+    @app.before_request
     def delete_old_session():
         """删除旧的客户端 session（长度过长导致无法在 mongodb 中建立索引）"""
         if request.cookies.get("session") and len(request.cookies.get("session")) > 50:
