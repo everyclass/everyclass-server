@@ -148,9 +148,9 @@ def create_app() -> Flask:
     - stack 默认是 False
     """
     if app.config['DEBUG']:
-        logger.setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.INFO)
+        logging.getLogger().setLevel(logging.INFO)
 
     from everyclass.server.utils.log import CustomisedJSONFormatter
     formatter = CustomisedJSONFormatter()
@@ -159,7 +159,7 @@ def create_app() -> Flask:
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 
-    file_handler = logging.FileHandler(filename=os.path.join(log_path + 'log.json'))
+    file_handler = logging.FileHandler(filename=os.path.join(log_path + 'app.log'))
     file_handler.setFormatter(formatter)
     logging.getLogger().addHandler(file_handler)  # add to root logger
 
