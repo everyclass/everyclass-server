@@ -41,7 +41,7 @@ try:
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client)
             sentry_handler.setLevel(logging.WARNING)
-            logger.addHandler(sentry_handler)
+            logging.getLogger().addHandler(sentry_handler)
 
             init_rpc(sentry=sentry)
             logger.info('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
@@ -152,19 +152,16 @@ def create_app() -> Flask:
     else:
         logger.setLevel(logging.INFO)
 
-    if _config.CONFIG_NAME != "development":  # 本地不用打文件日志
-        from everyclass.server.utils.log import CustomisedJSONFormatter
-        formatter = CustomisedJSONFormatter()
+    from everyclass.server.utils.log import CustomisedJSONFormatter
+    formatter = CustomisedJSONFormatter()
 
-        log_path = "/var/log/app"
-        log_filename = log_path + 'log.json'
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
+    log_path = _config.LOG_PATH
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
 
-        file_handler = logging.FileHandler(filename=log_filename)
-        file_handler.setFormatter(formatter)
-
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(filename=os.path.join(log_path + 'log.json'))
+    file_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(file_handler)  # add to root logger
 
     # CDN
     CDN(app)

@@ -212,3 +212,5 @@ class Config(object):
                                 "TENCENT_CAPTCHA_SECRET",
                                 "RESOURCE_IDENTIFIER_ENCRYPTION_KEY"
                                 )
+
+    LOG_PATH = "/var/log/app/"
