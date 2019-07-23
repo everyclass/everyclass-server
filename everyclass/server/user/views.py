@@ -55,7 +55,7 @@ def login():
             return redirect(url_for("user.login"))
 
         # captcha
-        if not TencentCaptcha.verify():
+        if not TencentCaptcha.verify_old():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.login"))
 
