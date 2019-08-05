@@ -248,7 +248,7 @@ def register_by_password():
             return redirect(url_for("user.register_by_password"))
 
         # captcha
-        if not TencentCaptcha.verify():
+        if not TencentCaptcha.verify_old():
             flash(MSG_INVALID_CAPTCHA)
             return redirect(url_for("user.register_by_password"))
 
