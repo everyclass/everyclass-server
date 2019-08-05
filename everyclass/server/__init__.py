@@ -156,12 +156,16 @@ def create_app() -> Flask:
     formatter = CustomisedJSONFormatter()
 
     log_path = _config.LOG_PATH
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
 
-    file_handler = logging.FileHandler(filename=os.path.join(log_path + 'app.log'))
-    file_handler.setFormatter(formatter)
-    logging.getLogger().addHandler(file_handler)  # add to root logger
+    try:
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+
+        file_handler = logging.FileHandler(filename=os.path.join(log_path + 'app.log'))
+        file_handler.setFormatter(formatter)
+        logging.getLogger().addHandler(file_handler)  # add to root logger
+    except OSError as e:
+        logging.warning(f"Makedir failed: {e}, ignore file_handler log handler.")
 
     # CDN
     CDN(app)

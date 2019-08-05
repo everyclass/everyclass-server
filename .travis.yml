@@ -26,7 +26,7 @@ before_script:
 
 script:
 - flake8
-- sudo nosetests tests --with-coverage
+- nosetests tests --with-coverage
 
 after_success:
 - codecov
