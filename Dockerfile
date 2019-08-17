@@ -47,7 +47,7 @@ RUN pip3 install --upgrade pip \
 # forward logs to docker log collector
 RUN mkdir -p /var/log/app \
     && touch /var/log/app/app.log \
-    && ln -sf /dev/stdout /var/log/app/app.log
+    && ln -sf /var/log/app/app.log  /dev/stdout
 
 ENV UWSGI_HTTP_SOCKET ":80"
 
