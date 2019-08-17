@@ -44,6 +44,9 @@ RUN pip3 install --upgrade pip \
     && rm -r /root/.cache \
     && chmod +x ./deploy/docker-cmd.sh
 
+# forward logs to docker log collector
+RUN ln -sf /dev/stdout /var/log/app/app.log
+
 ENV UWSGI_HTTP_SOCKET ":80"
 
 CMD ["deploy/docker-cmd.sh"]
