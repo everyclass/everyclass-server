@@ -51,4 +51,4 @@ RUN mkdir -p /var/log/app \
 
 ENV UWSGI_HTTP_SOCKET ":80"
 
-CMD ["deploy/docker-cmd.sh"]
+CMD ["deploy/docker-cmd.sh", "> /dev/null"]
