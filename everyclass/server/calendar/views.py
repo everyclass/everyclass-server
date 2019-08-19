@@ -4,7 +4,7 @@
 from typing import Dict, List, Tuple
 
 from ddtrace import tracer
-from flask import Blueprint
+from flask import Blueprint, Response
 
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance
@@ -76,7 +76,6 @@ def ics_download(calendar_token: str):
     """
     from collections import defaultdict
 
-    from flask import send_from_directory
     from everyclass.server.db.dao import CalendarToken
     from everyclass.server.models import Semester
     from everyclass.server.calendar import ics_generator
@@ -109,14 +108,13 @@ def ics_download(calendar_token: str):
                                            classroom=card.room,
                                            cid=card.card_id_encoded))
 
-    ics_generator.generate(name=rpc_result.name,
-                           cards=cards,
-                           semester=semester,
-                           ics_token=calendar_token)
+    ics_content = ics_generator.generate(name=rpc_result.name,
+                                         cards=cards,
+                                         semester=semester)
 
-    return send_from_directory("../../calendar_files", calendar_token + ".ics",
-                               as_attachment=True,
-                               mimetype='text/calendar')
+    r = Response(response=ics_content, mimetype='text/calendar')
+    r.headers['Content-Disposition'] = f'attachment;filename={calendar_token}.ics'  # 作为附件下载
+    return r
 
 
 @cal_blueprint.route('/calendar/ics/_androidClient/<identifier>')

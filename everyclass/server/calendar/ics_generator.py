@@ -23,7 +23,7 @@ tzs.add('TZOFFSETFROM', timedelta(hours=8))
 tzs.add('TZOFFSETTO', timedelta(hours=8))
 
 
-def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Semester, ics_token: str):
+def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Semester) -> str:
     """
     生成 ics 文件并保存到目录
 
@@ -68,14 +68,7 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
                                                        week_string=card['week_string'],
                                                        current_week=week,
                                                        cid=card['cid']))
-
-    # 写入文件
-    import os
-
-    with open(os.path.join(os.path.dirname(__file__),
-                           '../../../calendar_files/{}.ics'.format(ics_token)),
-              'w') as f:
-        f.write(cal.to_ical().decode(encoding='utf-8'))
+    return cal.to_ical().decode(encoding='utf-8')
 
 
 def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[int, int, int]) -> datetime:
