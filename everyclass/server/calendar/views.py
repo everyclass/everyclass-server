@@ -88,14 +88,14 @@ def ics_download(calendar_token: str):
 
     CalendarToken.update_last_used_time(calendar_token)
 
-    # 获得原始学号或教工号
-    if result['type'] == 'student':
-        rpc_result = APIServer.get_student_timetable(result['identifier'], result['semester'])
-    else:
-        # teacher
-        rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['semester'])
+    with tracer.trace('rpc'):
+        # 获得原始学号或教工号
+        if result['type'] == 'student':
+            rpc_result = APIServer.get_student_timetable(result['identifier'], result['semester'])
+        else:
+            # teacher
+            rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['semester'])
 
-    with tracer.trace('process_rpc_result'):
         semester = Semester(result['semester'])
 
         cards: Dict[Tuple[int, int], List[Dict]] = defaultdict(list)
@@ -108,9 +108,10 @@ def ics_download(calendar_token: str):
                                            classroom=card.room,
                                            cid=card.card_id_encoded))
 
-    ics_content = ics_generator.generate(name=rpc_result.name,
-                                         cards=cards,
-                                         semester=semester)
+    with tracer.trace('ics_generate'):
+        ics_content = ics_generator.generate(name=rpc_result.name,
+                                             cards=cards,
+                                             semester=semester)
 
     r = Response(response=ics_content, mimetype='text/calendar')
     r.headers['Content-Disposition'] = f'attachment;filename={calendar_token}.ics'  # 作为附件下载

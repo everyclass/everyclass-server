@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
 import pytz
+from ddtrace import tracer
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.server.config import get_config
@@ -30,45 +31,50 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
     :param name: 姓名
     :param cards: 参与的课程
     :param semester: 当前导出的学期
-    :param ics_token: ics 令牌
     :return: None
     """
-    semester_string = semester.to_str(simplify=True)
-    semester = semester.to_tuple()
+    with tracer.trace("calendar_init"):
+        semester_string = semester.to_str(simplify=True)
+        semester = semester.to_tuple()
 
-    # 创建 calender 对象
-    cal = Calendar()
-    cal.add('prodid', '-//Admirable//EveryClass//EN')
-    cal.add('version', '2.0')
-    cal.add('calscale', 'GREGORIAN')
-    cal.add('method', 'PUBLISH')
-    cal.add('X-WR-CALNAME', name + '的' + semester_string + '课表')
-    cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
+        # 创建 calender 对象
+        cal = Calendar()
+        cal.add('prodid', '-//Admirable//EveryClass//EN')
+        cal.add('version', '2.0')
+        cal.add('calscale', 'GREGORIAN')
+        cal.add('method', 'PUBLISH')
+        cal.add('X-WR-CALNAME', name + '的' + semester_string + '课表')
+        cal.add('X-WR-TIMEZONE', 'Asia/Shanghai')
 
-    # 时区
-    tzc.add_component(tzs)
-    cal.add_component(tzc)
+        # 时区
+        tzc.add_component(tzs)
+        cal.add_component(tzc)
 
-    # 创建 events
-    for time in range(1, 7):
-        for day in range(1, 8):
-            if (day, time) in cards:
-                for card in cards[(day, time)]:
-                    for week in card['week']:
-                        dtstart = _get_datetime(week, day, get_time(time)[0], semester)
-                        dtend = _get_datetime(week, day, get_time(time)[1], semester)
+    with tracer.trace("add_events"):
+        # 创建 events
+        for time in range(1, 7):
+            for day in range(1, 8):
+                if (day, time) in cards:
+                    for card in cards[(day, time)]:
+                        for week in card['week']:
+                            dtstart = _get_datetime(week, day, get_time(time)[0], semester)
+                            dtend = _get_datetime(week, day, get_time(time)[1], semester)
 
-                        if dtstart.year == 1984:
-                            continue
+                            if dtstart.year == 1984:
+                                continue
 
-                        cal.add_component(_build_event(card_name=card['name'],
-                                                       times=(dtstart, dtend),
-                                                       classroom=card['classroom'],
-                                                       teacher=card['teacher'],
-                                                       week_string=card['week_string'],
-                                                       current_week=week,
-                                                       cid=card['cid']))
-    return cal.to_ical().decode(encoding='utf-8')
+                            cal.add_component(_build_event(card_name=card['name'],
+                                                           times=(dtstart, dtend),
+                                                           classroom=card['classroom'],
+                                                           teacher=card['teacher'],
+                                                           week_string=card['week_string'],
+                                                           current_week=week,
+                                                           cid=card['cid']))
+
+    with tracer.trace("to_ical"):
+        ics_string = cal.to_ical().decode(encoding='utf-8')
+
+    return ics_string
 
 
 def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[int, int, int]) -> datetime:
