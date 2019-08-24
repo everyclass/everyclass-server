@@ -1,6 +1,5 @@
 import datetime
 import logging
-import os
 
 import gc
 from ddtrace import tracer
@@ -152,21 +151,6 @@ def create_app() -> Flask:
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-    from everyclass.server.utils.log import CustomisedJSONFormatter
-    formatter = CustomisedJSONFormatter()
-
-    log_path = _config.LOG_PATH
-
-    try:
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
-
-        file_handler = logging.FileHandler(filename=os.path.join(log_path + 'app.log'))
-        file_handler.setFormatter(formatter)
-        logging.getLogger().addHandler(file_handler)  # add to root logger
-    except OSError as e:
-        logging.warning(f"Makedir failed: {e}, ignore file_handler log handler.")
-
     # CDN
     CDN(app)
 
@@ -207,8 +191,8 @@ def create_app() -> Flask:
 
     @app.before_request
     def log_request():
-        from everyclass.server.utils.log import log_request as log
-        log()
+        """日志中记录请求"""
+        logger.info('Request received', extra={"method": request.method, "path": request.path})
 
     @app.before_request
     def delete_old_session():

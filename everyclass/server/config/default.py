@@ -213,4 +213,3 @@ class Config(object):
                                 "RESOURCE_IDENTIFIER_ENCRYPTION_KEY"
                                 )
 
-    LOG_PATH = "/var/log/app/"
