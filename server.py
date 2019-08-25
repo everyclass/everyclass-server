@@ -6,8 +6,11 @@ from ddtrace import patch_all, tracer
 from everyclass.server import create_app
 
 patch_all()
-tracer.configure(hostname=os.environ['DD_AGENT_HOST'],
-                 port=os.environ['DD_TRACE_AGENT_PORT'])
+if os.environ.get("DD_AGENT_HOST", None) and os.environ.get("DD_TRACE_AGENT_PORT", None):
+    tracer.configure(hostname=os.environ['DD_AGENT_HOST'],
+                     port=os.environ['DD_TRACE_AGENT_PORT'])
+else:
+    print("WARNING: or DD_TRACE_AGENT_PORT not set, ignore configuring datadog tracer.")
 
 app = create_app()
 

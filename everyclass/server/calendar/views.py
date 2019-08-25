@@ -1,13 +1,24 @@
 """
 日历相关函数
 """
+import os
+from collections import defaultdict
 from typing import Dict, List, Tuple
 
 from ddtrace import tracer
-from flask import Blueprint, Response
+from flask import Blueprint, abort, current_app as app, jsonify, redirect, render_template, request, \
+    send_from_directory, url_for
 
+from everyclass.rpc.api_server import APIServer, teacher_list_to_name_str
+from everyclass.server import logger
+from everyclass.server.calendar import ics_generator
+from everyclass.server.consts import MSG_400, MSG_INVALID_IDENTIFIER
+from everyclass.server.db.dao import CalendarToken, PrivacySettings, Redis, User
+from everyclass.server.models import Semester
+from everyclass.server.utils import calendar_dir, is_valid_uuid, lesson_string_to_tuple
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance
+from everyclass.server.utils.resource_identifier_encrypt import decrypt
 from everyclass.server.utils.rpc import handle_exception_with_error_page
 
 cal_blueprint = Blueprint('calendar', __name__)
@@ -17,14 +28,6 @@ cal_blueprint = Blueprint('calendar', __name__)
 @disallow_in_maintenance
 def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
-    from flask import current_app as app, render_template, url_for
-
-    from everyclass.server.db.dao import CalendarToken
-    from everyclass.server.consts import MSG_400
-    from everyclass.rpc.api_server import APIServer
-    from everyclass.server.utils.resource_identifier_encrypt import decrypt
-    from everyclass.server.consts import MSG_INVALID_IDENTIFIER
-
     # 检查 URL 参数
     try:
         res_type, res_id = decrypt(url_res_identifier)
@@ -66,28 +69,38 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
                            android_client_url=app.config['ANDROID_CLIENT_URL'])
 
 
+SECONDS_IN_ONE_DAY = 60 * 60 * 24
+
+
 @cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
 @disallow_in_maintenance
 def ics_download(calendar_token: str):
     """
-    iCalendar ics file download
+    iCalendar ics 文件下载
 
-    因为课表会更新，所以 ics 文件只能在这里动态生成，不能在日历订阅页面就生成
+    2019-8-25 改为预先缓存文件而非每次动态生成，降低 CPU 压力。如果一小时内两次访问则强刷缓存。
     """
-    from collections import defaultdict
+    import time
 
-    from everyclass.server.db.dao import CalendarToken
-    from everyclass.server.models import Semester
-    from everyclass.server.calendar import ics_generator
-    from everyclass.rpc.api_server import APIServer, teacher_list_to_name_str
-    from everyclass.server.utils import lesson_string_to_tuple
+    if not is_valid_uuid(calendar_token):
+        return 'invalid calendar token', 404
 
     result = CalendarToken.find_calendar_token(token=calendar_token)
     if not result:
         return 'invalid calendar token', 404
-
     CalendarToken.update_last_used_time(calendar_token)
 
+    cal_dir = calendar_dir()
+    cal_filename = calendar_token + ".ics"
+    cal_full_path = os.path.join(cal_dir, cal_filename)
+    # 有缓存、且缓存时间小于一天，且不用强刷缓存
+    if os.path.exists(cal_full_path) \
+            and time.time() - os.path.getmtime(cal_full_path) < SECONDS_IN_ONE_DAY \
+            and Redis.calendar_token_use_cache(calendar_token):
+        logger.info("ics cache hit")
+        return send_from_directory(cal_dir, cal_filename, as_attachment=True, mimetype='text/calendar')
+
+    # 无缓存、或需要强刷缓存
     with tracer.trace('rpc'):
         # 获得原始学号或教工号
         if result['type'] == 'student':
@@ -108,14 +121,12 @@ def ics_download(calendar_token: str):
                                            classroom=card.room,
                                            cid=card.card_id_encoded))
 
-    with tracer.trace('ics_generate'):
-        ics_content = ics_generator.generate(name=rpc_result.name,
-                                             cards=cards,
-                                             semester=semester)
+    ics_generator.generate(name=rpc_result.name,
+                           cards=cards,
+                           semester=semester,
+                           ics_token=calendar_token)
 
-    r = Response(response=ics_content, mimetype='text/calendar')
-    r.headers['Content-Disposition'] = f'attachment;filename={calendar_token}.ics'  # 作为附件下载
-    return r
+    return send_from_directory(cal_dir, cal_filename, as_attachment=True, mimetype='text/calendar')
 
 
 @cal_blueprint.route('/calendar/ics/_androidClient/<identifier>')
@@ -123,9 +134,6 @@ def ics_download(calendar_token: str):
 def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
-    from flask import jsonify
-    from everyclass.rpc.api_server import APIServer
-
     try:
         search_result = APIServer.search(identifier)
     except Exception as e:
@@ -152,12 +160,6 @@ def android_client_get_ics(resource_type, identifier, semester):
     If the privacy mode is on and there is no HTTP basic authentication, return a 401(unauthorized)
     status code and the Android client ask user for password to try again.
     """
-    from flask import redirect, url_for, request
-
-    from everyclass.server.db.dao import PrivacySettings, CalendarToken, User
-    from everyclass.rpc.api_server import APIServer
-    from everyclass.server.utils.resource_identifier_encrypt import decrypt
-
     # 检查 URL 参数
     try:
         res_type, res_id = decrypt(identifier)
@@ -207,12 +209,6 @@ def legacy_get_ics(student_id, semester_str):
     """
     早期 iCalendar 订阅端点，出于兼容性考虑保留，仅支持未设定隐私等级的学生，其他情况使用新的日历订阅令牌获得 ics 文件。
     """
-    from flask import abort, redirect, url_for
-
-    from everyclass.server.db.dao import PrivacySettings, CalendarToken
-    from everyclass.rpc.api_server import APIServer
-    from everyclass.server.models import Semester
-
     # fix parameters
     place = student_id.find('-')
     semester_str = student_id[place + 1:len(student_id)] + '-' + semester_str

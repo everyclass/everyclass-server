@@ -16,6 +16,7 @@ CREATE EXTENSION hstore SCHEMA everyclass_server;
 """
 import abc
 import datetime
+import time
 import uuid
 from typing import Dict, List, Optional, Union, overload
 
@@ -826,6 +827,9 @@ class CourseReview(MongoDAOBase):
         db.get_collection(cls.collection_name).create_index([("cotc_id", 1)], unique=True)
 
 
+SECONDS_IN_HOUR = 60 * 60
+
+
 class Redis:
     prefix = "ec_sv"
 
@@ -865,6 +869,39 @@ class Redis:
     def new_cotc_id(cls) -> int:
         """生成新的 ID（自增）"""
         return redis.incr("{}:cotc_id_sequence".format(cls.prefix))
+
+    @classmethod
+    def calendar_token_use_cache(cls, token: str) -> bool:
+        """
+        漏桶算法决定是否使用缓存好了的文件。目前规则为一小时内第二次刷新则不使用缓存
+
+        :param token: 日历令牌，字符串类型的 UUID
+        :return: 表示是否使用缓存的布尔值
+        """
+
+        def set_current():
+            redis.set(key, f"{str(int(time.time()))},1")  # 一次过期
+
+        key = f"{cls.prefix}:cal_tkn:{token}"
+        r = redis.get(key)
+        if not r:
+            set_current()
+            return True
+
+        timestamp, times = map(int, r.decode().split(","))
+
+        if int(time.time()) - timestamp < SECONDS_IN_HOUR:  # 周期内，根据次数判断
+            if times - 1 == 0:
+                # 周期内缓存次数用完
+                set_current()
+                return False
+            else:
+                # 缓存次数没用完
+                redis.set(key, f"{str(timestamp)},{str(times - 1)}")
+                return True
+        else:
+            # 超过周期，可使用缓存
+            return True
 
 
 def init_mongo():

@@ -3,6 +3,7 @@ This is module to generate .ics file. Should follow RFC2445 standard.
 https://tools.ietf.org/html/rfc2445
 """
 import hashlib
+import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
@@ -12,7 +13,7 @@ from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.server.config import get_config
 from everyclass.server.models import Semester
-from everyclass.server.utils import get_time
+from everyclass.server.utils import calendar_dir, get_time
 
 tzc = Timezone()
 tzc.add('tzid', 'Asia/Shanghai')
@@ -24,7 +25,7 @@ tzs.add('TZOFFSETFROM', timedelta(hours=8))
 tzs.add('TZOFFSETTO', timedelta(hours=8))
 
 
-def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Semester) -> str:
+def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Semester, ics_token: str) -> None:
     """
     生成 ics 文件并保存到目录
 
@@ -71,10 +72,9 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
                                                            current_week=week,
                                                            cid=card['cid']))
 
-    with tracer.trace("to_ical"):
-        ics_string = cal.to_ical().decode(encoding='utf-8')
-
-    return ics_string
+    with tracer.trace("write_file"):
+        with open(os.path.join(calendar_dir(), f'calendar_files/{ics_token}.ics'), 'w') as f:
+            f.write(cal.to_ical().decode(encoding='utf-8'))
 
 
 def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[int, int, int]) -> datetime:
