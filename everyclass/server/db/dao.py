@@ -873,14 +873,14 @@ class Redis:
     @classmethod
     def calendar_token_use_cache(cls, token: str) -> bool:
         """
-        漏桶算法决定是否使用缓存好了的文件。目前规则为一小时内第二次刷新则不使用缓存
+        漏桶算法决定是否使用缓存好了的文件。目前规则为一小时内第三次刷新则不使用缓存
 
         :param token: 日历令牌，字符串类型的 UUID
         :return: 表示是否使用缓存的布尔值
         """
 
         def set_current():
-            redis.set(key, f"{str(int(time.time()))},1")  # 一次过期
+            redis.set(key, f"{str(int(time.time()))},2")  # 一次过期
 
         key = f"{cls.prefix}:cal_tkn:{token}"
         r = redis.get(key)

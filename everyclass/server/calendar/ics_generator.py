@@ -73,7 +73,7 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
                                                            cid=card['cid']))
 
     with tracer.trace("write_file"):
-        with open(os.path.join(calendar_dir(), f'calendar_files/{ics_token}.ics'), 'w') as f:
+        with open(os.path.join(calendar_dir(), f'{ics_token}.ics'), 'w') as f:
             f.write(cal.to_ical().decode(encoding='utf-8'))
 
 

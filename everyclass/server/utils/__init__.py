@@ -114,7 +114,7 @@ def calendar_dir() -> str:
     """获得日历文件路径。生产环境为/var/calendar_files/，否则为程序根目录下的calendar_files文件夹。"""
     if os.environ.get("MODE", None) == "PRODUCTION":
         return "/var/calendar_files/"
-    return current_app.instance_path + "/calendar_files/"
+    return current_app.root_path + "/../../calendar_files/"
 
 
 def is_valid_uuid(uuid_to_test, version=4):
