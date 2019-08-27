@@ -173,6 +173,9 @@ class Config(object):
                     "to": None
                 }
             }
+        },
+        (2019, 2020, 2): {
+            "start": (2019, 8, 26),
         }
     }
 
