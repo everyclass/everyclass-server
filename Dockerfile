@@ -44,6 +44,8 @@ RUN pip3 install --upgrade pip \
     && rm -r /root/.cache \
     && chmod +x ./deploy/docker-cmd.sh
 
+RUN mkdir -p /var/calendar_files
+
 ENV UWSGI_HTTP_SOCKET ":80"
 
 CMD ["deploy/docker-cmd.sh"]
