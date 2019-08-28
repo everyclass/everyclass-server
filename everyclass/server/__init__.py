@@ -207,7 +207,7 @@ def create_app() -> Flask:
     @app.before_request
     def log_request():
         """日志中记录请求"""
-        logger.info('Request received', extra={"method": request.method, "path": request.path})
+        logger.info(f'Request received: {request.method} {request.path}')
 
     @app.before_request
     def delete_old_session():
