@@ -195,6 +195,7 @@ class Config(object):
     # define available environments for logs, APM and error tracking
     SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing', 'development')
     APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
+    METRICS_AVAILABLE_IN = ('production', 'staging')
 
     # fields that should be overwritten in production environment
     PRODUCTION_OVERWRITE_FIELDS = ('SECRET_KEY',
@@ -209,10 +210,10 @@ class Config(object):
                                 "MYSQL_CONFIG.passwd",
                                 "REDIS.password",
                                 "MONGODB.password",
-                                "ELASTIC_APM.SECRET_TOKEN",
                                 "MAINTENANCE_CREDENTIALS",
                                 "SECRET_KEY",
                                 "TENCENT_CAPTCHA_SECRET",
-                                "RESOURCE_IDENTIFIER_ENCRYPTION_KEY"
+                                "RESOURCE_IDENTIFIER_ENCRYPTION_KEY",
+                                "API_SERVER_TOKEN"
                                 )
 

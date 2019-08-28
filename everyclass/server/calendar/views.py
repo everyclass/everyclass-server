@@ -81,6 +81,7 @@ def ics_download(calendar_token: str):
     2019-8-25 改为预先缓存文件而非每次动态生成，降低 CPU 压力。如果一小时内两次访问则强刷缓存。
     """
     import time
+    from everyclass.server import statsd
 
     if not is_valid_uuid(calendar_token):
         return 'invalid calendar token', 404
@@ -98,7 +99,9 @@ def ics_download(calendar_token: str):
             and time.time() - os.path.getmtime(cal_full_path) < SECONDS_IN_ONE_DAY \
             and Redis.calendar_token_use_cache(calendar_token):
         logger.info("ics cache hit")
+        statsd.increment("calendar.ics.cache.hit")
         return send_from_directory(cal_dir, cal_filename, as_attachment=True, mimetype='text/calendar')
+    statsd.increment("calendar.ics.cache.miss")
 
     # 无缓存、或需要强刷缓存
     with tracer.trace('rpc'):

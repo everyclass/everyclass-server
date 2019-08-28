@@ -44,7 +44,9 @@ RUN pip3 install --upgrade pip \
     && rm -r /root/.cache \
     && chmod +x ./deploy/docker-cmd.sh
 
-RUN mkdir -p /var/calendar_files
+RUN mkdir -p /var/calendar_files \
+    && mkdir -p /var/run/datadog \
+    && touch /var/run/datadog/dsd.socket
 
 ENV UWSGI_HTTP_SOCKET ":80"
 

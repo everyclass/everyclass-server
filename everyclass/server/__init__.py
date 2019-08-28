@@ -2,6 +2,7 @@ import datetime
 import logging
 
 import gc
+from datadog import DogStatsd
 from ddtrace import tracer
 from flask import Flask, g, redirect, render_template, request, session
 from flask_cdn import CDN
@@ -11,8 +12,11 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 
+from everyclass.server.utils import plugin_available
+
 logger = logging.getLogger(__name__)
 sentry = Sentry()
+statsd = None
 __app = None
 __load_time = datetime.datetime.now()
 
@@ -30,13 +34,13 @@ try:
         gc.set_threshold(700)
 
     @uwsgidecorators.postfork
-    def init_log_handlers():
-        """初始化 log handlers 并将当前配置信息打 log"""
+    def init_plugins():
+        """初始化日志、错误追踪、打点插件"""
         from everyclass.server.config import print_config
         from everyclass.rpc import init as init_rpc
 
         # Sentry
-        if __app.config['CONFIG_NAME'] in __app.config['SENTRY_AVAILABLE_IN']:
+        if plugin_available("sentry"):
             sentry.init_app(app=__app)
             sentry_handler = SentryHandler(sentry.client)
             sentry_handler.setLevel(logging.WARNING)
@@ -44,6 +48,10 @@ try:
 
             init_rpc(sentry=sentry)
             logger.info('Sentry is inited because you are in {} mode.'.format(__app.config['CONFIG_NAME']))
+
+        # metrics
+        global statsd
+        statsd = DogStatsd(namespace=__app.config['SERVICE_NAME'], use_default_route=True)
 
         init_rpc(logger=logger)
 
@@ -55,6 +63,7 @@ try:
             logger.warning('App (re)started in `{0}` environment'
                            .format(__app.config['CONFIG_NAME']))
             print_config(__app, logger)
+
 
     @uwsgidecorators.postfork
     def init_db():
@@ -70,6 +79,7 @@ try:
         """初始化服务器端 session"""
         __app.config['SESSION_MONGODB'] = __app.mongo
         Session(__app)
+
 
     @uwsgidecorators.postfork
     def fetch_remote_manifests():
