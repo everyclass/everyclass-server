@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 
 import gc
 from datadog import DogStatsd
@@ -51,7 +52,8 @@ try:
 
         # metrics
         global statsd
-        statsd = DogStatsd(namespace=__app.config['SERVICE_NAME'], use_default_route=True)
+        statsd = DogStatsd(namespace=f"{__app.config['SERVICE_NAME']}.{os.environ.get('MODE').lower()}",
+                           use_default_route=True)
 
         init_rpc(logger=logger)
 
