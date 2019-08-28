@@ -194,8 +194,6 @@ class Config(object):
 
     # define available environments for logs, APM and error tracking
     SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing', 'development')
-    APM_AVAILABLE_IN = ('production', 'staging', 'testing',)
-    METRICS_AVAILABLE_IN = ('production', 'staging')
 
     # fields that should be overwritten in production environment
     PRODUCTION_OVERWRITE_FIELDS = ('SECRET_KEY',

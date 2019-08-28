@@ -32,8 +32,11 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
     :param name: 姓名
     :param cards: 参与的课程
     :param semester: 当前导出的学期
+    :param ics_token: 日历令牌
     :return: None
     """
+    from everyclass.server import statsd
+
     with tracer.trace("calendar_init"):
         semester_string = semester.to_str(simplify=True)
         semester = semester.to_tuple()
@@ -73,8 +76,10 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
                                                            cid=card['cid']))
 
     with tracer.trace("write_file"):
-        with open(os.path.join(calendar_dir(), f'{ics_token}.ics'), 'w') as f:
-            f.write(cal.to_ical().decode(encoding='utf-8'))
+        with open(os.path.join(calendar_dir(), f'{ics_token}.ics'), 'wb') as f:
+            data = cal.to_ical()
+            statsd.histogram('calendar.ics.generate.size', len(data))
+            f.write(data)
 
 
 def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[int, int, int]) -> datetime:
