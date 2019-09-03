@@ -196,13 +196,14 @@ def create_app() -> Flask:
         from everyclass.server.consts import SESSION_CURRENT_USER
 
         if not session.get('user_id', None) and request.endpoint != "main.health_check":
-            session['user_id'] = new_user_id_sequence()
+            session['user_id'] = new_user_id_sequence()  # todo 确认下 health check 会不会走到这里来
         if session.get('user_id', None):
             logger.info('Got user ID. Add tag to tracer.')
             tracer.current_span().set_tag("user_id", session['user_id'])  # 唯一用户 ID
         if session.get(SESSION_CURRENT_USER, None):
             logger.info('Got student ID. Add tag to tracer.')
             tracer.current_span().set_tag("username", session[SESSION_CURRENT_USER])  # 学号
+        tracer.current_span().set_tag("test", "test")
 
     @app.before_request
     def log_request():
