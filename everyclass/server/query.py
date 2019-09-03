@@ -55,8 +55,8 @@ def query():
     # 不同类型渲染不同模板
     if len(rpc_result.classrooms) >= 1:  # 优先展示教室
         # 我们在 kibana 中使用服务名过滤 apm 文档，所以 tag 不用增加服务名前缀
-        tracer.current_span().set_tag("query_resource_type", "classroom")
-        tracer.current_span().set_tag("query_type", "by_name")
+        tracer.current_root_span().set_tag("query_resource_type", "classroom")
+        tracer.current_root_span().set_tag("query_type", "by_name")
 
         if len(rpc_result.classrooms) > 1:  # 多个教室选择
             return render_template('query/multipleClassroomChoice.html',
@@ -65,11 +65,11 @@ def query():
         return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id_encoded,
                                                   rpc_result.classrooms[0].semesters[-1]))
     elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # 一个学生
-        tracer.current_span().set_tag("query_resource_type", "single_student")
+        tracer.current_root_span().set_tag("query_resource_type", "single_student")
         if contains_chinese(keyword):
-            tracer.current_span().set_tag("query_type", "by_name")
+            tracer.current_root_span().set_tag("query_type", "by_name")
         else:
-            tracer.current_span().set_tag("query_type", "by_id")
+            tracer.current_root_span().set_tag("query_type", "by_id")
 
         if len(rpc_result.students[0].semesters) < 1:
             flash('没有可用学期')
@@ -78,11 +78,11 @@ def query():
         return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id_encoded,
                                                 rpc_result.students[0].semesters[-1]))
     elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # 一个老师
-        tracer.current_span().set_tag("query_resource_type", "single_teacher")
+        tracer.current_root_span().set_tag("query_resource_type", "single_teacher")
         if contains_chinese(keyword):
-            tracer.current_span().set_tag("query_type", "by_name")
+            tracer.current_root_span().set_tag("query_type", "by_name")
         else:
-            tracer.current_span().set_tag("query_type", "by_id")
+            tracer.current_root_span().set_tag("query_type", "by_id")
 
         if len(rpc_result.teachers[0].semesters) < 1:
             flash('没有可用学期')
@@ -92,13 +92,13 @@ def query():
                                                 rpc_result.teachers[0].semesters[-1]))
     elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
-        tracer.current_span().set_tag("query_resource_type", "multiple_people")
+        tracer.current_root_span().set_tag("query_resource_type", "multiple_people")
 
         if contains_chinese(keyword):
-            tracer.current_span().set_tag("query_type", "by_name")
+            tracer.current_root_span().set_tag("query_type", "by_name")
 
         else:
-            tracer.current_span().set_tag("query_type", "by_id")
+            tracer.current_root_span().set_tag("query_type", "by_id")
 
         return render_template('query/peopleWithSameName.html',
                                name=keyword,
@@ -106,8 +106,8 @@ def query():
                                teachers=rpc_result.teachers)
     else:
         logger.info("No result for user search", extra={"keyword": request.values.get('id')})
-        tracer.current_span().set_tag("query_resource_type", "not_exist")
-        tracer.current_span().set_tag("query_type", "other")
+        tracer.current_root_span().set_tag("query_resource_type", "not_exist")
+        tracer.current_root_span().set_tag("query_type", "other")
 
         flash('没有找到任何有关 {} 的信息，如果你认为这不应该发生，请联系我们。'.format(escape(request.values.get('id'))))
         return redirect(url_for('main.main'))
