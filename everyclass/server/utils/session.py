@@ -1,4 +1,5 @@
 # https://github.com/SaintFlipper/EncryptedSession/blob/master/main.py
+import _pickle
 import base64
 import pickle
 import zlib
@@ -67,7 +68,7 @@ class EncryptedSessionInterface(SessionInterface):
 
             return self.session_class(session_dict)
 
-        except ValueError:
+        except (ValueError, _pickle.UnpicklingError, pickle.UnpicklingError):
             return self.session_class()
 
     def save_session(self, app, session, response):
