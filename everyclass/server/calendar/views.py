@@ -92,7 +92,7 @@ def ics_download(calendar_token: str):
     CalendarToken.update_last_used_time(calendar_token)
 
     cal_dir = calendar_dir()
-    cal_filename = f"{result[0]}_{result[1]}.ics"
+    cal_filename = f"{result['type']}_{result['identifier']}.ics"
     cal_full_path = os.path.join(cal_dir, cal_filename)
     # 有缓存、且缓存时间小于一天，且不用强刷缓存
     if os.path.exists(cal_full_path) \
