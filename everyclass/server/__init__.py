@@ -195,9 +195,9 @@ def create_app() -> Flask:
         """在请求之前设置 session uid，方便 APM 标识用户"""
         from everyclass.server.consts import SESSION_CURRENT_USER
 
-        if not session.get('user_id', None) and request.endpoint != "main.health_check":
-            logger.info("Give a new user ID for new user")
-            session['user_id'] = new_user_id_sequence()  # todo 确认下 health check 会不会走到这里来
+        if not session.get('user_id', None) and request.endpoint not in ("main.health_check", "static"):
+            logger.info(f"Give a new user ID for new user. endpoint: {request.endpoint}")
+            session['user_id'] = new_user_id_sequence()
         if session.get('user_id', None):
             tracer.current_root_span().set_tag("user_id", session['user_id'])  # 唯一用户 ID
         if session.get(SESSION_CURRENT_USER, None):
