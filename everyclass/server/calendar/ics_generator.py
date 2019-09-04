@@ -32,7 +32,7 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
     :param name: 姓名
     :param cards: 参与的课程
     :param semester: 当前导出的学期
-    :param filename: 输出的文件名称
+    :param filename: 输出的文件名称，带后缀
     :return: None
     """
     from everyclass.server import statsd
@@ -76,7 +76,7 @@ def generate(name: str, cards: Dict[Tuple[int, int], List[Dict]], semester: Seme
                                                            cid=card['cid']))
 
     with tracer.trace("write_file"):
-        with open(os.path.join(calendar_dir(), f'{filename}.ics'), 'wb') as f:
+        with open(os.path.join(calendar_dir(), filename), 'wb') as f:
             data = cal.to_ical()
             statsd.histogram('calendar.ics.generate.size', len(data))
             f.write(data)
