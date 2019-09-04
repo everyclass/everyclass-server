@@ -8,12 +8,12 @@ from ddtrace import tracer
 from flask import Flask, g, redirect, render_template, request, session
 from flask_cdn import CDN
 from flask_moment import Moment
-from flask_session import Session
 from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 
 from everyclass.server.utils import plugin_available
+from everyclass.server.utils.session import EncryptedSessionInterface
 
 logger = logging.getLogger(__name__)
 sentry = Sentry()
@@ -75,12 +75,6 @@ try:
 
         init_mongo(__app)
         init_pg(__app)
-
-    @uwsgidecorators.postfork
-    def init_session():
-        """初始化服务器端 session"""
-        __app.config['SESSION_MONGODB'] = __app.mongo
-        Session(__app)
 
 
     @uwsgidecorators.postfork
@@ -169,6 +163,9 @@ def create_app() -> Flask:
 
     # moment
     Moment(app)
+
+    # encrypted session
+    app.session_interface = EncryptedSessionInterface()
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint

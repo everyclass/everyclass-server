@@ -85,12 +85,6 @@ class Config(object):
     }
     POSTGRES_SCHEMA = 'everyclass_server'
 
-    # server side session
-    SESSION_TYPE = 'mongodb'
-    SESSION_MONGODB = None  # lazy init after fork
-    SESSION_MONGODB_DB = LazyRefType("MONGODB_DB")
-    SESSION_MONGODB_COLLECT = 'session'
-
     # Sentry, APM and logstash
     SENTRY_CONFIG = {
         'dsn'    : '',
@@ -188,6 +182,7 @@ class Config(object):
     DEFAULT_PRIVACY_LEVEL = 0
 
     RESOURCE_IDENTIFIER_ENCRYPTION_KEY = 'z094gikTit;5gt5h'
+    SESSION_CRYPTO_KEY = b'\xcb\xf2\x19H\xd9l\x05\xc7j\xb2\xd0^}B*\x8d\xb6\x8aPd\x1c%\x83\x1e_\xf0\xb9C\xa9XOC'
 
     TENCENT_CAPTCHA_AID = ''
     TENCENT_CAPTCHA_SECRET = ''
@@ -199,7 +194,8 @@ class Config(object):
     PRODUCTION_OVERWRITE_FIELDS = ('SECRET_KEY',
                                    'TENCENT_CAPTCHA_AID',
                                    'TENCENT_CAPTCHA_SECRET',
-                                   'RESOURCE_IDENTIFIER_ENCRYPTION_KEY'
+                                   'RESOURCE_IDENTIFIER_ENCRYPTION_KEY',
+                                   'SESSION_CRYPTO_KEY'
                                    )
 
     # fields that should not be in log
@@ -212,6 +208,7 @@ class Config(object):
                                 "SECRET_KEY",
                                 "TENCENT_CAPTCHA_SECRET",
                                 "RESOURCE_IDENTIFIER_ENCRYPTION_KEY",
-                                "API_SERVER_TOKEN"
+                                "API_SERVER_TOKEN",
+                                "SESSION_CRYPTO_KEY"
                                 )
 
