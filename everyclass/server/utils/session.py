@@ -2,7 +2,6 @@
 import base64
 import pickle
 import zlib
-from json import JSONDecoder, JSONEncoder
 
 from Crypto.Cipher import AES
 from flask.sessions import SessionInterface, SessionMixin
@@ -88,7 +87,6 @@ class EncryptedSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
 
         # Decide whether to compress
-        # bdict = bytes(json.dumps(dict(session), cls=BinaryAwareJSONEncoder), 'utf-8')
         bdict = pickle.dumps(dict(session))
         if len(bdict) > self.compress_threshold:
             prefix = "z"  # session cookie for compressed data starts with "z."
@@ -117,42 +115,3 @@ class EncryptedSessionInterface(SessionInterface):
         response.set_cookie(self.session_cookie_name, session_cookie,
                             expires=expires, httponly=True,
                             domain=domain)
-
-
-class BinaryAwareJSONEncoder(JSONEncoder):
-    """
-    Converts a python object, where binary data is converted into an object
-    that can be decoded using the BinaryAwareJSONDecoder.
-    """
-
-    def default(self, obj):
-        if isinstance(obj, bytes):
-            return {
-                '__type__': 'bytes',
-                'b'       : base64.b64encode(obj).decode()
-            }
-
-        else:
-            return JSONEncoder.default(self, obj)
-
-
-class BinaryAwareJSONDecoder(JSONDecoder):
-    """
-    Converts a json string, where binary data was converted into objects form
-    using the BinaryAwareJSONEncoder, back into a python object.
-    """
-
-    def __init__(self):
-        JSONDecoder.__init__(self, object_hook=self.dict_to_object)
-
-    def dict_to_object(self, d):
-        if '__type__' not in d:
-            return d
-
-        typ = d.pop('__type__')
-        if typ == 'bytes':
-            return base64.b64decode(bytes(d['b'], 'utf-8'))
-        else:
-            # Oops... better put this back together.
-            d['__type__'] = typ
-            return d
