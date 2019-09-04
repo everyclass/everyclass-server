@@ -92,7 +92,7 @@ def ics_download(calendar_token: str):
     CalendarToken.update_last_used_time(calendar_token)
 
     cal_dir = calendar_dir()
-    cal_filename = calendar_token + ".ics"
+    cal_filename = f"{result[0]}_{result[1]}.ics"
     cal_full_path = os.path.join(cal_dir, cal_filename)
     # 有缓存、且缓存时间小于一天，且不用强刷缓存
     if os.path.exists(cal_full_path) \
@@ -127,7 +127,7 @@ def ics_download(calendar_token: str):
     ics_generator.generate(name=rpc_result.name,
                            cards=cards,
                            semester=semester,
-                           ics_token=calendar_token)
+                           filename=cal_filename)
 
     return send_from_directory(cal_dir, cal_filename, as_attachment=True, mimetype='text/calendar')
 
