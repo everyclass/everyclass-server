@@ -1,6 +1,6 @@
 # https://github.com/SaintFlipper/EncryptedSession/blob/master/main.py
 import base64
-import json
+import pickle
 import zlib
 from json import JSONDecoder, JSONEncoder
 
@@ -64,7 +64,7 @@ class EncryptedSessionInterface(SessionInterface):
             # Convert back to a dict and pass that onto the session
             if is_compressed:
                 data = zlib.decompress(data)
-            session_dict = json.loads(str(data, 'utf-8'), cls=BinaryAwareJSONDecoder)
+            session_dict = pickle.loads(data)
 
             return self.session_class(session_dict)
 
@@ -88,7 +88,8 @@ class EncryptedSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
 
         # Decide whether to compress
-        bdict = bytes(json.dumps(dict(session), cls=BinaryAwareJSONEncoder), 'utf-8')
+        # bdict = bytes(json.dumps(dict(session), cls=BinaryAwareJSONEncoder), 'utf-8')
+        bdict = pickle.dumps(dict(session))
         if len(bdict) > self.compress_threshold:
             prefix = "z"  # session cookie for compressed data starts with "z."
             bdict = zlib.compress(bdict)
