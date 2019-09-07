@@ -9,7 +9,7 @@ from ddtrace import tracer
 from flask import Blueprint, abort, current_app as app, jsonify, redirect, render_template, request, \
     send_from_directory, url_for
 
-from everyclass.rpc.api_server import APIServer, teacher_list_to_name_str
+from everyclass.rpc.entity import Entity, teacher_list_to_name_str
 from everyclass.server import logger
 from everyclass.server.calendar import ics_generator
 from everyclass.server.consts import MSG_400, MSG_INVALID_IDENTIFIER
@@ -38,7 +38,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
 
     if url_res_type == 'student':
         try:
-            student = APIServer.get_student_timetable(res_id, url_semester)
+            student = Entity.get_student_timetable(res_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -52,7 +52,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
                                                         semester=url_semester)
     else:
         try:
-            teacher = APIServer.get_teacher_timetable(res_id, url_semester)
+            teacher = Entity.get_teacher_timetable(res_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -107,10 +107,10 @@ def ics_download(calendar_token: str):
     with tracer.trace('rpc'):
         # 获得原始学号或教工号
         if result['type'] == 'student':
-            rpc_result = APIServer.get_student_timetable(result['identifier'], result['semester'])
+            rpc_result = Entity.get_student_timetable(result['identifier'], result['semester'])
         else:
             # teacher
-            rpc_result = APIServer.get_teacher_timetable(result['identifier'], result['semester'])
+            rpc_result = Entity.get_teacher_timetable(result['identifier'], result['semester'])
 
         semester = Semester(result['semester'])
 
@@ -138,7 +138,7 @@ def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
     try:
-        search_result = APIServer.search(identifier)
+        search_result = Entity.search(identifier)
     except Exception as e:
         return handle_exception_with_error_page(e)
 
@@ -173,7 +173,7 @@ def android_client_get_ics(resource_type, identifier, semester):
 
     if resource_type == 'teacher':
         try:
-            teacher = APIServer.get_teacher_timetable(res_id, semester)
+            teacher = Entity.get_teacher_timetable(res_id, semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -183,7 +183,7 @@ def android_client_get_ics(resource_type, identifier, semester):
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:  # student
         try:
-            student = APIServer.get_student_timetable(res_id, semester)
+            student = Entity.get_student_timetable(res_id, semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -219,7 +219,7 @@ def legacy_get_ics(student_id, semester_str):
 
     semester = Semester(semester_str)
 
-    search_result = APIServer.search(student_id)
+    search_result = Entity.search(student_id)
 
     if len(search_result.students) != 1:
         # bad request

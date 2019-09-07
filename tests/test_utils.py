@@ -5,7 +5,7 @@ class UtilTest(unittest.TestCase):
     """everyclass/server/utils"""
 
     def test_weeks_to_string(self):
-        from everyclass.rpc.api_server import weeks_to_string
+        from everyclass.rpc.entity import weeks_to_string
         cases = (([1, 2, 3, 4, 5, 6, 7, 8], "1-8/周"),
                  ([1, 3, 5, 7], "1-7/单周"),
                  ([2, 4, 6, 8], "2-8/双周"),

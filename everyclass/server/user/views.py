@@ -3,8 +3,8 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 from zxcvbn import zxcvbn
 
 from everyclass.rpc import RpcResourceNotFound
-from everyclass.rpc.api_server import APIServer
 from everyclass.rpc.auth import Auth
+from everyclass.rpc.entity import Entity
 from everyclass.rpc.tencent_captcha import TencentCaptcha
 from everyclass.server import logger
 from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
@@ -26,7 +26,7 @@ def _session_save_student_to_register_(student_id: str):
     # 将需要注册的用户并保存到 SESSION_STUDENT_TO_REGISTER
     with tracer.trace('rpc_get_student'):
         try:
-            student = APIServer.get_student(student_id)
+            student = Entity.get_student(student_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -64,7 +64,7 @@ def login():
 
             # 检查学号是否存在
             try:
-                APIServer.get_student(student_id)
+                Entity.get_student(student_id)
             except RpcResourceNotFound:
                 flash(MSG_USERNAME_NOT_EXIST)
                 return redirect(url_for("user.login"))
@@ -88,7 +88,7 @@ def login():
 
         if success:
             try:
-                student = APIServer.get_student(student_id)
+                student = Entity.get_student(student_id)
             except Exception as e:
                 return handle_exception_with_error_page(e)
 
@@ -195,7 +195,7 @@ def email_verification():
 
         # 查询 api-server 获得学生基本信息
         try:
-            student = APIServer.get_student(sid_orig)
+            student = Entity.get_student(sid_orig)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -320,7 +320,7 @@ def register_by_password_status():
 
         # 从 api-server 查询学生基本信息
         try:
-            student = APIServer.get_student(verification_req["sid_orig"])
+            student = Entity.get_student(verification_req["sid_orig"])
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -357,7 +357,7 @@ def register_by_password_success():
 def main():
     """用户主页"""
     try:
-        student = APIServer.get_student(session[SESSION_CURRENT_USER].sid_orig)
+        student = Entity.get_student(session[SESSION_CURRENT_USER].sid_orig)
     except Exception as e:
         return handle_exception_with_error_page(e)
 

@@ -23,7 +23,7 @@ from typing import Dict, List, Optional, Union, overload
 from flask import session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from everyclass.rpc.api_server import CardResult, teacher_list_to_tid_str
+from everyclass.rpc.entity import CardResult, teacher_list_to_tid_str
 from everyclass.server.config import get_config
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.postgres import pg_conn_context
@@ -607,7 +607,7 @@ class VisitTrack(PostgresBase):
     @classmethod
     def get_visitors(cls, sid_orig: str) -> List[Dict]:
         """获得访客列表"""
-        from everyclass.rpc.api_server import APIServer
+        from everyclass.rpc.entity import Entity
 
         with pg_conn_context() as conn, conn.cursor() as cursor:
             select_query = """
@@ -620,7 +620,7 @@ class VisitTrack(PostgresBase):
         visitor_list = []
         for record in result:
             # query api-server
-            search_result = APIServer.search(record[0])
+            search_result = Entity.search(record[0])
 
             visitor_list.append({"name"         : search_result.students[0].name,
                                  "student_id"   : search_result.students[0].student_id_encoded,

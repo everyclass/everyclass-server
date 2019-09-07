@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 from ddtrace import tracer
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
-from everyclass.rpc.api_server import APIServer
+from everyclass.rpc.entity import Entity
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import COTeachingClass, CourseReview, Redis
@@ -48,7 +48,7 @@ def query():
     # 调用 api-server 搜索
     with tracer.trace('rpc_search'):
         try:
-            rpc_result = APIServer.search(keyword)
+            rpc_result = Entity.search(keyword)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -127,7 +127,7 @@ def get_student(url_sid: str, url_semester: str):
     # RPC 获得学生课表
     with tracer.trace('rpc_get_student_timetable'):
         try:
-            student = APIServer.get_student_timetable(student_id, url_semester)
+            student = Entity.get_student_timetable(student_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -181,7 +181,7 @@ def get_teacher(url_tid, url_semester):
     # RPC to get teacher timetable
     with tracer.trace('rpc_get_teacher_timetable'):
         try:
-            teacher = APIServer.get_teacher_timetable(teacher_id, url_semester)
+            teacher = Entity.get_teacher_timetable(teacher_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -222,7 +222,7 @@ def get_classroom(url_rid, url_semester):
     # RPC to get classroom timetable
     with tracer.trace('rpc_get_classroom_timetable'):
         try:
-            room = APIServer.get_classroom_timetable(url_semester, room_id)
+            room = Entity.get_classroom_timetable(url_semester, room_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -261,7 +261,7 @@ def get_card(url_cid: str, url_semester: str):
     # RPC to get card
     with tracer.trace('rpc_get_card'):
         try:
-            card = APIServer.get_card(url_semester, card_id)
+            card = Entity.get_card(url_semester, card_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
 

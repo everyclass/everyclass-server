@@ -2,7 +2,7 @@ from typing import Dict
 
 from flask import Blueprint, escape, flash, redirect, render_template, request, session, url_for
 
-from everyclass.rpc.api_server import APIServer, teacher_list_to_tid_str
+from everyclass.rpc.entity import Entity, teacher_list_to_tid_str
 from everyclass.server.consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
 from everyclass.server.db.dao import COTeachingClass, CourseReview
 from everyclass.server.utils.decorators import login_required
@@ -17,9 +17,9 @@ def is_taking(cotc: Dict) -> bool:
 
     if session.get(SESSION_CURRENT_USER, None):
         # 检查当前用户是否选了这门课
-        student = APIServer.get_student(session[SESSION_CURRENT_USER].sid_orig)
+        student = Entity.get_student(session[SESSION_CURRENT_USER].sid_orig)
         for semester in sorted(student.semesters, reverse=True):  # 新学期可能性大，学期从新到旧查找
-            timetable = APIServer.get_student_timetable(session[SESSION_CURRENT_USER].sid_orig, semester)
+            timetable = Entity.get_student_timetable(session[SESSION_CURRENT_USER].sid_orig, semester)
             for card in timetable.cards:
                 if card.course_id == cotc["course_id"] and cotc["teacher_id_str"] == teacher_list_to_tid_str(
                         card.teachers):
@@ -93,7 +93,7 @@ def edit_review(cotc_id: int):
             return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
 
         try:
-            student = APIServer.get_student(session[SESSION_CURRENT_USER].sid_orig)
+            student = Entity.get_student(session[SESSION_CURRENT_USER].sid_orig)
         except Exception as e:
             return handle_exception_with_error_page(e)
 

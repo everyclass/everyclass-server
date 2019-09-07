@@ -1,8 +1,8 @@
 import datetime
+import gc
 import logging
 import os
 
-import gc
 from datadog import DogStatsd
 from ddtrace import tracer
 from flask import Flask, g, redirect, render_template, request, session
@@ -21,7 +21,6 @@ statsd = None
 __app = None
 __load_time = datetime.datetime.now()
 
-
 try:
     import uwsgidecorators
 
@@ -29,10 +28,12 @@ try:
     使用 `uwsgidecorators.postfork` 装饰的函数会在 fork() 后的**每一个**子进程内被执行，执行顺序与这里的定义顺序一致
     """
 
+
     @uwsgidecorators.postfork
     def enable_gc():
         """重新启用垃圾回收"""
         gc.set_threshold(700)
+
 
     @uwsgidecorators.postfork
     def init_plugins():
@@ -178,10 +179,18 @@ def create_app() -> Flask:
     app.register_blueprint(main_blueprint)
     app.register_blueprint(user_bp, url_prefix='/user')
 
-    # 为 everyclass.rpc 模块注入 encrypt 函数
+    # 初始化 RPC 模块
     from everyclass.server.utils.resource_identifier_encrypt import encrypt
     from everyclass.rpc import init as init_rpc
-    init_rpc(resource_id_encrypt_function=encrypt)
+    from everyclass.rpc.entity import Entity
+    from everyclass.rpc.auth import Auth
+    init_rpc(resource_id_encrypt_function=encrypt)  # 为 everyclass.rpc 模块注入 encrypt 函数
+    if 'API_SERVER_BASE_URL' in app.config:
+        Entity.set_base_url(app.config['API_SERVER_BASE_URL'])
+    if 'API_SERVER_TOKEN' in app.config:
+        Entity.set_request_token(app.config['API_SERVER_TOKEN'])
+    if 'AUTH_BASE_URL' in app.config:
+        Auth.set_base_url(app.config['AUTH_BASE_URL'])
 
     # course review feature gating
     if app.config['FEATURE_GATING']['course_review']:

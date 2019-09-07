@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 from ddtrace import tracer
 from flask import render_template, session
 
-from everyclass.rpc.api_server import StudentTimetableResult
+from everyclass.rpc.entity import StudentTimetableResult
 from everyclass.server.consts import SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import PrivacySettings, VisitTrack
 
