@@ -2,8 +2,9 @@ from typing import Text
 
 from flask import g, render_template
 
+from everyclass.common.flask import plugin_available
 from everyclass.rpc import RpcBadRequest, RpcClientException, RpcResourceNotFound, RpcServerException, \
-    RpcServerNotAvailable, RpcTimeout, plugin_available
+    RpcServerNotAvailable, RpcTimeout
 from everyclass.server import logger, sentry
 
 
