@@ -21,18 +21,18 @@ class UtilTest(unittest.TestCase):
             self.assertTrue(result == case[1])
 
     def test_get_time_chinese(self):
-        from everyclass.server.utils import get_time_chinese
+        from everyclass.common.time import get_time_chinese
         for i in range(1, 7):
             self.assertTrue(get_time_chinese(i) == '第{}-{}节'.format(i * 2 - 1, i * 2))
 
     def test_get_day_chinese(self):
-        from everyclass.server.utils import get_day_chinese
+        from everyclass.common.time import get_day_chinese
         cases = [(1, '一'), (2, '二'), (3, '三'), (4, '四'), (5, '五'), (6, '六'), (7, '日')]
         for test, ans in cases:
             self.assertTrue(get_day_chinese(test) == '周' + ans)
 
     def test_get_time(self):
-        from everyclass.server.utils import get_time
+        from everyclass.common.time import get_time
         cases = ((1, ((8, 00), (9, 40))),
                  (2, ((10, 00), (11, 40))),
                  (3, ((14, 00), (15, 40))),
@@ -44,11 +44,11 @@ class UtilTest(unittest.TestCase):
             self.assertTrue(get_time(time) == result)
 
     def test_lesson_string_to_tuple(self):
-        from everyclass.server.utils import lesson_string_to_tuple
+        from everyclass.common.time import lesson_string_to_tuple
         self.assertTrue(lesson_string_to_tuple('10102') == (1, 1))
 
     def test_contains_chinese(self):
-        from everyclass.server.utils import contains_chinese
+        from everyclass.common.format import contains_chinese
         self.assertTrue(contains_chinese('你好'))
         self.assertTrue(contains_chinese('你好 kitty'))
         self.assertFalse(contains_chinese('no'))

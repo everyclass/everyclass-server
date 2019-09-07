@@ -1,72 +1,7 @@
 import os
-import re
 from typing import List, Tuple
-from uuid import UUID
 
 from flask import current_app
-
-
-def get_day_chinese(digit: int) -> str:
-    """
-    get Chinese char of day of week
-    """
-    if digit == 1:
-        return '周一'
-    elif digit == 2:
-        return '周二'
-    elif digit == 3:
-        return '周三'
-    elif digit == 4:
-        return '周四'
-    elif digit == 5:
-        return '周五'
-    elif digit == 6:
-        return '周六'
-    else:
-        return '周日'
-
-
-def get_time_chinese(digit: int) -> str:
-    """
-    get Chinese time description for a single lesson time.
-    """
-    if digit == 1:
-        return '第1-2节'
-    elif digit == 2:
-        return '第3-4节'
-    elif digit == 3:
-        return '第5-6节'
-    elif digit == 4:
-        return '第7-8节'
-    elif digit == 5:
-        return '第9-10节'
-    else:
-        return '第11-12节'
-
-
-def get_time(digit: int) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-    """
-    get start and end time for a single lesson.
-    """
-    if digit == 1:
-        return (8, 00), (9, 40)
-    elif digit == 2:
-        return (10, 00), (11, 40)
-    elif digit == 3:
-        return (14, 00), (15, 40)
-    elif digit == 4:
-        return (16, 00), (17, 40)
-    elif digit == 5:
-        return (19, 00), (20, 40)
-    else:
-        return (21, 00), (22, 40)
-
-
-def lesson_string_to_tuple(lesson: str) -> Tuple[int, int]:
-    """transform str like '10102' into tuple like (1,1)"""
-    day = int(lesson[0])
-    time = int((int(lesson[2]) + 1) / 2)
-    return day, time
 
 
 def semester_calculate(current_semester: str, semester_list: List[str]) -> List[Tuple[str, bool]]:
@@ -79,21 +14,6 @@ def semester_calculate(current_semester: str, semester_list: List[str]) -> List[
         else:
             available_semesters.append((each_semester, False))
     return available_semesters
-
-
-zh_pattern = re.compile(u'[\u4e00-\u9fa5]+')
-
-
-def contains_chinese(word: str) -> bool:
-    """
-    判断传入字符串是否包含中文
-    :param word: 待判断字符串
-    :return: True:包含中文  False:不包含中文
-    """
-    global zh_pattern
-    match = zh_pattern.search(word)
-
-    return True if match else False
 
 
 def plugin_available(plugin_name: str) -> bool:
@@ -115,31 +35,3 @@ def calendar_dir() -> str:
     if os.environ.get("MODE", None) == "PRODUCTION":
         return "/var/calendar_files/"
     return current_app.root_path + "/../../calendar_files/"
-
-
-def is_valid_uuid(uuid_to_test, version=4):
-    """
-    Check if uuid_to_test is a valid UUID.
-
-    Parameters
-    ----------
-    uuid_to_test : str
-    version : {1, 2, 3, 4}
-
-    Returns
-    -------
-    `True` if uuid_to_test is a valid UUID, otherwise `False`.
-
-    Examples
-    --------
-    >>> is_valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
-    True
-    >>> is_valid_uuid('c9bf9e58')
-    False
-    """
-    try:
-        uuid_obj = UUID(uuid_to_test, version=version)
-    except ValueError:
-        return False
-
-    return str(uuid_obj) == uuid_to_test

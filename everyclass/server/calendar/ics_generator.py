@@ -11,9 +11,10 @@ import pytz
 from ddtrace import tracer
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
+from everyclass.common.time import get_time
 from everyclass.server.config import get_config
 from everyclass.server.models import Semester
-from everyclass.server.utils import calendar_dir, get_time
+from everyclass.server.utils import calendar_dir
 
 tzc = Timezone()
 tzc.add('tzid', 'Asia/Shanghai')

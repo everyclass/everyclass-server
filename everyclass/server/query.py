@@ -7,13 +7,14 @@ from typing import Dict, List, Tuple
 from ddtrace import tracer
 from flask import Blueprint, current_app as app, escape, flash, redirect, render_template, request, session, url_for
 
+from everyclass.common.format import contains_chinese
+from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_string_to_tuple
 from everyclass.rpc.entity import Entity
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import COTeachingClass, CourseReview, Redis
 from everyclass.server.models import StudentSession
-from everyclass.server.utils import contains_chinese, get_day_chinese, get_time_chinese, lesson_string_to_tuple, \
-    semester_calculate
+from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 from everyclass.server.utils.resource_identifier_encrypt import decrypt
