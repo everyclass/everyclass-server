@@ -2,3 +2,7 @@
 	path = everyclass/rpc
 	branch = master
 	url = https://github.com/everyclass/everyclass-rpc
+[submodule "everyclass-common"]
+	path = everyclass/common
+	url = https://github.com/everyclass/everyclass-common
+	branch = master
