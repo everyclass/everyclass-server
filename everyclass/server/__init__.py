@@ -1,4 +1,3 @@
-import datetime
 import gc
 import logging
 import os
@@ -19,7 +18,6 @@ logger = logging.getLogger(__name__)
 sentry = Sentry()
 statsd = None
 __app = None
-__load_time = datetime.datetime.now()
 
 try:
     import uwsgidecorators
@@ -38,8 +36,8 @@ try:
     @uwsgidecorators.postfork
     def init_plugins():
         """初始化日志、错误追踪、打点插件"""
-        from everyclass.server.config import print_config
         from everyclass.rpc import init as init_rpc
+        from everyclass.common.flask import print_config
 
         # Sentry
         if plugin_available("sentry"):
@@ -58,14 +56,7 @@ try:
 
         init_rpc(logger=logger)
 
-        # 如果当前时间与模块加载时间相差一分钟之内，认为是第一次 spawn（进程随着时间的推移可能会被 uwsgi 回收），
-        # 在 1 号 worker 里打印当前配置
-        import uwsgi
-        if uwsgi.worker_id() == 1 and (datetime.datetime.now() - __load_time) < datetime.timedelta(minutes=1):
-            # 这里设置等级为 warning 因为我们希望在 sentry 里监控重启情况
-            logger.warning('App (re)started in `{0}` environment'
-                           .format(__app.config['CONFIG_NAME']))
-            print_config(__app, logger)
+        print_config(__app, logger)
 
 
     @uwsgidecorators.postfork
