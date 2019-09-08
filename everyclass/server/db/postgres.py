@@ -26,7 +26,7 @@ def init_pool(current_application) -> None:
 @contextmanager
 def pg_conn_context():
     if has_app_context():
-        if not getattr(current_app, "postgres"):
+        if not getattr(current_app, "postgres", None):
             init_pool(current_app)
         conn = current_app.postgres.connection()
     else:
