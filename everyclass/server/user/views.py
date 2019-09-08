@@ -188,7 +188,12 @@ def email_verification():
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.email_verification"))
 
-        User.add_user(sid_orig=sid_orig, password=request.form['password'])
+        try:
+            User.add_user(sid_orig=sid_orig, password=request.form['password'])
+        except ValueError:
+            flash(MSG_ALREADY_REGISTERED)
+            logger.info(f"User {sid_orig} try to register again by email token. Filtered when posting.")
+            return redirect(url_for("user.email_verification"))
         del session[SESSION_EMAIL_VER_REQ_ID]
         IdentityVerification.set_request_status(str(req["request_id"]), ID_STATUS_PASSWORD_SET)
         flash(MSG_REGISTER_SUCCESS)
@@ -219,6 +224,14 @@ def email_verification():
             if rpc_result.success:
                 session[SESSION_EMAIL_VER_REQ_ID] = rpc_result.request_id
                 IdentityVerification.set_request_status(rpc_result.request_id, ID_STATUS_TKN_PASSED)
+
+                req = IdentityVerification.get_request_by_id(rpc_result.request_id)
+                student_id = req["sid_orig"]
+                if User.exist(student_id):
+                    flash(MSG_ALREADY_REGISTERED)
+                    logger.info(f"User {student_id} try to register again by email token. Request filtered.")
+                    return redirect(url_for("main.main"))
+
                 return render_template('user/emailVerificationProceed.html')
             else:
                 return render_template("common/error.html", message=MSG_TOKEN_INVALID)
