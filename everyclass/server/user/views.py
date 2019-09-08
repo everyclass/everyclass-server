@@ -312,6 +312,7 @@ def register_by_password_status():
             rpc_result = Auth.get_result(str(request.args.get("request")))
         except Exception as e:
             return handle_exception_with_error_page(e)
+        logger.info(f"RPC result: {rpc_result}")
 
     if rpc_result.success:  # 密码验证通过，设置请求状态并新增用户
         IdentityVerification.set_request_status(str(request.args.get("request")), ID_STATUS_PWD_SUCCESS)
