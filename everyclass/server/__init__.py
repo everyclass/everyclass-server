@@ -1,7 +1,7 @@
-import gc
 import logging
 import os
 
+import gc
 from datadog import DogStatsd
 from ddtrace import tracer
 from flask import Flask, g, redirect, render_template, request, session
@@ -65,8 +65,8 @@ try:
         from everyclass.server.db.mongodb import init_pool as init_mongo
         from everyclass.server.db.postgres import init_pool as init_pg
 
-        init_mongo(__app)
-        init_pg(__app)
+        # init_mongo(__app)
+        init_pg()
 
 
     @uwsgidecorators.postfork
