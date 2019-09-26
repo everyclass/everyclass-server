@@ -7,7 +7,8 @@
     <meta name="renderer" content="webkit">
     <meta name="description"
           content="每课是中南大学最流行的本科生课表工具。它可以将你的课表导入到手机日历，让课程和你的日历事项在同一处展示，从而便于日程的安排。不仅如此，还能查询课程、同学、老师等。"/>
-    <title>{% block title %}每课 @ CSU - 中南大学最流行的本科生课表工具{% endblock %}</title>
+    {#    <title>{% block title %}每课 @ CSU - 中南大学最流行的本科生课表工具{% endblock %}</title>#}
+    <title>{% block title %}每课课表{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link href="{{ url_for('static', filename='css/style-v1.css'|versioned) }}" rel="stylesheet" type="text/css"
           media="all"/>
