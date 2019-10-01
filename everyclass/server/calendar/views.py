@@ -118,13 +118,12 @@ def ics_download(calendar_token: str):
 
         cards: Dict[Tuple[int, int], List[Dict]] = defaultdict(list)
         for card in rpc_result.cards:
-            day, time = lesson_string_to_tuple(card.lesson)
-            cards[(day, time)].append(dict(name=card.name,
-                                           teacher=teacher_list_to_name_str(card.teachers),
-                                           week=card.weeks,
-                                           week_string=card.week_string,
-                                           classroom=card.room,
-                                           cid=card.card_id_encoded))
+            cards[lesson_string_to_tuple(card.lesson)].append(dict(name=card.name,
+                                                                   teacher=teacher_list_to_name_str(card.teachers),
+                                                                   week=card.weeks,
+                                                                   week_string=card.week_string,
+                                                                   classroom=card.room,
+                                                                   cid=card.card_id_encoded))
 
     ics_generator.generate(name=rpc_result.name,
                            cards=cards,

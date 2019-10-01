@@ -211,4 +211,3 @@ class Config(object):
                                 "API_SERVER_TOKEN",
                                 "SESSION_CRYPTO_KEY"
                                 )
-

@@ -41,7 +41,7 @@ class EncryptedSessionInterface(SessionInterface):
 
         # Split the session cookie : <z|u>.<base64 cipher text>.<base64 mac>.<base64 nonce>
         itup = session_cookie.split(".")
-        if len(itup) is not 4:
+        if len(itup) != 4:
             return self.session_class()  # Session cookie not in the right format
 
         try:

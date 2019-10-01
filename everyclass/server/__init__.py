@@ -1,7 +1,7 @@
+import gc
 import logging
 import os
 
-import gc
 from datadog import DogStatsd
 from ddtrace import tracer
 from flask import Flask, g, redirect, render_template, request, session
@@ -26,12 +26,10 @@ try:
     使用 `uwsgidecorators.postfork` 装饰的函数会在 fork() 后的**每一个**子进程内被执行，执行顺序与这里的定义顺序一致
     """
 
-
     @uwsgidecorators.postfork
     def enable_gc():
         """重新启用垃圾回收"""
         gc.set_threshold(700)
-
 
     @uwsgidecorators.postfork
     def init_plugins():
@@ -58,16 +56,13 @@ try:
 
         print_config(__app, logger)
 
-
     @uwsgidecorators.postfork
     def init_db():
         """初始化数据库连接"""
-        from everyclass.server.db.mongodb import init_pool as init_mongo
         from everyclass.server.db.postgres import init_pool as init_pg
 
         # init_mongo(__app)
         init_pg()
-
 
     @uwsgidecorators.postfork
     def fetch_remote_manifests():
@@ -76,7 +71,6 @@ try:
         因此我们只能在 fork 后的每个进程中进行请求。
         """
         cron_update_remote_manifest()
-
 
     @uwsgidecorators.cron(0, -1, -1, -1, -1)
     def daily_update_data_time(signum):
