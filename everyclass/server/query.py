@@ -282,6 +282,8 @@ def get_card(url_cid: str, url_semester: str):
                            show_union_class=not card.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
                            # cotc_id=cotc_id,
                            # cotc_rating=course_review_doc["avg_rate"],
+                           cotc_id=0,
+                           cotc_rating=0,
                            current_semester=url_semester
                            )
 
