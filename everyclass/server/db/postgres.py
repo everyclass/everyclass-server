@@ -17,7 +17,7 @@ def pg_conn_context():
     success = False
 
     try:
-        with context as conn:
+        with context() as conn:
             yield conn
     except RuntimeError:
         # 连接池没有被初始化
