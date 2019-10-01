@@ -11,22 +11,25 @@ def init_pool() -> None:
     init(_config.POSTGRES_SCHEMA, _config.POSTGRES_CONNECTION)
 
 
+MAX_TRIALS = 2
+
+
 @contextmanager
 def pg_conn_context():
     from everyclass.common.postgres import conn_context as context
     success = False
+    trials = 0
 
-    try:
-        with context() as conn:
-            yield conn
-    except RuntimeError:
-        # 连接池没有被初始化
-        pass
-    else:
-        success = True
-
+    while not success and trials < MAX_TRIALS:
+        try:
+            with context() as conn:
+                yield conn
+        except RuntimeError:
+            # 连接池没有被初始化
+            init_pool()
+        else:
+            success = True
+        finally:
+            trials += 1
     if not success:
-        # 没有成功说明连接池没有被初始化，先初始化再调用
-        init_pool()
-        with context as conn:
-            yield conn
+        raise RuntimeError(f"DB connection context failed after {trials} trials")
