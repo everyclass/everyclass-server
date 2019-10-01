@@ -12,7 +12,7 @@ from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_str
 from everyclass.rpc.entity import Entity
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
-from everyclass.server.db.dao import COTeachingClass, CourseReview, Redis
+from everyclass.server.db.dao import Redis
 from everyclass.server.models import StudentSession
 from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
@@ -272,16 +272,16 @@ def get_card(url_cid: str, url_semester: str):
     if card.type and card.type[-1] != '课':
         card.type = card.type + '课'
 
-    cotc_id = COTeachingClass.get_id_by_card(card)
-    course_review_doc = CourseReview.get_review(cotc_id)
+    # cotc_id = COTeachingClass.get_id_by_card(card)
+    # course_review_doc = CourseReview.get_review(cotc_id)
 
     return render_template('query/card.html',
                            card=card,
                            card_day=get_day_chinese(day),
                            card_time=get_time_chinese(time),
                            show_union_class=not card.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
-                           cotc_id=cotc_id,
-                           cotc_rating=course_review_doc["avg_rate"],
+                           # cotc_id=cotc_id,
+                           # cotc_rating=course_review_doc["avg_rate"],
                            current_semester=url_semester
                            )
 
