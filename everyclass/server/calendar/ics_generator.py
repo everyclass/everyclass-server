@@ -93,6 +93,8 @@ def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[in
     :param semester: 学期
     :return: datetime 类型的时间
     """
+    if day == 7:
+        week -= 1
     config = get_config()
     tz = pytz.timezone("Asia/Shanghai")
     dt = datetime(*(config.AVAILABLE_SEMESTERS[semester]['start'] + time), tzinfo=tz)  # noqa: T484
