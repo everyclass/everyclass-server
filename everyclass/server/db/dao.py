@@ -1,11 +1,15 @@
 """
 
 在 PostgreSQL 中以超级用户权限使用下列语句建库：
-CREATE ROLE everyclass_admin WITH NOLOGIN;
-CREATE DATABASE everyclass WITH OWNER = everyclass_admin;
-CREATE USER everyclass_server WITH LOGIN;
-CREATE SCHEMA everyclass_server AUTHORIZATION everyclass_server;
-CREATE EXTENSION hstore SCHEMA everyclass_server;
+$ createdb
+$ psql
+
+    CREATE ROLE everyclass_admin WITH NOLOGIN;
+    CREATE DATABASE everyclass WITH OWNER = everyclass_admin;
+    \c everyclass
+    CREATE USER everyclass_server WITH LOGIN;
+    CREATE SCHEMA everyclass_server AUTHORIZATION everyclass_server;
+    CREATE EXTENSION hstore SCHEMA everyclass_server;
 
 说明：
 - 与无模式的数据库不同，在 PostgreSQL 中，所有每课的服务只需要使用一个数据库，而不同的微服务之间使用模式(schema) 来区分
