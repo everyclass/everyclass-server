@@ -96,7 +96,7 @@ def _get_datetime(week: int, day: int, time: Tuple[int, int], semester: Tuple[in
     config = get_config()
     tz = pytz.timezone("Asia/Shanghai")
     dt = datetime(*(config.AVAILABLE_SEMESTERS[semester]['start'] + time), tzinfo=tz)  # noqa: T484
-    dt += timedelta(days=(week - 1) * 7 + (day - 1))  # 调整到当前周
+    dt += timedelta(days=(week - 1) * 7 + day)  # 调整到当前周
 
     if 'adjustments' in config.AVAILABLE_SEMESTERS[semester]:
         ymd = (dt.year, dt.month, dt.day)
