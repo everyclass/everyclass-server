@@ -16,20 +16,6 @@ MAX_TRIALS = 2
 
 @contextmanager
 def pg_conn_context():
-    from everyclass.common.postgres import conn_context as context
-    success = False
-    trials = 0
-
-    while not success and trials < MAX_TRIALS:
-        try:
-            with context() as conn:
-                yield conn
-        except RuntimeError:
-            # 连接池没有被初始化
-            init_pool()
-        else:
-            success = True
-        finally:
-            trials += 1
-    if not success:
-        raise RuntimeError(f"DB connection context failed after {trials} trials")
+    from everyclass.common.postgres import conn_context_with_retry as context
+    with context() as conn:
+        yield conn
