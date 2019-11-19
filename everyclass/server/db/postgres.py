@@ -11,9 +11,6 @@ def init_pool() -> None:
     init(_config.POSTGRES_SCHEMA, _config.POSTGRES_CONNECTION)
 
 
-MAX_TRIALS = 2
-
-
 @contextmanager
 def pg_conn_context():
     from everyclass.common.postgres import conn_context_with_retry as context
