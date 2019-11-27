@@ -228,7 +228,7 @@ def email_verification():
                 req = IdentityVerification.get_request_by_id(rpc_result.request_id)
                 if not req:
                     return render_template("common/error.html", message=MSG_400)
-                
+
                 student_id = req["sid_orig"]
                 if User.exist(student_id):
                     flash(MSG_ALREADY_REGISTERED)
@@ -357,7 +357,7 @@ def register_by_password_status():
                                                        name=student.name)
 
         return jsonify({"message": "SUCCESS"})
-    elif rpc_result.message in ("PASSWORD_WRONG", "INTERNAL_ERROR"):
+    elif rpc_result.message in ("PASSWORD_WRONG", "INTERNAL_ERROR", "INVALID_REQUEST_ID"):
         return jsonify({"message": rpc_result.message})
     else:
         return jsonify({"message": "NEXT_TIME"})
