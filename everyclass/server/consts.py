@@ -31,7 +31,7 @@ MSG_503 = "服务当前不可用，可能是程序员小哥哥正在更新数据
 flash
 """
 MSG_INVALID_CAPTCHA = "人机验证未通过，请先通过验证再提交。"
-MSG_VIEW_SCHEDULE_FIRST = "请从课表页面进入本页面"
+MSG_VIEW_SCHEDULE_FIRST = "请从个人课表页面进入本页面"
 
 # 用户模块
 MSG_WEAK_PASSWORD = "密码过于简单，为了保证账户安全，请使用复杂一些的密码。"

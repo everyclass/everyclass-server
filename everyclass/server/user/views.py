@@ -246,6 +246,9 @@ def email_verification():
 @user_bp.route('/register/byPassword', methods=['GET', 'POST'])
 def register_by_password():
     """注册：第三步：使用密码验证注册"""
+    if not session.get(SESSION_STUDENT_TO_REGISTER, None):
+        return render_template('common/error.html', message=MSG_VIEW_SCHEDULE_FIRST)
+
     if request.method == 'POST':
         if any(map(lambda x: not request.form.get(x, None), ("password", "password2", "jwPassword"))):
             flash(MSG_EMPTY_PASSWORD)
@@ -289,9 +292,6 @@ def register_by_password():
             return render_template('common/error.html', message=MSG_INTERNAL_ERROR)
     else:
         # show password registration page
-        if not session.get(SESSION_STUDENT_TO_REGISTER, None):
-            return render_template('common/error.html', message=MSG_VIEW_SCHEDULE_FIRST)
-
         return render_template("user/passwordRegistration.html", name=session[SESSION_STUDENT_TO_REGISTER].name)
 
 
