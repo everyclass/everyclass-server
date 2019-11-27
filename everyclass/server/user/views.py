@@ -226,6 +226,9 @@ def email_verification():
                 IdentityVerification.set_request_status(rpc_result.request_id, ID_STATUS_TKN_PASSED)
 
                 req = IdentityVerification.get_request_by_id(rpc_result.request_id)
+                if not req:
+                    return render_template("common/error.html", message=MSG_400)
+                
                 student_id = req["sid_orig"]
                 if User.exist(student_id):
                     flash(MSG_ALREADY_REGISTERED)
