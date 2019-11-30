@@ -18,6 +18,8 @@ $ psql
 - hstore 是 PostgreSQL 中的 KV 存储插件，开启后我们可以在一个字段中存储 KV 键值对。使用 PostgreSQL 作为数据库的知名论坛系统
   Discourse 也有使用到此扩展。虽然 crate extension 语句看起来像是“创建扩展”，但实际上是在本模式下“启用扩展”
 """
+# noqa F605
+# W605 invalid escape sequence '\c'
 import abc
 import datetime
 import time
