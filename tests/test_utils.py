@@ -55,18 +55,18 @@ class UtilTest(unittest.TestCase):
 
 
 class ResourceIdentifierEncryptTest(unittest.TestCase):
-    """everyclass/server/utils/resource_identifier_encrypt.py"""
+    """everyclass/server/utils/encryption.py"""
     cases = (("student", "3901160407", "8ypVY3OsRhbXuGBXNpY5PEgmh53TmMfONVoRqfJ7fXY="),)
     key = "z094gikTit;5gt5h"
 
     def test_encrypt(self):
-        from everyclass.server.utils.resource_identifier_encrypt import encrypt
+        from everyclass.server.utils.encryption import encrypt
         for tp, data, encrypted in self.cases:
             result = encrypt(tp, data, encryption_key=self.key)
             print("Encrypt result:", result)
             self.assertTrue(result == encrypted)
 
     def test_decrypt(self):
-        from everyclass.server.utils.resource_identifier_encrypt import decrypt
+        from everyclass.server.utils.encryption import decrypt
         for tp, data, encrypted in self.cases:
             self.assertTrue(decrypt(encrypted, encryption_key=self.key, resource_type=tp) == (tp, data))

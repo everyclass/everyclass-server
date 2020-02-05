@@ -6,6 +6,7 @@ from everyclass.common.flask import plugin_available
 from everyclass.rpc import RpcBadRequest, RpcClientException, RpcResourceNotFound, RpcServerException, \
     RpcServerNotAvailable, RpcTimeout
 from everyclass.server import logger, sentry
+from everyclass.server.user.service import AlreadyRegisteredError, InvalidTokenError
 
 
 def _error_page(message: str, sentry_capture: bool = False, log: str = None):
@@ -13,7 +14,7 @@ def _error_page(message: str, sentry_capture: bool = False, log: str = None):
     sentry_param = {}
     if sentry_capture and plugin_available("sentry"):
         sentry.captureException()
-        sentry_param.update({"event_id"  : g.sentry_event_id,
+        sentry_param.update({"event_id": g.sentry_event_id,
                              "public_dsn": sentry.client.get_public_dsn('https')
                              })
     if log:
@@ -24,7 +25,13 @@ def _error_page(message: str, sentry_capture: bool = False, log: str = None):
 def handle_exception_with_error_page(e: Exception) -> Text:
     """处理抛出的异常，返回错误页。
     """
-    from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503
+    from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503, MSG_ALREADY_REGISTERED, \
+        MSG_TOKEN_INVALID
+
+    if isinstance(e, AlreadyRegisteredError):
+        return _error_page(MSG_ALREADY_REGISTERED)
+    if isinstance(e, InvalidTokenError):
+        return _error_page(MSG_TOKEN_INVALID)
 
     if isinstance(e, RpcTimeout):
         return _error_page(MSG_TIMEOUT, sentry_capture=True)

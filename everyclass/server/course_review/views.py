@@ -3,10 +3,10 @@ from typing import Dict
 from flask import Blueprint, escape, flash, redirect, render_template, request, session, url_for
 
 from everyclass.rpc.entity import Entity, teacher_list_to_tid_str
-from everyclass.server.consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
+from everyclass.server.consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_STUDENT
 from everyclass.server.db.dao import COTeachingClass, CourseReview
 from everyclass.server.utils.decorators import login_required
-from everyclass.server.utils.rpc import handle_exception_with_error_page
+from everyclass.server.utils.err_handle import handle_exception_with_error_page
 
 cr_blueprint = Blueprint('course_review', __name__)
 
@@ -15,11 +15,11 @@ def is_taking(cotc: Dict) -> bool:
     """检查当前用户是否选了这门课"""
     user_is_taking = False
 
-    if session.get(SESSION_CURRENT_USER, None):
+    if session.get(SESSION_CURRENT_STUDENT, None):
         # 检查当前用户是否选了这门课
-        student = Entity.get_student(session[SESSION_CURRENT_USER].sid_orig)
+        student = Entity.get_student(session[SESSION_CURRENT_STUDENT].sid_orig)
         for semester in sorted(student.semesters, reverse=True):  # 新学期可能性大，学期从新到旧查找
-            timetable = Entity.get_student_timetable(session[SESSION_CURRENT_USER].sid_orig, semester)
+            timetable = Entity.get_student_timetable(session[SESSION_CURRENT_STUDENT].sid_orig, semester)
             for card in timetable.cards:
                 if card.course_id == cotc["course_id"] and cotc["teacher_id_str"] == teacher_list_to_tid_str(
                         card.teachers):
@@ -44,7 +44,7 @@ def show_review(cotc_id: int):
         return render_template('common/error.html', message=MSG_404)
 
     if session.get("current_logged_in_user", None) \
-            and CourseReview.get_my_review(cotc_id=cotc_id, student_id=session[SESSION_CURRENT_USER].sid_orig):
+            and CourseReview.get_my_review(cotc_id=cotc_id, student_id=session[SESSION_CURRENT_STUDENT].sid_orig):
         reviewed_by_me = True
     else:
         reviewed_by_me = False
@@ -70,7 +70,7 @@ def edit_review(cotc_id: int):
         return render_template('common/error.html', message=MSG_NOT_IN_COURSE)
 
     if request.method == 'GET':  # 展示表单页面
-        doc = CourseReview.get_my_review(cotc_id=cotc_id, student_id=session[SESSION_CURRENT_USER].sid_orig)  # 已经评分
+        doc = CourseReview.get_my_review(cotc_id=cotc_id, student_id=session[SESSION_CURRENT_STUDENT].sid_orig)  # 已经评分
         if doc:
             my_rating = doc["rate"]
             my_review = doc["review"]
@@ -93,14 +93,14 @@ def edit_review(cotc_id: int):
             return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
 
         try:
-            student = Entity.get_student(session[SESSION_CURRENT_USER].sid_orig)
+            student = Entity.get_student(session[SESSION_CURRENT_STUDENT].sid_orig)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
         fuzzy_name = student.klass + "学生"
 
         CourseReview.edit_my_review(cotc_id,
-                                    session[SESSION_CURRENT_USER].sid_orig,
+                                    session[SESSION_CURRENT_STUDENT].sid_orig,
                                     int(request.form["rate"]),
                                     escape(request.form["review"]),
                                     fuzzy_name)

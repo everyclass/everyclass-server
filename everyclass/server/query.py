@@ -11,14 +11,14 @@ from everyclass.common.format import contains_chinese
 from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_string_to_tuple
 from everyclass.rpc.entity import Entity
 from everyclass.server import logger
-from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
-from everyclass.server.db.dao import Redis
+from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_STUDENT, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.models import StudentSession
+from everyclass.server.user import service as user_service
 from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
-from everyclass.server.utils.resource_identifier_encrypt import decrypt
-from everyclass.server.utils.rpc import handle_exception_with_error_page
+from everyclass.server.utils.encryption import decrypt
+from everyclass.server.utils.err_handle import handle_exception_with_error_page
 
 query_blueprint = Blueprint('query', __name__)
 
@@ -154,7 +154,7 @@ def get_student(url_sid: str, url_semester: str):
         available_semesters = semester_calculate(url_semester, sorted(student.semesters))
 
     # 增加访客记录
-    Redis.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
+    user_service.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_STUDENT, None))
 
     return render_template('query/student.html',
                            student=student,
