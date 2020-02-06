@@ -94,9 +94,9 @@ def cron_update_remote_manifest():
 
     # 更新数据最后更新时间
     _api_server_status = HttpRpc.call(method="GET",
-                                      url=__app.config['API_SERVER_BASE_URL'] + '/info/service',
+                                      url=__app.config['ENTITY_BASE_URL'] + '/info/service',
                                       retry=True,
-                                      headers={'X-Auth-Token': __app.config['API_SERVER_TOKEN']})
+                                      headers={'X-Auth-Token': __app.config['ENTITY_TOKEN']})
     __app.config['DATA_LAST_UPDATE_TIME'] = _api_server_status["data_time"]
 
 
@@ -169,10 +169,10 @@ def create_app() -> Flask:
     from everyclass.rpc.entity import Entity
     from everyclass.rpc.auth import Auth
     init_rpc(resource_id_encrypt_function=encrypt)  # 为 everyclass.rpc 模块注入 encrypt 函数
-    if 'API_SERVER_BASE_URL' in app.config:
-        Entity.set_base_url(app.config['API_SERVER_BASE_URL'])
-    if 'API_SERVER_TOKEN' in app.config:
-        Entity.set_request_token(app.config['API_SERVER_TOKEN'])
+    if 'ENTITY_BASE_URL' in app.config:
+        Entity.set_base_url(app.config['ENTITY_BASE_URL'])
+    if 'ENTITY_TOKEN' in app.config:
+        Entity.set_request_token(app.config['ENTITY_TOKEN'])
     if 'AUTH_BASE_URL' in app.config:
         Auth.set_base_url(app.config['AUTH_BASE_URL'])
 

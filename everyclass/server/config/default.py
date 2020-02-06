@@ -87,14 +87,14 @@ class Config(object):
 
     # Sentry, APM and logstash
     SENTRY_CONFIG = {
-        'dsn'    : '',
+        'dsn': '',
         'release': '',
-        'tags'   : {'environment': 'default'}
+        'tags': {'environment': 'default'}
     }
 
     # other micro-services
-    API_SERVER_BASE_URL = 'http://everyclass-api-server'
-    API_SERVER_TOKEN = ''
+    ENTITY_BASE_URL = 'http://everyclass-api-server'
+    ENTITY_TOKEN = ''
     AUTH_BASE_URL = 'http://everyclass-auth'
 
     """
@@ -208,6 +208,6 @@ class Config(object):
                                 "SECRET_KEY",
                                 "TENCENT_CAPTCHA_SECRET",
                                 "RESOURCE_IDENTIFIER_ENCRYPTION_KEY",
-                                "API_SERVER_TOKEN",
+                                "ENTITY_TOKEN",
                                 "SESSION_CRYPTO_KEY"
                                 )
