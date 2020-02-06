@@ -1,6 +1,7 @@
 [flake8]
-# E501 line too long
-# E203 whitespace before ':'
-# E126 continuation line over-indented for hanging indent
-# W504 line break after binary operator
-ignore = E501, E203, E126, W504
+ignore = E501,  # E501 line too long
+    E203,  # E203 whitespace before ':'
+    E126, # E126 continuation line over-indented for hanging indent
+    W504  # W504 line break after binary operator
+per-file-ignores =
+    everyclass/server/db/dao.py: W605 # W605 invalid escape sequence '\c'

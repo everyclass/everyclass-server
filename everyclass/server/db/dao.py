@@ -1,5 +1,3 @@
-# noqa W605
-# W605 invalid escape sequence '\c'
 """
 在 PostgreSQL 中以超级用户权限使用下列语句建库：
 $ createdb
