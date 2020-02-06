@@ -36,12 +36,12 @@ def get_request_by_id(req_id: str) -> Optional[IdentityVerifyRequest]:
     return IdentityVerifyRequest(request_id=result[0], identifier=result[1], method=result[2], status=result[3], extra=result[4])
 
 
-def new_register_request(sid_orig: str, verification_method: str, status: str,
+def new_register_request(identifier: str, verification_method: str, status: str,
                          password: str = None) -> str:
     """
     新增一条注册请求
 
-    :param sid_orig: original sid
+    :param identifier: 学号/教工号
     :param verification_method: password or email
     :param status: status of the request
     :param password: if register by password, fill everyclass password here
@@ -62,7 +62,7 @@ def new_register_request(sid_orig: str, verification_method: str, status: str,
             VALUES (%s,%s,%s,%s,%s,%s)
         """
         cursor.execute(insert_query, (request_id,
-                                      sid_orig,
+                                      identifier,
                                       verification_method,
                                       status,
                                       datetime.datetime.now(),

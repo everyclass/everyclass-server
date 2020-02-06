@@ -222,7 +222,7 @@ def register_by_password():
         try:
             request_id = user_service.register_by_password(request.form["jwPassword"],
                                                            request.form["password"],
-                                                           session.get(SESSION_STUDENT_TO_REGISTER, None))
+                                                           session.get(SESSION_STUDENT_TO_REGISTER, None).sid_orig)
         except user_service.PasswordTooWeakError:
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.register_by_password"))

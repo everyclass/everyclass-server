@@ -61,15 +61,15 @@ class AlreadyRegisteredError(ValueError):
     pass
 
 
-def register_by_email(people_id: str) -> str:
+def register_by_email(identifier: str) -> str:
     """向学生/老师的邮箱发送验证邮件"""
-    if user_exist(people_id):
+    if user_exist(identifier):
         raise AlreadyRegisteredError
 
-    request_id = identity_verify_requests.new_register_request(people_id, "email", identity_verify_requests.ID_STATUS_SENT)
+    request_id = identity_verify_requests.new_register_request(identifier, "email", identity_verify_requests.ID_STATUS_SENT)
 
     with tracer.trace('send_email'):
-        rpc_result = Auth.register_by_email(request_id, people_id)
+        rpc_result = Auth.register_by_email(request_id, identifier)
 
     if rpc_result['acknowledged'] is False:
         raise RpcServerException("Unexpected acknowledge status")
