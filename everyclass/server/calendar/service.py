@@ -9,7 +9,6 @@ from ddtrace import tracer
 from everyclass.common.time import lesson_string_to_tuple
 from everyclass.rpc.entity import Entity, teacher_list_to_name_str
 from everyclass.server import logger
-from everyclass.server import statsd
 from everyclass.server.calendar.domain import ics_generator
 from everyclass.server.calendar.repo.calendar_token import reset_tokens, find_calendar_token as find_token, insert_calendar_token, \
     update_last_used_time, use_cache
@@ -59,6 +58,8 @@ SECONDS_IN_ONE_DAY = 60 * 60 * 24
 
 def generate_ics_file(type_: str, identifier: str, semester: str) -> str:
     """生成ics文件并返回文件名"""
+    from everyclass.server import statsd  # 需要在这里导入，否则导入的结果是None
+
     cal_filename = f"{type_}_{identifier}_{semester}.ics"
     cal_full_path = os.path.join(calendar_dir(), cal_filename)
     # 有缓存、且缓存时间小于一天，且不用强刷缓存
