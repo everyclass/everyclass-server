@@ -184,21 +184,15 @@ def email_verification():
                                                           name=student.name)
         return redirect(url_for("user.main"))
     else:
-        # 设置密码页面
-        if not session.get(SESSION_EMAIL_VER_REQ_ID, None):
-            if not request.args.get("token", None):
-                return render_template("common/error.html", message=MSG_400)
+        if not request.args.get("token", None):
+            return render_template("common/error.html", message=MSG_400)
+        try:
+            request_id = user_service.register_by_email_token_check(request.args.get("token"))
+        except Exception as e:
+            return handle_exception_with_error_page(e)
 
-            try:
-                request_id = user_service.register_by_email_token_check(request.args.get("token"))
-            except Exception as e:
-                return handle_exception_with_error_page(e)
-
-            session[SESSION_EMAIL_VER_REQ_ID] = request_id
-            return render_template('user/emailVerificationProceed.html')
-        else:
-            # have session
-            return render_template('user/emailVerificationProceed.html')
+        session[SESSION_EMAIL_VER_REQ_ID] = request_id
+        return render_template('user/emailVerificationProceed.html')
 
 
 @user_bp.route('/register/byPassword', methods=['GET', 'POST'])
