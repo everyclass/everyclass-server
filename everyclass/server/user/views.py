@@ -184,14 +184,15 @@ def email_verification():
                                                           name=student.name)
         return redirect(url_for("user.main"))
     else:
-        if not request.args.get("token", None):
+        if not request.args.get("token", None) and session.get(SESSION_EMAIL_VER_REQ_ID, None):
             return render_template("common/error.html", message=MSG_400)
-        try:
-            request_id = user_service.register_by_email_token_check(request.args.get("token"))
-        except Exception as e:
-            return handle_exception_with_error_page(e)
+        if request.args.get("token", None):
+            try:
+                request_id = user_service.register_by_email_token_check(request.args.get("token"))
+            except Exception as e:
+                return handle_exception_with_error_page(e)
 
-        session[SESSION_EMAIL_VER_REQ_ID] = request_id
+            session[SESSION_EMAIL_VER_REQ_ID] = request_id
         return render_template('user/emailVerificationProceed.html')
 
 
