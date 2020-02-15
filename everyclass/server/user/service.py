@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from ddtrace import tracer
 from flask import session
@@ -6,8 +6,9 @@ from zxcvbn import zxcvbn
 
 from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
+from everyclass.rpc.entity import Entity, SearchResultStudentItem, SearchResultTeacherItem
 from everyclass.server import logger
-from everyclass.server.models import StudentSession
+from everyclass.server.models import UserSession
 from everyclass.server.user.entity import IdentityVerifyRequest
 from everyclass.server.user.repo import privacy_settings, user, simple_password, visit_count, user_id_sequence, identity_verify_requests
 
@@ -36,7 +37,7 @@ def record_simple_password(password: str, identifier: str) -> None:
     return simple_password.new(password, identifier)
 
 
-def add_visitor_count(sid_orig: str, visitor: StudentSession = None) -> None:
+def add_visitor_count(sid_orig: str, visitor: UserSession = None) -> None:
     return visit_count.add_visitor_count(sid_orig, visitor)
 
 
@@ -205,3 +206,18 @@ def register_by_password_status_refresh(request_id: str) -> Tuple[bool, str, Opt
 
 def score_password_strength(password: str) -> int:
     return zxcvbn(password=password)['score']
+
+
+def get_people_info(identifier: str) -> (Optional[bool], Union[SearchResultStudentItem, SearchResultTeacherItem]):
+    """
+    query Entity service to get people info
+
+    :param identifier: student ID or teacher ID
+    :return: The first parameter is a Union[bool, None]. True means it's a student, False means it's a teacher. None means
+     the identifier is not found. The second parameter is the info of student or teacher.
+    """
+    result = Entity.search(identifier)
+    if len(result.students) > 1:
+        return True, result.students[0]
+    if len(result.teachers) > 1:
+        return False, result.teachers[0]

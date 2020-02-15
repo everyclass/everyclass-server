@@ -9,10 +9,10 @@ from everyclass.server.calendar import service as calendar_service
 from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
     MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
-    SESSION_CURRENT_STUDENT, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
+    SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
     SESSION_STUDENT_TO_REGISTER
 from everyclass.server.db.dao import VisitTrack
-from everyclass.server.models import StudentSession
+from everyclass.server.models import StudentSession, UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
 from everyclass.server.user import service as user_service
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
@@ -86,14 +86,10 @@ def login():
 
         if success:
             try:
-                student = Entity.get_student(student_id)
+                set_current_user(student_id)
             except Exception as e:
                 return handle_exception_with_error_page(e)
 
-            # 登录态写入 session
-            session[SESSION_CURRENT_STUDENT] = StudentSession(sid_orig=student_id,
-                                                              sid=student.student_id_encoded,
-                                                              name=student.name)
             return redirect(url_for("user.main"))
         else:
             flash(MSG_WRONG_PASSWORD)
@@ -102,7 +98,7 @@ def login():
 
 @user_bp.route('/register', methods=["GET", "POST"])
 def register():
-    """注册：第一步：输入学号"""
+    """注册：第一步：输入学号或教工号"""
     if request.method == 'GET':
         return render_template('user/register.html')
     else:
@@ -112,7 +108,7 @@ def register():
 
         _session_save_student_to_register_(request.form.get("xh", None))
 
-        # 如果输入的学号已经注册，跳转到登录页面
+        # 如果输入的学号或教工号已经注册，跳转到登录页面
         if user_service.user_exist(session[SESSION_STUDENT_TO_REGISTER].sid_orig):
             flash(MSG_ALREADY_REGISTERED)
             return redirect(url_for('user.login'))
@@ -172,16 +168,11 @@ def email_verification():
         del session[SESSION_EMAIL_VER_REQ_ID]
         flash(MSG_REGISTER_SUCCESS)
 
-        # 查询 api-server 获得学生基本信息
+        # 查询 entity 获得基本信息
         try:
-            student = Entity.get_student(identifier)
+            set_current_user(identifier)
         except Exception as e:
             return handle_exception_with_error_page(e)
-
-        # 登录态写入 session
-        session[SESSION_CURRENT_STUDENT] = StudentSession(sid_orig=student.student_id,
-                                                          sid=student.student_id_encoded,
-                                                          name=student.name)
         return redirect(url_for("user.main"))
     else:
         if not request.args.get("token", None) and session.get(SESSION_EMAIL_VER_REQ_ID, None):
@@ -261,10 +252,7 @@ def register_by_password_status():
             if SESSION_PWD_VER_REQ_ID in session:
                 del session[SESSION_PWD_VER_REQ_ID]
 
-            student = Entity.get_student(identifier)
-            session[SESSION_CURRENT_STUDENT] = StudentSession(sid_orig=student.student_id,
-                                                              sid=student.student_id_encoded,
-                                                              name=student.name)
+            set_current_user(identifier)  # potential uncaught error
             return jsonify({"message": "SUCCESS"})
         elif message in ("PASSWORD_WRONG", "INTERNAL_ERROR", "INVALID_REQUEST_ID"):
             return jsonify({"message": message})
@@ -283,6 +271,19 @@ def register_by_password_status():
         return redirect(url_for('user.login'))
 
 
+def set_current_user(identifier: str):
+    """
+    设置session中当前登录用户为参数中的学号
+
+    :param identifier: 学号或教工号
+    """
+    is_student, people = user_service.get_people_info(identifier)
+    session[SESSION_CURRENT_USER] = UserSession(user_type=USER_TYPE_STUDENT if is_student else USER_TYPE_TEACHER,
+                                                identifier=people.student_id if is_student else people.teacher_id,
+                                                identifier_encoded=people.student_id_encoded if is_student else people.teacher_id_encoded,
+                                                name=people.name)
+
+
 @user_bp.route('/register/byPassword/success')
 def register_by_password_success():
     """验证成功后跳转到用户首页"""
@@ -294,22 +295,24 @@ def register_by_password_success():
 def main():
     """用户主页"""
     try:
-        student = Entity.get_student(session[SESSION_CURRENT_STUDENT].sid_orig)
+        is_student, student = user_service.get_people_info(session[SESSION_CURRENT_USER].identifier)
+        if not is_student:
+            return "Teacher is not supported at the moment. Stay tuned!"
     except Exception as e:
         return handle_exception_with_error_page(e)
 
     return render_template('user/main.html',
-                           name=session[SESSION_CURRENT_STUDENT].name,
-                           student_id_encoded=session[SESSION_CURRENT_STUDENT].sid,
+                           name=session[SESSION_CURRENT_USER].name,
+                           student_id_encoded=session[SESSION_CURRENT_USER].identifier_encoded,
                            last_semester=student.semesters[-1] if student.semesters else None,
-                           privacy_level=user_service.get_privacy_level(session[SESSION_CURRENT_STUDENT].sid_orig))
+                           privacy_level=user_service.get_privacy_level(session[SESSION_CURRENT_USER].identifier))
 
 
 @user_bp.route('/logout')
 @login_required
 def logout():
     """用户退出登录"""
-    del session[SESSION_CURRENT_STUDENT]
+    del session[SESSION_CURRENT_USER]
     flash("退出登录成功。")
     return redirect(url_for('main.main'))
 
@@ -326,7 +329,7 @@ def js_set_preference():
             return jsonify({"acknowledged": False,
                             "message": "Invalid value"})
 
-        user_service.set_privacy_level(session[SESSION_CURRENT_STUDENT].sid_orig, privacy_level)
+        user_service.set_privacy_level(session[SESSION_CURRENT_USER].identifier, privacy_level)
     return jsonify({"acknowledged": True})
 
 
@@ -334,7 +337,7 @@ def js_set_preference():
 @login_required
 def reset_calendar_token():
     """重置日历订阅令牌"""
-    calendar_service.reset_calendar_tokens(session[SESSION_CURRENT_STUDENT].sid_orig)
+    calendar_service.reset_calendar_tokens(session[SESSION_CURRENT_USER].identifier)
     flash("日历订阅令牌重置成功")
     return redirect(url_for("user.main"))
 
@@ -343,6 +346,6 @@ def reset_calendar_token():
 @login_required
 def visitors():
     """我的访客页面"""
-    visitor_list = VisitTrack.get_visitors(session[SESSION_CURRENT_STUDENT].sid_orig)
-    visitor_count = user_service.get_visitor_count(session[SESSION_CURRENT_STUDENT].sid_orig)
+    visitor_list = VisitTrack.get_visitors(session[SESSION_CURRENT_USER].identifier)
+    visitor_count = user_service.get_visitor_count(session[SESSION_CURRENT_USER].identifier)
     return render_template("user/visitors.html", visitor_list=visitor_list, visitor_count=visitor_count)

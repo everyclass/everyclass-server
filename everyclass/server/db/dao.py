@@ -26,7 +26,7 @@ from everyclass.rpc.entity import CardResult, teacher_list_to_tid_str
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.db.redis import redis
-from everyclass.server.models import StudentSession
+from everyclass.server.models import UserSession
 
 
 class MongoDAOBase(abc.ABC):
@@ -54,14 +54,14 @@ class VisitTrack(PostgresBase):
     """
 
     @classmethod
-    def update_track(cls, host: str, visitor: StudentSession) -> None:
+    def update_track(cls, host: str, visitor: UserSession) -> None:
 
         with pg_conn_context() as conn, conn.cursor() as cursor:
             insert_or_update_query = """
             INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s)
                 ON CONFLICT ON CONSTRAINT unq_host_visitor DO UPDATE SET last_visit_time=EXCLUDED.last_visit_time;
             """
-            cursor.execute(insert_or_update_query, (host, visitor.sid_orig, datetime.datetime.now()))
+            cursor.execute(insert_or_update_query, (host, visitor.identifier, datetime.datetime.now()))
             conn.commit()
 
     @classmethod
