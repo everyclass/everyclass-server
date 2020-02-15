@@ -3,7 +3,7 @@ import functools
 from flask import render_template, session
 
 from everyclass.server.config import get_config
-from everyclass.server.consts import MSG_400, MSG_NOT_LOGGED_IN, SESSION_CURRENT_STUDENT
+from everyclass.server.consts import MSG_400, MSG_NOT_LOGGED_IN, SESSION_CURRENT_USER
 
 
 def disallow_in_maintenance(func):
@@ -42,7 +42,7 @@ def login_required(func):
 
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
-        if not session.get(SESSION_CURRENT_STUDENT, None):
+        if not session.get(SESSION_CURRENT_USER, None):
             return render_template('common/error.html', message=MSG_NOT_LOGGED_IN, action="login")
         return func(*args, **kwargs)
 

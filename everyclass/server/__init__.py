@@ -26,10 +26,12 @@ try:
     使用 `uwsgidecorators.postfork` 装饰的函数会在 fork() 后的**每一个**子进程内被执行，执行顺序与这里的定义顺序一致
     """
 
+
     @uwsgidecorators.postfork
     def enable_gc():
         """重新启用垃圾回收"""
         gc.set_threshold(700)
+
 
     @uwsgidecorators.postfork
     def init_plugins():
@@ -56,6 +58,7 @@ try:
 
         print_config(__app, logger)
 
+
     @uwsgidecorators.postfork
     def init_db():
         """初始化数据库连接"""
@@ -64,6 +67,7 @@ try:
         # init_mongo(__app)
         init_pg()
 
+
     @uwsgidecorators.postfork
     def fetch_remote_manifests():
         """
@@ -71,6 +75,7 @@ try:
         因此我们只能在 fork 后的每个进程中进行请求。
         """
         cron_update_remote_manifest()
+
 
     @uwsgidecorators.cron(0, -1, -1, -1, -1)
     def daily_update_data_time(signum):
@@ -183,7 +188,7 @@ def create_app() -> Flask:
     @app.before_request
     def set_user_id():
         """在请求之前设置 session uid，方便 APM 标识用户"""
-        from everyclass.server.consts import SESSION_CURRENT_STUDENT
+        from everyclass.server.consts import SESSION_CURRENT_USER
         from everyclass.server.user import service as user_service
 
         if not session.get('user_id', None) and request.endpoint not in ("main.health_check", "static"):
@@ -191,8 +196,8 @@ def create_app() -> Flask:
             session['user_id'] = user_service.get_user_id()
         if session.get('user_id', None):
             tracer.current_root_span().set_tag("user_id", session['user_id'])  # 唯一用户 ID
-        if session.get(SESSION_CURRENT_STUDENT, None):
-            tracer.current_root_span().set_tag("username", session[SESSION_CURRENT_STUDENT])  # 学号
+        if session.get(SESSION_CURRENT_USER, None):
+            tracer.current_root_span().set_tag("username", session[SESSION_CURRENT_USER].identifier)  # 学号或教工号
 
     @app.before_request
     def log_request():

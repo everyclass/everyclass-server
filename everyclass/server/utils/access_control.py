@@ -4,7 +4,7 @@ from ddtrace import tracer
 from flask import render_template, session
 
 from everyclass.rpc.entity import StudentTimetableResult
-from everyclass.server.consts import SESSION_CURRENT_STUDENT, SESSION_LAST_VIEWED_STUDENT
+from everyclass.server.consts import SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
 from everyclass.server.db.dao import VisitTrack
 from everyclass.server.user import service as user_service
 
@@ -20,8 +20,8 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
         privacy_level = user_service.get_privacy_level(student.student_id)
 
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
-    if privacy_level == 2 and (not session.get(SESSION_CURRENT_STUDENT, None) or
-                               session[SESSION_CURRENT_STUDENT].sid_orig != student.student_id):
+    if privacy_level == 2 and (not session.get(SESSION_CURRENT_USER, None) or
+                               session[SESSION_CURRENT_USER].identifier != student.student_id):
         return False, render_template('query/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
@@ -30,14 +30,14 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
     # 实名互访
     if privacy_level == 1:
         # 未登录，要求登录
-        if not session.get(SESSION_CURRENT_STUDENT, None):
+        if not session.get(SESSION_CURRENT_USER, None):
             return False, render_template('query/studentBlocked.html',
                                           name=student.name,
                                           falculty=student.deputy,
                                           class_name=student.klass,
                                           level=1)
         # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
-        if user_service.get_privacy_level(session[SESSION_CURRENT_STUDENT].sid_orig) == 2:
+        if user_service.get_privacy_level(session[SESSION_CURRENT_USER].identifier) == 2:
             return False, render_template('query/studentBlocked.html',
                                           name=student.name,
                                           falculty=student.deputy,
@@ -46,9 +46,9 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
 
     # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
     if privacy_level != 2 and \
-            session.get(SESSION_CURRENT_STUDENT, None) and \
-            session[SESSION_CURRENT_STUDENT].sid_orig != session[SESSION_LAST_VIEWED_STUDENT].sid_orig:
+            session.get(SESSION_CURRENT_USER, None) and \
+            session[SESSION_CURRENT_USER].identifier != session[SESSION_LAST_VIEWED_STUDENT].sid_orig:
         VisitTrack.update_track(host=student.student_id,
-                                visitor=session[SESSION_CURRENT_STUDENT])
+                                visitor=session[SESSION_CURRENT_USER])
 
     return True, None
