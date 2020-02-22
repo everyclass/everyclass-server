@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, List
 
 from ddtrace import tracer
 from flask import session
@@ -9,8 +9,9 @@ from everyclass.rpc.auth import Auth
 from everyclass.rpc.entity import Entity, SearchResultStudentItem, SearchResultTeacherItem
 from everyclass.server import logger
 from everyclass.server.models import UserSession
-from everyclass.server.user.entity import IdentityVerifyRequest
-from everyclass.server.user.repo import privacy_settings, user, simple_password, visit_count, user_id_sequence, identity_verify_requests
+from everyclass.server.user.entity import IdentityVerifyRequest, Visitor
+from everyclass.server.user.repo import privacy_settings, user, simple_password, visit_count, user_id_sequence, identity_verify_requests, \
+    visit_track
 
 
 def get_privacy_level(student_id: str) -> int:
@@ -43,6 +44,14 @@ def add_visitor_count(identifier: str, visitor: UserSession = None) -> None:
 
 def get_visitor_count(identifier: str) -> int:
     return visit_count.get_visitor_count(identifier)
+
+
+def get_visitors(identifier: str) -> List[Visitor]:
+    return visit_track.get_visitors(identifier)
+
+
+def update_track(host: str, visitor: UserSession) -> None:
+    return visit_track.update_track(host, visitor)
 
 
 def get_user_id() -> int:

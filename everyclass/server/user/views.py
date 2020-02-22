@@ -9,7 +9,6 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
     SESSION_USER_REGISTERING
-from everyclass.server.db.dao import VisitTrack
 from everyclass.server.models import UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
 from everyclass.server.user import service as user_service
 from everyclass.server.utils.decorators import login_required
@@ -349,6 +348,6 @@ def reset_calendar_token():
 @login_required
 def visitors():
     """我的访客页面"""
-    visitor_list = VisitTrack.get_visitors(session[SESSION_CURRENT_USER].identifier)
+    visitor_list = user_service.get_visitors(session[SESSION_CURRENT_USER].identifier)
     visitor_count = user_service.get_visitor_count(session[SESSION_CURRENT_USER].identifier)
     return render_template("user/visitors.html", visitor_list=visitor_list, visitor_count=visitor_count)

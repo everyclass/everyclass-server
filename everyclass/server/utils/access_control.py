@@ -5,7 +5,6 @@ from flask import render_template, session
 
 from everyclass.rpc.entity import StudentTimetableResult
 from everyclass.server.consts import SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
-from everyclass.server.db.dao import VisitTrack
 from everyclass.server.user import service as user_service
 
 
@@ -48,7 +47,7 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
     if privacy_level != 2 and \
             session.get(SESSION_CURRENT_USER, None) and \
             session[SESSION_CURRENT_USER].identifier != session[SESSION_LAST_VIEWED_STUDENT].sid_orig:
-        VisitTrack.update_track(host=student.student_id,
-                                visitor=session[SESSION_CURRENT_USER])
+        user_service.update_track(host=student.student_id,
+                                  visitor=session[SESSION_CURRENT_USER])
 
     return True, None
