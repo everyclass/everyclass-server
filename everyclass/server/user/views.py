@@ -89,7 +89,7 @@ def register():
         if not request.form.get("xh", None):  # 表单为空
             flash(MSG_EMPTY_USERNAME)
             return redirect(url_for("user.register"))
-
+        # todo: change frontend to tell users that teachers can register now
         # 检查学号/教工号是否存在
         try:
             user_service.get_people_info(request.form.get("xh", None))
