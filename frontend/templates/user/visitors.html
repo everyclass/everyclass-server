@@ -25,10 +25,11 @@
                     {% for visitor in visitor_list %}
                         <tr>
                             <td>
-                                {% if visitor.user_type=="student" %}
-                                    <a href="{{ url_for('query.get_student', url_sid=visitor.identifier_encoded,url_semester=visitor.last_semester) }} ">{{ visitor.name }}</a>
-                                {% elif visitor.user_type=="teacher" %}
-                                    <a href="{{ url_for('query.get_teacher', url_sid=visitor.identifier_encoded,url_semester=visitor.last_semester) }} ">{{ visitor.name }}</a>
+                                {% if visitor.user_type == "student" %}
+                                    <a href="{{ url_for('query.get_student', url_sid=visitor.identifier_encoded, url_semester=visitor.last_semester) }} ">{{ visitor.name }}</a>
+                                {% elif visitor.user_type == "teacher" %}
+                                    <a href="{{ url_for('query.get_teacher', url_tid=visitor.identifier_encoded, url_semester=visitor.last_semester) }} ">{{ visitor.name }}</a>
+                                    （教师）
                                 {% endif %}
                             </td>
                             <td>{{ moment(visitor.visit_time).fromNow(refresh=True) }}</td>
