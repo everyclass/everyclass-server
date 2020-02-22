@@ -44,7 +44,7 @@ def login():
         if request.form.get("xh", None):  # 已手动填写用户名
             identifier = request.form["xh"]
 
-            # 检查学号是否存在
+            # 检查学号/教工号是否存在
             try:
                 user_service.get_people_info(identifier)
             except user_service.PeopleNotFoundError:
@@ -89,6 +89,15 @@ def register():
         if not request.form.get("xh", None):  # 表单为空
             flash(MSG_EMPTY_USERNAME)
             return redirect(url_for("user.register"))
+
+        # 检查学号/教工号是否存在
+        try:
+            user_service.get_people_info(request.form.get("xh", None))
+        except user_service.PeopleNotFoundError:
+            flash(MSG_USERNAME_NOT_EXIST)
+            return redirect(url_for("user.register"))
+        except Exception as e:
+            return handle_exception_with_error_page(e)
 
         _set_current_registering(request.form.get("xh", None))
 
