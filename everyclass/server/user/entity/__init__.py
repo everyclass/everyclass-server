@@ -1,6 +1,6 @@
+import uuid
+from dataclasses import dataclass
 from typing import NamedTuple
-
-from everyclass.server.user.entity.identity_verify_request import IdentityVerifyRequest
 
 
 class Visitor(NamedTuple):
@@ -9,6 +9,15 @@ class Visitor(NamedTuple):
     identifier_encoded: str
     last_semester: str
     visit_time: int  # not sure
+
+
+@dataclass
+class IdentityVerifyRequest:
+    request_id: uuid.UUID
+    identifier: str
+    method: str
+    status: str
+    extra: dict
 
 
 __all__ = (IdentityVerifyRequest, Visitor)
