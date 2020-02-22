@@ -231,8 +231,8 @@ def get_people_info(identifier: str) -> (Optional[bool], Union[SearchResultStude
      teacher.
     """
     result = Entity.search(identifier)
-    if len(result.students) > 1:
+    if len(result.students) > 0:
         return True, result.students[0]
-    if len(result.teachers) > 1:
+    if len(result.teachers) > 0:
         return False, result.teachers[0]
     raise PeopleNotFoundError
