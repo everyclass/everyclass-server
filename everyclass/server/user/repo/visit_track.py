@@ -2,8 +2,8 @@ import datetime
 from typing import List
 
 from everyclass.server.db.postgres import pg_conn_context
-from everyclass.server.models import UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
 from everyclass.server.user.entity import Visitor
+from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT, UserSession
 
 
 def update_track(host: str, visitor: UserSession) -> None:

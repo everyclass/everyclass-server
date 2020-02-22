@@ -12,13 +12,13 @@ from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_str
 from everyclass.rpc.entity import Entity
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
-from everyclass.server.models import StudentSession
 from everyclass.server.user import service as user_service
 from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 from everyclass.server.utils.encryption import decrypt
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
+from everyclass.server.utils.session import StudentSession
 
 query_blueprint = Blueprint('query', __name__)
 

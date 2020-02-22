@@ -1,5 +1,4 @@
 import re
-from typing import NamedTuple
 
 
 class Semester(object):
@@ -64,26 +63,3 @@ class Semester(object):
         获取用于数据表命名的学期，如 16_17_2
         """
         return self.to_str(simplify=True).replace('-', '_')
-
-
-class StudentSession(NamedTuple):
-    sid_orig: str
-    sid: str
-    name: str
-
-
-USER_TYPE_TEACHER = 'teacher'
-USER_TYPE_STUDENT = 'student'
-
-
-# todo: move this to `session` directory after supporting teacher registration. This is not a "model" in any way.
-class UserSession(NamedTuple):
-    """
-    To support teacher registration and login, the `StudentSession` type is deprecated and replaced by this `UserSession` type.
-    `UserSession` renamed some fields and added a `user_type` field to mark whether this is a teacher or student.
-
-    """
-    user_type: str  # teacher/student
-    identifier: str
-    identifier_encoded: str  # 编码后的学号或教工号
-    name: str

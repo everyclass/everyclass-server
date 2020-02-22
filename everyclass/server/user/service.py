@@ -8,10 +8,10 @@ from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
 from everyclass.rpc.entity import Entity, SearchResultStudentItem, SearchResultTeacherItem
 from everyclass.server import logger
-from everyclass.server.models import UserSession
 from everyclass.server.user.entity import IdentityVerifyRequest, Visitor
 from everyclass.server.user.repo import privacy_settings, user, simple_password, visit_count, user_id_sequence, identity_verify_requests, \
     visit_track
+from everyclass.server.utils.session import UserSession
 
 
 def get_privacy_level(student_id: str) -> int:

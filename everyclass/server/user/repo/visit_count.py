@@ -1,7 +1,7 @@
 from flask import session
 
 from everyclass.server.db.redis import redis, redis_prefix
-from everyclass.server.models import UserSession
+from everyclass.server.utils.session import UserSession
 
 
 def add_visitor_count(identifier: str, visitor: UserSession = None) -> None:

@@ -9,10 +9,10 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
     SESSION_USER_REGISTERING
-from everyclass.server.models import UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
 from everyclass.server.user import service as user_service
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
+from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT, UserSession
 
 user_bp = Blueprint('user', __name__)
 

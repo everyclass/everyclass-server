@@ -1,14 +1,15 @@
-# https://github.com/SaintFlipper/EncryptedSession/blob/master/main.py
 import _pickle
 import base64
 import pickle
 import zlib
+from typing import NamedTuple
 
 from Crypto.Cipher import AES
 from flask.sessions import SessionInterface, SessionMixin
 from werkzeug.datastructures import CallbackDict
 
 
+# https://github.com/SaintFlipper/EncryptedSession/blob/master/main.py
 class EncryptedSession(CallbackDict, SessionMixin):
     def __init__(self, initial=None):
         def on_update(self):
@@ -116,3 +117,28 @@ class EncryptedSessionInterface(SessionInterface):
         response.set_cookie(self.session_cookie_name, session_cookie,
                             expires=expires, httponly=True,
                             domain=domain)
+
+
+class StudentSession(NamedTuple):
+    """
+    legacy session structure
+    """
+    sid_orig: str
+    sid: str
+    name: str
+
+
+USER_TYPE_TEACHER = 'teacher'
+USER_TYPE_STUDENT = 'student'
+
+
+class UserSession(NamedTuple):
+    """
+    To support teacher registration and login, the `StudentSession` type is deprecated and replaced by this `UserSession` type.
+    `UserSession` renamed some fields and added a `user_type` field to mark whether this is a teacher or student.
+
+    """
+    user_type: str  # teacher/student
+    identifier: str
+    identifier_encoded: str  # 编码后的学号或教工号
+    name: str
