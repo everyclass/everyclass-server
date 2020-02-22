@@ -21,28 +21,28 @@ def set_privacy_level(student_id: str, new_level: int) -> None:
     return privacy_settings.set_level(student_id, new_level)
 
 
-def add_user(sid_orig: str, password: str, password_encrypted: bool = False) -> None:
-    return user.add_user(sid_orig, password, password_encrypted)
+def add_user(identifier: str, password: str, password_encrypted: bool = False) -> None:
+    return user.add_user(identifier, password, password_encrypted)
 
 
 def user_exist(student_id: str) -> bool:
     return user.exist(student_id)
 
 
-def check_password(sid_orig: str, password: str) -> bool:
-    return user.check_password(sid_orig, password)
+def check_password(identifier: str, password: str) -> bool:
+    return user.check_password(identifier, password)
 
 
 def record_simple_password(password: str, identifier: str) -> None:
     return simple_password.new(password, identifier)
 
 
-def add_visitor_count(sid_orig: str, visitor: UserSession = None) -> None:
-    return visit_count.add_visitor_count(sid_orig, visitor)
+def add_visitor_count(identifier: str, visitor: UserSession = None) -> None:
+    return visit_count.add_visitor_count(identifier, visitor)
 
 
-def get_visitor_count(sid_orig: str) -> int:
-    return visit_count.get_visitor_count(sid_orig)
+def get_visitor_count(identifier: str) -> int:
+    return visit_count.get_visitor_count(identifier)
 
 
 def get_user_id() -> int:
@@ -193,7 +193,7 @@ def register_by_password_status_refresh(request_id: str) -> Tuple[bool, str, Opt
         verification_req = identity_verify_requests.get_request_by_id(str(request_id))
 
         try:
-            add_user(sid_orig=verification_req.identifier, password=verification_req.extra["password"],
+            add_user(identifier=verification_req.identifier, password=verification_req.extra["password"],
                      password_encrypted=True)
         except ValueError as e:
             raise AlreadyRegisteredError from e

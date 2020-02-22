@@ -43,7 +43,7 @@ def show_review(cotc_id: int):
     if not cotc:
         return render_template('common/error.html', message=MSG_404)
 
-    if session.get("current_logged_in_user", None) \
+    if session.get(SESSION_CURRENT_USER, None) \
             and CourseReview.get_my_review(cotc_id=cotc_id, student_id=session[SESSION_CURRENT_USER].identifier):
         reviewed_by_me = True
     else:

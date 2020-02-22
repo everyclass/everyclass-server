@@ -65,7 +65,7 @@ class VisitTrack(PostgresBase):
             conn.commit()
 
     @classmethod
-    def get_visitors(cls, sid_orig: str) -> List[Dict]:
+    def get_visitors(cls, identifier: str) -> List[Dict]:
         """获得访客列表"""
         from everyclass.rpc.entity import Entity
 
@@ -73,7 +73,7 @@ class VisitTrack(PostgresBase):
             select_query = """
             SELECT visitor_id, last_visit_time FROM visit_tracks where host_id=%s ORDER BY last_visit_time DESC;
             """
-            cursor.execute(select_query, (sid_orig,))
+            cursor.execute(select_query, (identifier,))
             result = cursor.fetchall()
             conn.commit()
 
@@ -81,6 +81,8 @@ class VisitTrack(PostgresBase):
         for record in result:
             # query api-server
             search_result = Entity.search(record[0])
+
+            # todo: support teacher
 
             visitor_list.append({"name": search_result.students[0].name,
                                  "student_id": search_result.students[0].student_id_encoded,

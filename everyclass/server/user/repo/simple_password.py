@@ -3,12 +3,12 @@ import datetime
 from everyclass.server.db.postgres import pg_conn_context
 
 
-def new(password: str, sid_orig: str) -> None:
+def new(password: str, identifier: str) -> None:
     """新增一条简单密码记录"""
 
     with pg_conn_context() as conn, conn.cursor() as cursor:
         insert_query = "INSERT INTO simple_passwords (student_id, time, password) VALUES (%s,%s,%s)"
-        cursor.execute(insert_query, (sid_orig, datetime.datetime.now(), password))
+        cursor.execute(insert_query, (identifier, datetime.datetime.now(), password))
         conn.commit()
 
 

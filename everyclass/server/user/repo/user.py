@@ -14,21 +14,21 @@ def exist(student_id: str) -> bool:
     return result is not None
 
 
-def check_password(sid_orig: str, password: str) -> bool:
+def check_password(identifier: str, password: str) -> bool:
     """verify a user's password. Return True if password is correct, otherwise return False."""
     with pg_conn_context() as conn, conn.cursor() as cursor:
         select_query = "SELECT password FROM users WHERE student_id=%s"
-        cursor.execute(select_query, (sid_orig,))
+        cursor.execute(select_query, (identifier,))
         result = cursor.fetchone()
     if result is None:
         raise ValueError("Student not registered")
     return check_password_hash(result[0], password)
 
 
-def add_user(sid_orig: str, password: str, password_encrypted: bool = False) -> None:
+def add_user(identifier: str, password: str, password_encrypted: bool = False) -> None:
     """add a user
 
-    :param sid_orig: 学号
+    :param identifier: 学号或教工号
     :param password: 密码
     :param password_encrypted: 密码是否已经被加密过了（否则会被二次加密）
     """
@@ -42,7 +42,7 @@ def add_user(sid_orig: str, password: str, password_encrypted: bool = False) -> 
     with pg_conn_context() as conn, conn.cursor() as cursor:
         select_query = "INSERT INTO users (student_id, password, create_time) VALUES (%s,%s,%s)"
         try:
-            cursor.execute(select_query, (sid_orig, password_hash, datetime.datetime.now()))
+            cursor.execute(select_query, (identifier, password_hash, datetime.datetime.now()))
             conn.commit()
         except psycopg2.errors.UniqueViolation as e:
             raise ValueError("Student already exists in database") from e

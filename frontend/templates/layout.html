@@ -63,7 +63,7 @@
                         <li>
                             <a href="{{ url_for('main.about') }}">关于</a>
                         </li>
-                        {% if session.get("current_logged_in_user", None) %}
+                        {% if session.get("current_user", None) %}
                             <li>
                                 <a href="{{ url_for('user.main') }}">个人中心</a>
                             </li>
