@@ -30,7 +30,8 @@ def get_visitors(identifier: str) -> List[Visitor]:
 
     visitor_list = []
     for record in result:
-        # query api-server
+        # query entity
+        # todo: entity add a multi GET interface to make this process faster when the list is long
         search_result = Entity.search(record[0])
         if len(search_result.students) > 0:
             visitor_list.append(Visitor(name=search_result.students[0].name,

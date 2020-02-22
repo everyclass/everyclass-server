@@ -65,7 +65,6 @@ def login():
         except ValueError:
             # 未注册
             flash(MSG_NOT_REGISTERED)
-            _set_current_registering(identifier)
             return redirect(url_for("user.register"))
 
         if success:
@@ -99,7 +98,9 @@ def register():
         except Exception as e:
             return handle_exception_with_error_page(e)
 
-        _set_current_registering(request.form.get("xh", None))
+        r = _set_current_registering(request.form.get("xh", None))
+        if r:
+            return r
 
         # 如果输入的学号或教工号已经注册，跳转到登录页面
         if user_service.user_exist(session[SESSION_USER_REGISTERING].identifier):
@@ -282,7 +283,7 @@ def _set_current_registering(identifier: str):
     将正在注册的用户并保存到 SESSION_USER_REGISTERING
 
     :param identifier: 学号或教工号
-    :return: None
+    :return: None if there is no exception. Otherwise return an error page.
     """
     with tracer.trace('rpc_get_student'):
         try:
