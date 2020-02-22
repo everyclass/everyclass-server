@@ -26,7 +26,8 @@ from everyclass.rpc.entity import CardResult, teacher_list_to_tid_str
 from everyclass.server.db.mongodb import get_connection as get_mongodb
 from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.db.redis import redis
-from everyclass.server.models import UserSession
+from everyclass.server.models import UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
+from everyclass.server.user.entity import Visitor
 
 
 class MongoDAOBase(abc.ABC):
@@ -49,8 +50,6 @@ class PostgresBase(abc.ABC):
 class VisitTrack(PostgresBase):
     """
     访客记录
-
-    目前只考虑了学生互访的情况，如果将来老师支持注册，这里需要改动
     """
 
     @classmethod
@@ -65,7 +64,7 @@ class VisitTrack(PostgresBase):
             conn.commit()
 
     @classmethod
-    def get_visitors(cls, identifier: str) -> List[Dict]:
+    def get_visitors(cls, identifier: str) -> List[Visitor]:
         """获得访客列表"""
         from everyclass.rpc.entity import Entity
 
@@ -83,11 +82,19 @@ class VisitTrack(PostgresBase):
             search_result = Entity.search(record[0])
 
             # todo: support teacher
+            if len(search_result.students) > 0:
+                visitor_list.append(Visitor(name=search_result.students[0].name,
+                                            user_type=USER_TYPE_STUDENT,
+                                            identifier_encoded=search_result.students[0].student_id_encoded,
+                                            last_semester=search_result.students[0].semesters[-1],
+                                            visit_time=record[1]))
+            elif len(search_result.teachers) > 0:
+                visitor_list.append(Visitor(name=search_result.teachers[0].name,
+                                            user_type=USER_TYPE_TEACHER,
+                                            identifier_encoded=search_result.teachers[0].teacher_id_encoded,
+                                            last_semester=search_result.teachers[0].semesters[-1],
+                                            visit_time=record[1]))
 
-            visitor_list.append({"name": search_result.students[0].name,
-                                 "student_id": search_result.students[0].student_id_encoded,
-                                 "last_semester": search_result.students[0].semesters[-1],
-                                 "visit_time": record[1]})
         return visitor_list
 
     @classmethod

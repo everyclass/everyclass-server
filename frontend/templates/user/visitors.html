@@ -25,9 +25,13 @@
                     {% for visitor in visitor_list %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('query.get_student', url_sid=visitor["student_id"],url_semester=visitor["last_semester"]) }} ">{{ visitor["name"] }}</a>
+                                {% if visitor.user_type=="student" %}
+                                    <a href="{{ url_for('query.get_student', url_sid=visitor.identifier_encoded,url_semester=visitor.last_semester) }} ">{{ visitor.name }}</a>
+                                {% elif visitor.user_type=="teacher" %}
+                                    <a href="{{ url_for('query.get_teacher', url_sid=visitor.identifier_encoded,url_semester=visitor.last_semester) }} ">{{ visitor.name }}</a>
+                                {% endif %}
                             </td>
-                            <td>{{ moment(visitor["visit_time"]).fromNow(refresh=True) }}</td>
+                            <td>{{ moment(visitor.visit_time).fromNow(refresh=True) }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
