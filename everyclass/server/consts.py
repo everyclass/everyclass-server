@@ -5,14 +5,17 @@ This file defines consts, such as session keys and return messages.
 """
 Session keys
 
-All session keys should be defined here
+All session keys should be defined here. If a key is deprecated, it should be KEPT HERE in case of accidentally usage in the future.
 """
 SESSION_LAST_VIEWED_STUDENT = "last_viewed_student"  # a everyclass.server.db.model.StudentSession type
-SESSION_STUDENT_TO_REGISTER = "student_to_register"
-SESSION_CURRENT_STUDENT = "current_logged_in_user"  # a StudentSession type marking the logged in student(deprecated, use SESSION_CURRENT_USER)
-SESSION_CURRENT_USER = "current_user"  # todo 从当前学生切换到当前用户
+SESSION_USER_REGISTERING = "user_registering"  # a UserSession type marking the current registering people
+SESSION_CURRENT_USER = "current_user"  # a UserSession type marking the current logged-in user
 SESSION_PWD_VER_REQ_ID = "verification_req_id"  # current verification req id, a uuid.UUID type
 SESSION_EMAIL_VER_REQ_ID = "email_verify_req_id"
+
+# below are deprecated
+SESSION_STUDENT_TO_REGISTER = "student_to_register"  # a StudentSession type marking the current registering student(deprecated, use SESSION_USER_TO_REGISTER)
+SESSION_CURRENT_STUDENT = "current_logged_in_user"  # a StudentSession type marking the logged in student(deprecated, use SESSION_CURRENT_USER)
 
 """
 错误信息

@@ -1,8 +1,6 @@
 from ddtrace import tracer
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 
-from everyclass.rpc import RpcResourceNotFound
-from everyclass.rpc.entity import Entity
 from everyclass.rpc.tencent_captcha import TencentCaptcha
 from everyclass.server import logger
 from everyclass.server.calendar import service as calendar_service
@@ -10,27 +8,14 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
-    SESSION_STUDENT_TO_REGISTER
+    SESSION_USER_REGISTERING
 from everyclass.server.db.dao import VisitTrack
-from everyclass.server.models import StudentSession, UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
+from everyclass.server.models import UserSession, USER_TYPE_STUDENT, USER_TYPE_TEACHER
 from everyclass.server.user import service as user_service
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
 
 user_bp = Blueprint('user', __name__)
-
-
-def _session_save_student_to_register_(student_id: str):
-    # 将需要注册的用户并保存到 SESSION_STUDENT_TO_REGISTER
-    with tracer.trace('rpc_get_student'):
-        try:
-            student = Entity.get_student(student_id)
-        except Exception as e:
-            return handle_exception_with_error_page(e)
-
-    session[SESSION_STUDENT_TO_REGISTER] = StudentSession(sid_orig=student.student_id,
-                                                          sid=student.student_id_encoded,
-                                                          name=student.name)
 
 
 @user_bp.route('/login', methods=["GET", "POST"])
@@ -58,12 +43,12 @@ def login():
             return redirect(url_for("user.login"))
 
         if request.form.get("xh", None):  # 已手动填写用户名
-            student_id = request.form["xh"]
+            identifier = request.form["xh"]
 
             # 检查学号是否存在
             try:
-                Entity.get_student(student_id)
-            except RpcResourceNotFound:
+                user_service.get_people_info(identifier)
+            except user_service.PeopleNotFoundError:
                 flash(MSG_USERNAME_NOT_EXIST)
                 return redirect(url_for("user.login"))
             except Exception as e:
@@ -71,22 +56,22 @@ def login():
 
         else:
             if session.get(SESSION_LAST_VIEWED_STUDENT, None):
-                student_id = session[SESSION_LAST_VIEWED_STUDENT].sid_orig  # 没有手动填写，使用获取最后浏览的学生
+                identifier = session[SESSION_LAST_VIEWED_STUDENT].sid_orig  # 没有手动填写，使用获取最后浏览的学生
             else:
                 flash(MSG_EMPTY_USERNAME)  # 没有最后浏览的学生，必须填写用户名
                 return redirect(url_for("user.login"))
 
         try:
-            success = user_service.check_password(student_id, request.form["password"])
+            success = user_service.check_password(identifier, request.form["password"])
         except ValueError:
             # 未注册
             flash(MSG_NOT_REGISTERED)
-            _session_save_student_to_register_(student_id)
+            _set_current_registering(identifier)
             return redirect(url_for("user.register"))
 
         if success:
             try:
-                set_current_user(student_id)
+                _set_current_user(identifier)
             except Exception as e:
                 return handle_exception_with_error_page(e)
 
@@ -106,10 +91,10 @@ def register():
             flash(MSG_EMPTY_USERNAME)
             return redirect(url_for("user.register"))
 
-        _session_save_student_to_register_(request.form.get("xh", None))
+        _set_current_registering(request.form.get("xh", None))
 
         # 如果输入的学号或教工号已经注册，跳转到登录页面
-        if user_service.user_exist(session[SESSION_STUDENT_TO_REGISTER].sid_orig):
+        if user_service.user_exist(session[SESSION_USER_REGISTERING].identifier):
             flash(MSG_ALREADY_REGISTERED)
             return redirect(url_for('user.login'))
 
@@ -119,7 +104,7 @@ def register():
 @user_bp.route('/register/choice')
 def register_choice():
     """注册：第二步：选择注册方式"""
-    if not session.get(SESSION_STUDENT_TO_REGISTER, None):  # 步骤异常，跳回第一步
+    if not session.get(SESSION_USER_REGISTERING, None):  # 步骤异常，跳回第一步
         return redirect(url_for('user.register'))
     return render_template('user/registerChoice.html')
 
@@ -127,13 +112,13 @@ def register_choice():
 @user_bp.route('/register/byEmail')
 def register_by_email():
     """注册：第三步：使用邮箱验证注册"""
-    if not session.get(SESSION_STUDENT_TO_REGISTER, None):  # 步骤异常，跳回第一步
+    if not session.get(SESSION_USER_REGISTERING, None):  # 步骤异常，跳回第一步
         return redirect(url_for('user.register'))
 
-    sid_orig = session[SESSION_STUDENT_TO_REGISTER].sid_orig
+    identifier = session[SESSION_USER_REGISTERING].identifier
 
     try:
-        request_id = user_service.register_by_email(sid_orig)
+        request_id = user_service.register_by_email(identifier)
     except Exception as e:
         return handle_exception_with_error_page(e)
     else:
@@ -170,7 +155,7 @@ def email_verification():
 
         # 查询 entity 获得基本信息
         try:
-            set_current_user(identifier)
+            _set_current_user(identifier)
         except Exception as e:
             return handle_exception_with_error_page(e)
         return redirect(url_for("user.main"))
@@ -190,7 +175,7 @@ def email_verification():
 @user_bp.route('/register/byPassword', methods=['GET', 'POST'])
 def register_by_password():
     """注册：第三步：使用密码验证注册"""
-    if not session.get(SESSION_STUDENT_TO_REGISTER, None):
+    if not session.get(SESSION_USER_REGISTERING, None):
         return render_template('common/error.html', message=MSG_VIEW_SCHEDULE_FIRST)
 
     if request.method == 'POST':
@@ -208,7 +193,7 @@ def register_by_password():
         try:
             request_id = user_service.register_by_password(request.form["jwPassword"],
                                                            request.form["password"],
-                                                           session.get(SESSION_STUDENT_TO_REGISTER, None).sid_orig)
+                                                           session.get(SESSION_USER_REGISTERING, None).identifier)
         except user_service.PasswordTooWeakError:
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.register_by_password"))
@@ -219,7 +204,7 @@ def register_by_password():
         return render_template('user/passwordRegistrationPending.html', request_id=request_id)
     else:
         # show password registration page
-        return render_template("user/passwordRegistration.html", name=session[SESSION_STUDENT_TO_REGISTER].name)
+        return render_template("user/passwordRegistration.html", name=session[SESSION_USER_REGISTERING].name)
 
 
 @user_bp.route('/register/passwordStrengthCheck', methods=["POST"])
@@ -252,7 +237,7 @@ def register_by_password_status():
             if SESSION_PWD_VER_REQ_ID in session:
                 del session[SESSION_PWD_VER_REQ_ID]
 
-            set_current_user(identifier)  # potential uncaught error
+            _set_current_user(identifier)  # potential uncaught error
             return jsonify({"message": "SUCCESS"})
         elif message in ("PASSWORD_WRONG", "INTERNAL_ERROR", "INVALID_REQUEST_ID"):
             return jsonify({"message": message})
@@ -271,7 +256,7 @@ def register_by_password_status():
         return redirect(url_for('user.login'))
 
 
-def set_current_user(identifier: str):
+def _set_current_user(identifier: str):
     """
     设置session中当前登录用户为参数中的学号
 
@@ -282,6 +267,24 @@ def set_current_user(identifier: str):
                                                 identifier=people.student_id if is_student else people.teacher_id,
                                                 identifier_encoded=people.student_id_encoded if is_student else people.teacher_id_encoded,
                                                 name=people.name)
+
+
+def _set_current_registering(identifier: str):
+    """
+    将正在注册的用户并保存到 SESSION_USER_REGISTERING
+
+    :param identifier: 学号或教工号
+    :return: None
+    """
+    with tracer.trace('rpc_get_student'):
+        try:
+            is_student, people = user_service.get_people_info(identifier)
+            session[SESSION_USER_REGISTERING] = UserSession(user_type=USER_TYPE_STUDENT if is_student else USER_TYPE_TEACHER,
+                                                            identifier=people.student_id if is_student else people.teacher_id,
+                                                            identifier_encoded=people.student_id_encoded if is_student else people.teacher_id_encoded,
+                                                            name=people.name)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
 
 
 @user_bp.route('/register/byPassword/success')
