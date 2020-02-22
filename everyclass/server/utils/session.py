@@ -69,7 +69,10 @@ class EncryptedSessionInterface(SessionInterface):
 
             return self.session_class(session_dict)
 
-        except (ValueError, _pickle.UnpicklingError, pickle.UnpicklingError):
+        except (ValueError, _pickle.UnpicklingError, pickle.UnpicklingError, AttributeError):
+            # there is AttributeError after moving type 'StudentSession' to here:
+            # AttributeError: Can't get attribute 'StudentSession' on <module 'everyclass.server.models' from '/var/app/everyclass/server/models.py'>
+            # it's acceptable to clean the user's whole session if there is error when unpickling, biz coders have to know this rule.
             return self.session_class()
 
     def save_session(self, app, session, response):
