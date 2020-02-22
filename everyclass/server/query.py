@@ -279,7 +279,6 @@ def get_card(url_cid: str, url_semester: str):
                            card=card,
                            card_day=get_day_chinese(day),
                            card_time=get_time_chinese(time),
-                           show_union_class=not card.union_name.isdigit(),  # 合班名称为数字时不展示合班名称
                            # cotc_id=cotc_id,
                            # cotc_rating=course_review_doc["avg_rate"],
                            cotc_id=0,
