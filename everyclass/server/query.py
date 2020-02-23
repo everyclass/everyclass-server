@@ -114,7 +114,7 @@ def query():
         return redirect(url_for('main.main'))
 
 
-@query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
+@query_blueprint.route('/student/<string:url_sid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
@@ -126,11 +126,10 @@ def get_student(url_sid: str, url_semester: str):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC 获得学生课表
-    with tracer.trace('rpc_get_student_timetable'):
-        try:
-            student = Entity.get_student_timetable(student_id, url_semester)
-        except Exception as e:
-            return handle_exception_with_error_page(e)
+    try:
+        student = Entity.get_student_timetable(student_id, url_semester)
+    except Exception as e:
+        return handle_exception_with_error_page(e)
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
@@ -167,7 +166,7 @@ def get_student(url_sid: str, url_semester: str):
                            current_semester=url_semester)
 
 
-@query_blueprint.route('/teacher/<string:url_tid>/<string:url_semester>')
+@query_blueprint.route('/teacher/<string:url_tid>/semester/<string:url_semester>')
 @disallow_in_maintenance
 @url_semester_check
 def get_teacher(url_tid, url_semester):
@@ -180,11 +179,10 @@ def get_teacher(url_tid, url_semester):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC to get teacher timetable
-    with tracer.trace('rpc_get_teacher_timetable'):
-        try:
-            teacher = Entity.get_teacher_timetable(teacher_id, url_semester)
-        except Exception as e:
-            return handle_exception_with_error_page(e)
+    try:
+        teacher = Entity.get_teacher_timetable(teacher_id, url_semester)
+    except Exception as e:
+        return handle_exception_with_error_page(e)
 
     with tracer.trace('process_rpc_result'):
         cards = defaultdict(list)
@@ -209,7 +207,7 @@ def get_teacher(url_tid, url_semester):
                            current_semester=url_semester)
 
 
-@query_blueprint.route('/classroom/<string:url_rid>/<string:url_semester>')
+@query_blueprint.route('/classroom/<string:url_rid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_classroom(url_rid, url_semester):
@@ -221,11 +219,10 @@ def get_classroom(url_rid, url_semester):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC to get classroom timetable
-    with tracer.trace('rpc_get_classroom_timetable'):
-        try:
-            room = Entity.get_classroom_timetable(url_semester, room_id)
-        except Exception as e:
-            return handle_exception_with_error_page(e)
+    try:
+        room = Entity.get_classroom_timetable(url_semester, room_id)
+    except Exception as e:
+        return handle_exception_with_error_page(e)
 
     with tracer.trace('process_rpc_result'):
         cards = defaultdict(list)
@@ -248,7 +245,7 @@ def get_classroom(url_rid, url_semester):
                            current_semester=url_semester)
 
 
-@query_blueprint.route('/card/<string:url_cid>/<string:url_semester>')
+@query_blueprint.route('/card/<string:url_cid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_card(url_cid: str, url_semester: str):
@@ -260,11 +257,10 @@ def get_card(url_cid: str, url_semester: str):
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
     # RPC to get card
-    with tracer.trace('rpc_get_card'):
-        try:
-            card = Entity.get_card(url_semester, card_id)
-        except Exception as e:
-            return handle_exception_with_error_page(e)
+    try:
+        card = Entity.get_card(url_semester, card_id)
+    except Exception as e:
+        return handle_exception_with_error_page(e)
 
     day, time = lesson_string_to_tuple(card.lesson)
 
