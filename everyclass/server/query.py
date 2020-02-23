@@ -11,7 +11,7 @@ from everyclass.common.format import contains_chinese
 from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_string_to_tuple
 from everyclass.rpc.entity import Entity
 from everyclass.server import logger
-from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT
+from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
 from everyclass.server.user import service as user_service
 from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
@@ -125,11 +125,17 @@ def get_student(url_sid: str, url_semester: str):
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
 
-    # RPC 获得学生课表
-    try:
-        student = Entity.get_student_timetable(student_id, url_semester)
-    except Exception as e:
-        return handle_exception_with_error_page(e)
+    if url_semester == URL_EMPTY_SEMESTER:
+        try:
+            student = Entity.get_student(student_id)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
+    else:
+        # RPC 获得学生课表
+        try:
+            student = Entity.get_student_timetable(student_id, url_semester)
+        except Exception as e:
+            return handle_exception_with_error_page(e)
 
     # save sid_orig to session for verifying purpose
     # must be placed before privacy level check. Otherwise a registered user could be redirected to register page.
@@ -142,28 +148,36 @@ def get_student(url_sid: str, url_semester: str):
     if not has_permission:
         return return_val
 
-    with tracer.trace('process_rpc_result'):
-        cards: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
-        for card in student.cards:
-            day, time = lesson_string_to_tuple(card.lesson)
-            if (day, time) not in cards:
-                cards[(day, time)] = list()
-            cards[(day, time)].append(card)
-        empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
-        available_semesters = semester_calculate(url_semester, sorted(student.semesters))
+    if url_semester != URL_EMPTY_SEMESTER:
+        with tracer.trace('process_rpc_result'):
+            cards: Dict[Tuple[int, int], List[Dict[str, str]]] = dict()
+            for card in student.cards:
+                day, time = lesson_string_to_tuple(card.lesson)
+                if (day, time) not in cards:
+                    cards[(day, time)] = list()
+                cards[(day, time)].append(card)
+            empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
+            available_semesters = semester_calculate(url_semester, sorted(student.semesters))
 
-    # 增加访客记录
-    user_service.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
+        # 增加访客记录
+        user_service.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
 
-    return render_template('query/student.html',
-                           student=student,
-                           cards=cards,
-                           empty_sat=empty_sat,
-                           empty_sun=empty_sun,
-                           empty_6=empty_6,
-                           empty_5=empty_5,
-                           available_semesters=available_semesters,
-                           current_semester=url_semester)
+        return render_template('query/student.html',
+                               have_semesters=True,
+                               student=student,
+                               cards=cards,
+                               empty_sat=empty_sat,
+                               empty_sun=empty_sun,
+                               empty_6=empty_6,
+                               empty_5=empty_5,
+                               available_semesters=available_semesters,
+                               current_semester=url_semester)
+    else:
+        # 无学期
+        return render_template('query/student.html',
+                               have_semesters=False,
+                               student=student,
+                               current_semester=url_semester)
 
 
 @query_blueprint.route('/teacher/<string:url_tid>/semester/<string:url_semester>')

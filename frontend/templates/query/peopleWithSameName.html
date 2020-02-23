@@ -28,7 +28,7 @@
                                 <td>{{ student.deputy }}</td>
                                 <td>{{ student.klass }}</td>
                                 <td>
-                                    <a href="{{ url_for('query.get_student', url_sid=student.student_id_encoded, url_semester=student.semesters[-1]) }} "
+                                    <a href="{{ url_for('query.get_student', url_sid=student.student_id_encoded, url_semester=student.semesters[-1] if student.semesters else consts.URL_EMPTY_SEMESTER) }} "
                                        onclick="_czc.push(['_trackEvent', '重名页', '重名查询']);">点击查询</a></td>
                             </tr>
                         {% endfor %}
@@ -39,7 +39,7 @@
                                 <td>{{ teacher.unit }}</td>
                                 <td></td>
                                 <td>
-                                    <a href="{{ url_for('query.get_teacher', url_tid=teacher.teacher_id_encoded, url_semester=teacher.semesters[-1]) }} "
+                                    <a href="{{ url_for('query.get_teacher', url_tid=teacher.teacher_id_encoded, url_semester=teacher.semesters[-1] if teacher.semesters else consts.URL_EMPTY_SEMESTER) }} "
                                        onclick="_czc.push(['_trackEvent', '重名页', '重名查询']);">点击查询</a></td>
                             </tr>
                         {% endfor %}

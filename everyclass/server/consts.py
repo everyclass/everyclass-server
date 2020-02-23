@@ -47,3 +47,6 @@ MSG_REGISTER_SUCCESS = "注册成功，请牢记你的密码。"
 MSG_PWD_DIFFERENT = "两次密码不一致，请重新输入"
 MSG_USERNAME_NOT_EXIST = "用户名错误，不存在此学号！"
 MSG_ALREADY_REGISTERED = "您已经注册了，请直接登录。"
+
+# URL 中空学期的学期占位符
+URL_EMPTY_SEMESTER = "_empty"
