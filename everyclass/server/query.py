@@ -259,8 +259,8 @@ def get_classroom(url_rid, url_semester):
                            current_semester=url_semester)
 
 
-@query_blueprint.route('/card/<string:url_cid>/semester/<string:url_semester>')
 @query_blueprint.route('/card/<string:url_cid>/<string:url_semester>')
+@query_blueprint.route('/card/<string:url_cid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_card(url_cid: str, url_semester: str):
