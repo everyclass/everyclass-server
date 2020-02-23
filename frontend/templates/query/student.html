@@ -5,16 +5,18 @@
         <h1 class="hero-header">{{ student.name }}</h1>
         <h4 class="text-muted">{{ student.deputy }} {{ student.klass }}班
         </h4>
-        <form id="semester-choose-form">
-            <select id="semester-select" name="semester">
-                {% if have_semesters %}
+        {% if have_semesters %}
+            <form id="semester-choose-form">
+                <select id="semester-select" name="semester">
+
                     {% for each_semester in available_semesters %}
                         <option value="{{ each_semester[0] }}"
                                 {% if each_semester[1]==True %}selected{% endif %}>{{ each_semester[0] }}</option>
                     {% endfor %}
-                {% endif %}
-            </select>
-        </form>
+
+                </select>
+            </form>
+        {% endif %}
 
         <h4 class="text-muted">
             {% if have_semesters %}
