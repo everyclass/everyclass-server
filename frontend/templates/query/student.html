@@ -16,8 +16,8 @@
 
         <h4 class="text-muted">
             {% if config.FEATURE_GATING['user'] %}
-                {% if session.get("current_user", None) %}
-                    {% if session["current_user"].identifier == student.student_id %}
+                {% if session.get(consts.SESSION_CURRENT_USER, None) %}
+                    {% if session[consts.SESSION_CURRENT_USER].identifier == student.student_id %}
                         <a href="{{ url_for('user.main') }}">个人中心</a>
                     {% endif %}
                 {% else %}

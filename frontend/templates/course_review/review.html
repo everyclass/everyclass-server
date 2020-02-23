@@ -5,7 +5,7 @@
         <h1 class="hero-header">{{ cotc["teacher_name_str"] }}“{{ cotc["name"] }}”的课程评价</h1>
         <h4 class="text-muted">{% if count==0 %}暂无学生对当前老师的当前课程打分{% else %}平均评分：{{ avg_rate }}（{{ count }}
             人参与评分，满分5分）{% endif %}</h4>
-        {% if session.get("current_user", None) %}
+        {% if session.get(consts.SESSION_CURRENT_USER, None) %}
             {% if user_is_taking %}
                 <a href="{{ url_for("course_review.edit_review", cotc_id=cotc["cotc_id"]) }}">
                     <button>{% if reviewed_by_me %}修改我的评分{% else %}对此课程评分{% endif %}</button>
