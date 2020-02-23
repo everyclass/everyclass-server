@@ -278,10 +278,6 @@ def get_card(url_cid: str, url_semester: str):
 
     day, time = lesson_string_to_tuple(card.lesson)
 
-    # 给“文化素质类”等加上“课”后缀
-    if card.type and card.type[-1] != '课':
-        card.type = card.type + '课'
-
     # cotc_id = COTeachingClass.get_id_by_card(card)
     # course_review_doc = CourseReview.get_review(cotc_id)
 

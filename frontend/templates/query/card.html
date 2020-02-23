@@ -8,7 +8,7 @@
                 {{ teacher.name }}{{ teacher.title }}</a>{% if not loop.last %}、{% endif %}{% endfor %}
             及 {{ card.students|length }} 名学生</h4>
         <h4 class="text-muted">{{ card.week_string }}{{ card_day }}{{ card_time }}，{{ card.room }}</h4>
-        <h4 class="text-muted">{{ card.type }}</h4>
+
         <h4 class="text-muted">
             {% if config.FEATURE_GATING['course_review'] %}
                 {% if cotc_rating>0 %}
