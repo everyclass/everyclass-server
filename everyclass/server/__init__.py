@@ -11,6 +11,7 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 
+from everyclass.server import consts
 from everyclass.server.utils import plugin_available
 from everyclass.server.utils.session import EncryptedSessionInterface
 
@@ -236,6 +237,10 @@ def create_app() -> Flask:
             else:
                 return app.config['STATIC_MANIFEST'][filename]
         return filename
+
+    @app.context_processor
+    def inject_consts():
+        return dict(consts=consts)
 
     @app.errorhandler(500)
     def internal_server_error(error):
