@@ -33,7 +33,7 @@
                         href="{{ url_for('calendar.cal_page', url_res_type="student", url_res_identifier=student.student_id_encoded, url_semester=current_semester) }}"
                         onclick="_czc.push(['_trackEvent', '查询页', '日历导出']);">同步课表到日历</a>
             {% else %}
-                当前用户无可用学期，可能是课表未及时更新或毕业年份较早。
+                无可用学期，可能是课表未及时更新或毕业年份较早。
             {% endif %}
         </h4>
     </div>
