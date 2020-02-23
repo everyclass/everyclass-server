@@ -101,10 +101,20 @@ def query():
         else:
             tracer.current_root_span().set_tag("query_type", "by_id")
 
+        students = []
+        student_filtered = False
+        for student in rpc_result.students:
+            if len(student.klass) >= 6 and student.klass[-4:].isdigit() and int(student.klass[-4:-2]) <= 12:
+                # 过滤<13级的学生
+                student_filtered = True
+                pass
+            students.append(student)
+
         return render_template('query/peopleWithSameName.html',
                                name=keyword,
-                               students=rpc_result.students,
-                               teachers=rpc_result.teachers)
+                               students=students,
+                               teachers=rpc_result.teachers,
+                               student_filtered=student_filtered)
     else:
         logger.info("No result for user search", extra={"keyword": request.values.get('id')})
         tracer.current_root_span().set_tag("query_resource_type", "not_exist")
