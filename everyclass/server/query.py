@@ -125,6 +125,7 @@ def query():
         return redirect(url_for('main.main'))
 
 
+@query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
 @query_blueprint.route('/student/<string:url_sid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
@@ -191,6 +192,7 @@ def get_student(url_sid: str, url_semester: str):
                                current_semester=url_semester)
 
 
+@query_blueprint.route('/teacher/<string:url_tid>/<string:url_semester>')
 @query_blueprint.route('/teacher/<string:url_tid>/semester/<string:url_semester>')
 @disallow_in_maintenance
 @url_semester_check
@@ -232,6 +234,7 @@ def get_teacher(url_tid, url_semester):
                            current_semester=url_semester)
 
 
+@query_blueprint.route('/classroom/<string:url_rid>/<string:url_semester>')
 @query_blueprint.route('/classroom/<string:url_rid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
