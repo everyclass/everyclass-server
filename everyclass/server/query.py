@@ -42,6 +42,7 @@ def query():
 
     keyword = request.values.get('id')
 
+    # todo 简拼积分制
     if not keyword or len(keyword) < 2:
         flash('请输入需要查询的姓名、学号、教工号或教室名称，长度不要小于2个字符')
         return redirect(url_for('main.main'))
@@ -109,7 +110,7 @@ def query():
                 student_filtered = True
                 pass
             students.append(student)
-
+        # todo 找校友功能
         return render_template('query/peopleWithSameName.html',
                                name=keyword,
                                students=students,
