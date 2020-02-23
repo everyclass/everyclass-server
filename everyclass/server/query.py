@@ -64,8 +64,10 @@ def query():
             return render_template('query/multipleClassroomChoice.html',
                                    name=keyword,
                                    classrooms=rpc_result.classrooms)
-        return redirect('/classroom/{}/{}'.format(rpc_result.classrooms[0].room_id_encoded,
-                                                  rpc_result.classrooms[0].semesters[-1]))
+        return redirect(
+            url_for("query.get_classroom",
+                    url_rid=rpc_result.classrooms[0].room_id_encoded,
+                    url_semester=rpc_result.classrooms[0].semesters[-1] if rpc_result.classrooms[0].semesters[-1] else URL_EMPTY_SEMESTER))
     elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # 一个学生
         tracer.current_root_span().set_tag("query_resource_type", "single_student")
         if contains_chinese(keyword):
@@ -77,8 +79,10 @@ def query():
             flash('没有可用学期')
             return redirect(url_for('main.main'))
 
-        return redirect('/student/{}/{}'.format(rpc_result.students[0].student_id_encoded,
-                                                rpc_result.students[0].semesters[-1]))
+        return redirect(
+            url_for("query.get_student",
+                    url_sid=rpc_result.students[0].student_id_encoded,
+                    url_semester=rpc_result.students[0].semesters[-1] if rpc_result.students[0].semesters else URL_EMPTY_SEMESTER))
     elif len(rpc_result.teachers) == 1 and len(rpc_result.students) == 0:  # 一个老师
         tracer.current_root_span().set_tag("query_resource_type", "single_teacher")
         if contains_chinese(keyword):
@@ -90,8 +94,10 @@ def query():
             flash('没有可用学期')
             return redirect(url_for('main.main'))
 
-        return redirect('/teacher/{}/{}'.format(rpc_result.teachers[0].teacher_id_encoded,
-                                                rpc_result.teachers[0].semesters[-1]))
+        return redirect(
+            url_for("query.get_teacher",
+                    url_sid=rpc_result.teachers[0].teacher_id_encoded,
+                    url_semester=rpc_result.teachers[0].semesters[-1] if rpc_result.teachers[0].semesters else URL_EMPTY_SEMESTER))
     elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
         tracer.current_root_span().set_tag("query_resource_type", "multiple_people")
@@ -257,7 +263,7 @@ def get_classroom(url_rid, url_semester):
         _, room_id = decrypt(url_rid, resource_type='room')
     except ValueError:
         return render_template("common/error.html", message=MSG_INVALID_IDENTIFIER)
-
+    # todo 支持没有学期的room
     # RPC to get classroom timetable
     try:
         room = Entity.get_classroom_timetable(url_semester, room_id)
