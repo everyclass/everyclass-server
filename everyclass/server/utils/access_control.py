@@ -8,6 +8,7 @@ from everyclass.server.consts import SESSION_CURRENT_USER, SESSION_LAST_VIEWED_S
 from everyclass.server.user import service as user_service
 
 
+# todo migrate to user domain
 def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[str]]:
     """
     检查当前登录的用户是否有权限访问此学生
