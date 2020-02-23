@@ -221,7 +221,7 @@ class PeopleNotFoundError(ValueError):
     pass
 
 
-def get_people_info(identifier: str) -> (Optional[bool], Union[SearchResultStudentItem, SearchResultTeacherItem]):
+def get_people_info(identifier: str) -> Tuple[bool, Union[SearchResultStudentItem, SearchResultTeacherItem]]:
     """
     query Entity service to get people info
 

@@ -20,4 +20,4 @@ class IdentityVerifyRequest:
     extra: dict
 
 
-__all__ = (IdentityVerifyRequest, Visitor)
+__all__ = ("IdentityVerifyRequest", "Visitor")
