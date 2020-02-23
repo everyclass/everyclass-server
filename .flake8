@@ -1,7 +1,8 @@
 [flake8]
-ignore = E501,  # E501 line too long
-    E203,  # E203 whitespace before ':'
-    E126, # E126 continuation line over-indented for hanging indent
-    W504  # W504 line break after binary operator
+ignore = E501, # E501 line too long
+         E203, # whitespace before ':'
+         E126, # continuation line over-indented for hanging indent
+         W504, # line break after binary operator
+         E303  # too many blank lines
 per-file-ignores =
     everyclass/server/db/dao.py:W605
