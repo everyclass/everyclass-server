@@ -4,7 +4,7 @@ import os
 
 from datadog import DogStatsd
 from ddtrace import tracer
-from flask import Flask, g, redirect, render_template, request, session
+from flask import Flask, g, render_template, request, session
 from flask_cdn import CDN
 from flask_moment import Moment
 from htmlmin import minify
@@ -205,13 +205,6 @@ def create_app() -> Flask:
         """日志中记录请求"""
         logger.info(f'Request received: {request.method} {request.path}')
 
-    @app.before_request
-    def delete_old_session():
-        """删除旧的客户端 session（长度过长导致无法在 mongodb 中建立索引）"""
-        if request.cookies.get("session") and len(request.cookies.get("session")) > 50:
-            session.clear()
-            return redirect(request.url)
-
     @app.after_request
     def response_minify(response):
         """用 htmlmin 压缩 HTML，减轻带宽压力"""
@@ -240,6 +233,7 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_consts():
+        """允许在模板中使用常量模块，以便使用session key等常量而不用在模板中硬编码"""
         return dict(consts=consts)
 
     @app.errorhandler(500)
