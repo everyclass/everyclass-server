@@ -114,7 +114,7 @@ def query():
             if len(student.klass) >= 6 and student.klass[-4:].isdigit() and int(student.klass[-4:-2]) <= 12:
                 # 过滤<13级的学生
                 student_filtered = True
-                pass
+                continue
             students.append(student)
         # todo 找校友功能
         return render_template('query/peopleWithSameName.html',
