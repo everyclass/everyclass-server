@@ -96,7 +96,7 @@ def query():
 
         return redirect(
             url_for("query.get_teacher",
-                    url_sid=rpc_result.teachers[0].teacher_id_encoded,
+                    url_tid=rpc_result.teachers[0].teacher_id_encoded,
                     url_semester=rpc_result.teachers[0].semesters[-1] if rpc_result.teachers[0].semesters else URL_EMPTY_SEMESTER))
     elif len(rpc_result.teachers) >= 1 or len(rpc_result.students) >= 1:
         # multiple students, multiple teachers, or mix of both
