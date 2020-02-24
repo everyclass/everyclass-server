@@ -66,22 +66,22 @@ class Config(object):
     """
     # database
     MONGODB = {
-        'host'              : 'mongodb',
-        'port'              : 12306,
+        'host': 'mongodb',
+        'port': 12306,
         'uuidRepresentation': 'standard'
     }
     MONGODB_DB = 'everyclass_server'
     REDIS = {
         'host': '127.0.0.1',
         'port': 6379,
-        'db'  : 1
+        'db': 1
     }
     POSTGRES_CONNECTION = {
-        'dbname'  : 'everyclass',
-        'user'    : 'everyclass_server',
+        'dbname': 'everyclass',
+        'user': 'everyclass_server',
         'password': '',
-        'host'    : 'localhost',
-        'port'    : 5432
+        'host': 'localhost',
+        'port': 5432
     }
     POSTGRES_SCHEMA = 'everyclass_server'
 
@@ -138,7 +138,7 @@ class Config(object):
             'start': (2018, 2, 25),
         },
         (2018, 2019, 1): {
-            'start'      : (2018, 9, 2),
+            'start': (2018, 9, 2),
             'adjustments': {
                 (2018, 12, 31): {
                     'to': (2018, 12, 29)
@@ -146,7 +146,7 @@ class Config(object):
             }
         },
         (2018, 2019, 2): {
-            'start'      : (2019, 2, 24),  # 学期开始日
+            'start': (2019, 2, 24),  # 学期开始日
             'adjustments': {
                 (2019, 4, 5): {
                     'to': None  # 调整到 None 表示这天直接放掉，而非调休
@@ -170,6 +170,9 @@ class Config(object):
         },
         (2019, 2020, 1): {
             "start": (2019, 8, 25),
+        },
+        (2019, 2020, 2): {
+            "start": (2020, 2, 24),
         }
     }
 
@@ -177,7 +180,7 @@ class Config(object):
 
     FEATURE_GATING = {
         'course_review': False,
-        'user'         : True
+        'user': True
     }
     DEFAULT_PRIVACY_LEVEL = 0
 
