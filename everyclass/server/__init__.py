@@ -160,7 +160,7 @@ def create_app() -> Flask:
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
-    from everyclass.server.query import query_blueprint
+    from everyclass.server.entity.views import query_blueprint
     from everyclass.server.views import main_blueprint as main_blueprint
     from everyclass.server.user.views import user_bp
     from everyclass.server.course_review.views import cr_blueprint
