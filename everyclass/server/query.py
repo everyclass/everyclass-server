@@ -237,6 +237,7 @@ def get_teacher(url_tid, url_semester):
         available_semesters = semester_calculate(url_semester, teacher.semesters)
 
         return render_template('query/teacher.html',
+                               have_semesters=True,
                                teacher=teacher,
                                cards=cards,
                                empty_sat=empty_sat,
