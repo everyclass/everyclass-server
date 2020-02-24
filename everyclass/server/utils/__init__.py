@@ -23,7 +23,7 @@ def plugin_available(plugin_name: str) -> bool:
     check if a plugin (Sentry, apm, logstash) is available in the current environment.
     :return True if available else False
     """
-    from everyclass.server.config import get_config
+    from everyclass.server.utils.config import get_config
     config = get_config()
     mode = os.environ.get("MODE", None)
     if mode:

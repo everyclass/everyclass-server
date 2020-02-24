@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from everyclass.server.config import get_config
+from everyclass.server.utils.config import get_config
 
 _config = get_config()
 

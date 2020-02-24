@@ -25,7 +25,7 @@ class BasicFunctionTestCase(unittest.TestCase):
     """basic function in everyclass/__init__.py"""
 
     def test_import_config(self):
-        from everyclass.server.config import get_config
+        from everyclass.server.utils.config import get_config
         config = get_config()
         self.assertTrue(config)
 

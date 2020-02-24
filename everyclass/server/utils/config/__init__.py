@@ -1,6 +1,6 @@
 import os
 
-from everyclass.server.config.default import Config as DefaultConfig
+from everyclass.server.utils.config.default import Config as DefaultConfig
 
 _config_inited = False
 
@@ -22,19 +22,19 @@ def get_config():
         _override_config = {}
 
         if mode == 'PRODUCTION':
-            from everyclass.server.config.production import ProductionConfig
+            from everyclass.server.utils.config import ProductionConfig
             _override_config = ProductionConfig
             MixedConfig.CONFIG_NAME = 'production'
         elif mode == 'DEVELOPMENT':
-            from everyclass.server.config.development import DevelopmentConfig
+            from everyclass.server.utils.config.development import DevelopmentConfig
             _override_config = DevelopmentConfig
             MixedConfig.CONFIG_NAME = 'development'
         elif mode == 'STAGING':
-            from everyclass.server.config.staging import StagingConfig
+            from everyclass.server.utils.config import StagingConfig
             _override_config = StagingConfig
             MixedConfig.CONFIG_NAME = 'staging'
         elif mode == 'TESTING':
-            from everyclass.server.config.testing import TestingConfig
+            from everyclass.server.utils.config import TestingConfig
             _override_config = TestingConfig
             MixedConfig.CONFIG_NAME = 'testing'
         else:
@@ -57,7 +57,7 @@ def get_config():
 
         # lazy reference type linking
         try:
-            from everyclass.server.config.default import LazyRefType
+            from everyclass.server.utils.config.default import LazyRefType
             LazyRefType.link(MixedConfig)
         except ImportError:
             pass

@@ -1,7 +1,7 @@
 from flask import current_app, has_app_context
 from pymongo import MongoClient, database
 
-from everyclass.server.config import get_config
+from everyclass.server.utils.config import get_config
 
 
 def init_pool(current_application) -> None:

@@ -117,7 +117,7 @@ def create_app() -> Flask:
                 template_folder="../../frontend/templates")
 
     # load app config
-    from everyclass.server.config import get_config
+    from everyclass.server.utils.config import get_config
     _config = get_config()
     app.config.from_object(_config)  # noqa: T484
 

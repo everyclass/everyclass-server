@@ -4,7 +4,7 @@ from typing import Text
 
 from Crypto.Cipher import AES
 
-from everyclass.server.config import get_config
+from everyclass.server.utils.config import get_config
 
 
 def _fill_16(text):

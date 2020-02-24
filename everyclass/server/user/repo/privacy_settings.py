@@ -1,6 +1,6 @@
 import datetime
 
-from everyclass.server.config import get_config
+from everyclass.server.utils.config import get_config
 from everyclass.server.utils.db import pg_conn_context
 
 
