@@ -3,16 +3,16 @@ from typing import List
 
 from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.user.entity import Visitor
-from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT, UserSession
+from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
 
-def update_track(host: str, visitor: UserSession) -> None:
+def update_track(host: str, visitor: str) -> None:
     with pg_conn_context() as conn, conn.cursor() as cursor:
         insert_or_update_query = """
         INSERT INTO visit_tracks (host_id, visitor_id, last_visit_time) VALUES (%s,%s,%s)
             ON CONFLICT ON CONSTRAINT unq_host_visitor DO UPDATE SET last_visit_time=EXCLUDED.last_visit_time;
         """
-        cursor.execute(insert_or_update_query, (host, visitor.identifier, datetime.datetime.now()))
+        cursor.execute(insert_or_update_query, (host, visitor, datetime.datetime.now()))
         conn.commit()
 
 

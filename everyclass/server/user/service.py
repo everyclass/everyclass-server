@@ -13,13 +13,7 @@ from everyclass.server.user.repo import privacy_settings, user, simple_password,
     visit_track
 from everyclass.server.utils.session import UserSession
 
-
-def get_privacy_level(student_id: str) -> int:
-    return privacy_settings.get_level(student_id)
-
-
-def set_privacy_level(student_id: str, new_level: int) -> None:
-    return privacy_settings.set_level(student_id, new_level)
+"""Registration and Login"""
 
 
 def add_user(identifier: str, password: str, password_encrypted: bool = False) -> None:
@@ -38,6 +32,50 @@ def record_simple_password(password: str, identifier: str) -> None:
     return simple_password.new(password, identifier)
 
 
+"""Privacy"""
+
+
+def get_privacy_level(student_id: str) -> int:
+    return privacy_settings.get_level(student_id)
+
+
+def set_privacy_level(student_id: str, new_level: int) -> None:
+    return privacy_settings.set_level(student_id, new_level)
+
+
+class LoginRequired(Exception):
+    pass
+
+
+class PermissionAdjustRequired(Exception):
+    pass
+
+
+def has_access(host: str, visitor: Optional[str] = None) -> bool:
+    """Check if the visitor has right to access host."""
+    privacy_level = get_privacy_level(host)
+    # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
+    if privacy_level == 2 and (not visitor or visitor != host):
+        return False
+
+    # 实名互访
+    if privacy_level == 1:
+        # 未登录，要求登录
+        if not visitor:
+            raise LoginRequired
+        # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
+        if get_privacy_level(visitor) == 2:
+            raise PermissionAdjustRequired
+
+    # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
+    if privacy_level != 2 and visitor and visitor != host:
+        update_track(host=host, visitor=visitor)
+    return True
+
+
+"""Visitor"""
+
+
 def add_visitor_count(identifier: str, visitor: UserSession = None) -> None:
     return visit_count.add_visitor_count(identifier, visitor)
 
@@ -50,7 +88,7 @@ def get_visitors(identifier: str) -> List[Visitor]:
     return visit_track.get_visitors(identifier)
 
 
-def update_track(host: str, visitor: UserSession) -> None:
+def update_track(host: str, visitor: str) -> None:
     return visit_track.update_track(host, visitor)
 
 
