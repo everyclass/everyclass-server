@@ -1,6 +1,6 @@
 from flask import session
 
-from everyclass.server.db.redis import redis, redis_prefix
+from everyclass.server.utils.db.redis import redis, redis_prefix
 from everyclass.server.utils.session import UserSession
 
 

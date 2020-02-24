@@ -63,7 +63,7 @@ try:
     @uwsgidecorators.postfork
     def init_db():
         """初始化数据库连接"""
-        from everyclass.server.db.postgres import init_pool as init_pg
+        from everyclass.server.utils.db.postgres import init_pool as init_pg
 
         # init_mongo(__app)
         init_pg()

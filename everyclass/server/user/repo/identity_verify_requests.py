@@ -4,8 +4,8 @@ from typing import Optional
 
 from werkzeug.security import generate_password_hash
 
-from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.user.entity import IdentityVerifyRequest
+from everyclass.server.utils.db import pg_conn_context
 
 ID_STATUS_TKN_PASSED = "EMAIL_TOKEN_PASSED"  # email verification passed but password may not set
 ID_STATUS_SENT = "EMAIL_SENT"  # email request sent to everyclass-auth(cannot make sure the email is really sent)

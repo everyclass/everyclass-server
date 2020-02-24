@@ -1,6 +1,3 @@
-"""
-查询相关函数
-"""
 from collections import defaultdict
 from typing import Dict, List, Tuple
 

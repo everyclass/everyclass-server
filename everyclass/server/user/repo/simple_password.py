@@ -1,6 +1,6 @@
 import datetime
 
-from everyclass.server.db.postgres import pg_conn_context
+from everyclass.server.utils.db import pg_conn_context
 
 
 def new(password: str, identifier: str) -> None:

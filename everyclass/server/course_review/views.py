@@ -4,7 +4,7 @@ from flask import Blueprint, escape, flash, redirect, render_template, request, 
 
 from everyclass.rpc.entity import Entity, teacher_list_to_tid_str
 from everyclass.server.consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
-from everyclass.server.db.dao import COTeachingClass, CourseReview
+from everyclass.server.utils.db.dao import COTeachingClass, CourseReview
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
 

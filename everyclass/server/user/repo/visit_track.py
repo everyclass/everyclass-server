@@ -1,8 +1,8 @@
 import datetime
 from typing import List
 
-from everyclass.server.db.postgres import pg_conn_context
 from everyclass.server.user.entity import Visitor
+from everyclass.server.utils.db import pg_conn_context
 from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
 

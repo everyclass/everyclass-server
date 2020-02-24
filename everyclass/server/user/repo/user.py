@@ -2,7 +2,7 @@ import datetime
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from everyclass.server.db.postgres import pg_conn_context
+from everyclass.server.utils.db import pg_conn_context
 
 
 def exist(student_id: str) -> bool:

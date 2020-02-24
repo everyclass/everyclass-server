@@ -1,7 +1,7 @@
 import datetime
 
 from everyclass.server.config import get_config
-from everyclass.server.db.postgres import pg_conn_context
+from everyclass.server.utils.db import pg_conn_context
 
 
 def get_level(student_id: str) -> int:

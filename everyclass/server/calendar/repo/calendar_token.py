@@ -3,8 +3,8 @@ import time
 import uuid
 from typing import overload, Union, Dict, Optional
 
-from everyclass.server.db.postgres import pg_conn_context
-from everyclass.server.db.redis import redis, redis_prefix
+from everyclass.server.utils.db import pg_conn_context
+from everyclass.server.utils.db.redis import redis, redis_prefix
 
 
 def insert_calendar_token(resource_type: str, semester: str, identifier: str) -> str:

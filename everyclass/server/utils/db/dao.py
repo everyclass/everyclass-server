@@ -22,8 +22,8 @@ import abc
 from typing import Dict, Optional
 
 from everyclass.rpc.entity import CardResult, teacher_list_to_tid_str
-from everyclass.server.db.mongodb import get_connection as get_mongodb
-from everyclass.server.db.redis import redis
+from everyclass.server.utils.db.mongodb import get_connection as get_mongodb
+from everyclass.server.utils.db.redis import redis
 
 
 class MongoDAOBase(abc.ABC):
