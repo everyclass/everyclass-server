@@ -64,7 +64,7 @@ def query():
         return redirect(
             url_for("query.get_classroom",
                     url_rid=rpc_result.classrooms[0].room_id_encoded,
-                    url_semester=rpc_result.classrooms[0].semesters[-1] if rpc_result.classrooms[0].semesters[-1] else URL_EMPTY_SEMESTER))
+                    url_semester=rpc_result.classrooms[0].semesters[-1] if rpc_result.classrooms[0].semesters else URL_EMPTY_SEMESTER))
     elif len(rpc_result.students) == 1 and len(rpc_result.teachers) == 0:  # 一个学生
         tracer.current_root_span().set_tag("query_resource_type", "single_student")
         if contains_chinese(keyword):
