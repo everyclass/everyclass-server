@@ -116,7 +116,7 @@ class Config(object):
     CDN_TIMESTAMP = False
     HTML_MINIFY = True
     STATIC_VERSIONED = True
-    with open(os.path.join(os.path.dirname(__file__), '../../../frontend/rev-manifest.json'), 'r') as static_manifest:
+    with open(os.path.join(os.path.dirname(__file__), '../../../../frontend/rev-manifest.json'), 'r') as static_manifest:
         STATIC_MANIFEST = json.load(static_manifest)
 
     """
