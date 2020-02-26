@@ -22,7 +22,7 @@ def get_config():
         _override_config = {}
 
         if mode == 'PRODUCTION':
-            from everyclass.server.utils.config import ProductionConfig
+            from everyclass.server.utils.config.production import ProductionConfig
             _override_config = ProductionConfig
             MixedConfig.CONFIG_NAME = 'production'
         elif mode == 'DEVELOPMENT':
@@ -30,11 +30,11 @@ def get_config():
             _override_config = DevelopmentConfig
             MixedConfig.CONFIG_NAME = 'development'
         elif mode == 'STAGING':
-            from everyclass.server.utils.config import StagingConfig
+            from everyclass.server.utils.config.staging import StagingConfig
             _override_config = StagingConfig
             MixedConfig.CONFIG_NAME = 'staging'
         elif mode == 'TESTING':
-            from everyclass.server.utils.config import TestingConfig
+            from everyclass.server.utils.config.testing import TestingConfig
             _override_config = TestingConfig
             MixedConfig.CONFIG_NAME = 'testing'
         else:
