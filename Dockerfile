@@ -1,4 +1,4 @@
-FROM python:3.7.1-slim-stretch
+FROM python:3.8.2-slim-buster
 LABEL maintainer="frederic.t.chan@gmail.com"
 ENV REFRESHED_AT 20181129
 ENV MODE PRODUCTION
