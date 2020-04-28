@@ -35,14 +35,6 @@ class MongoDAOBase(abc.ABC):
         pass
 
 
-class PostgresBase(abc.ABC):
-    @classmethod
-    @abc.abstractmethod
-    def init(cls) -> None:
-        """建立表和索引"""
-        pass
-
-
 class COTeachingClass(MongoDAOBase):
     """
     教学班集合（Collection of Teaching Class）。某个老师教的一门课的一个班是教学班，而多个教学班的上课内容是一样的，所以需要一个
@@ -207,21 +199,3 @@ class Redis:
     def new_cotc_id(cls) -> int:
         """生成新的 ID（自增）"""
         return redis.incr("{}:cotc_id_sequence".format(cls.prefix))
-
-
-def init_postgres():
-    import inspect
-    import sys
-
-    for cls_name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass):
-        if issubclass(cls, PostgresBase) and cls is not PostgresBase:
-            print("[{}] Initializing...".format(cls_name))
-            cls.init()
-            if hasattr(cls, "migrate"):
-                print("[{}] Migrating...".format(cls_name))
-                cls.migrate()
-
-
-def init_db():
-    """初始化数据库"""
-    init_postgres()

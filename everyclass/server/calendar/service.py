@@ -7,11 +7,12 @@ from typing import Optional
 from ddtrace import tracer
 
 from everyclass.common.time import lesson_string_to_tuple
-from everyclass.rpc.entity import Entity, teacher_list_to_name_str
+from everyclass.rpc.entity import teacher_list_to_name_str
 from everyclass.server import logger
 from everyclass.server.calendar.domain import ics_generator
 from everyclass.server.calendar.repo.calendar_token import reset_tokens, find_calendar_token as find_token, insert_calendar_token, \
     update_last_used_time, use_cache
+from everyclass.server.entity import service as entity_service
 from everyclass.server.models import Semester
 from everyclass.server.utils import calendar_dir
 
@@ -75,10 +76,10 @@ def generate_ics_file(type_: str, identifier: str, semester: str) -> str:
     with tracer.trace('rpc'):
         # 获得原始学号或教工号
         if type_ == 'student':
-            rpc_result = Entity.get_student_timetable(identifier, semester)
+            rpc_result = entity_service.get_student_timetable(identifier, semester)
         else:
             # teacher
-            rpc_result = Entity.get_teacher_timetable(identifier, semester)
+            rpc_result = entity_service.get_teacher_timetable(identifier, semester)
 
         semester = Semester(semester)
 

@@ -2,13 +2,14 @@ from typing import Dict
 
 from flask import Blueprint, escape, flash, redirect, render_template, request, session, url_for
 
-from everyclass.rpc.entity import Entity, teacher_list_to_tid_str
+from everyclass.rpc.entity import teacher_list_to_tid_str
 from everyclass.server.consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
+from everyclass.server.entity import service as entity_service
 from everyclass.server.utils.db.dao import COTeachingClass, CourseReview
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
 
-cr_blueprint = Blueprint('course_review', __name__)
+cr_blueprint = Blueprint('course', __name__)
 
 
 def is_taking(cotc: Dict) -> bool:
@@ -17,9 +18,9 @@ def is_taking(cotc: Dict) -> bool:
 
     if session.get(SESSION_CURRENT_USER, None):
         # 检查当前用户是否选了这门课
-        student = Entity.get_student(session[SESSION_CURRENT_USER].identifier)
+        student = entity_service.get_student(session[SESSION_CURRENT_USER].identifier)
         for semester in sorted(student.semesters, reverse=True):  # 新学期可能性大，学期从新到旧查找
-            timetable = Entity.get_student_timetable(session[SESSION_CURRENT_USER].identifier, semester)
+            timetable = entity_service.get_student_timetable(session[SESSION_CURRENT_USER].identifier, semester)
             for card in timetable.cards:
                 if card.course_id == cotc["course_id"] and cotc["teacher_id_str"] == teacher_list_to_tid_str(
                         card.teachers):
@@ -84,16 +85,16 @@ def edit_review(cotc_id: int):
     else:  # 表单提交
         if not request.form.get("rate", None) or request.form["rate"] not in map(str, (1, 2, 3, 4, 5)):
             flash("请填写正确的评分")
-            return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
+            return redirect(url_for("course.edit_review", cotc_id=cotc_id))
         if not request.form.get("review", None):
             flash("请填写评价")
-            return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
+            return redirect(url_for("course.edit_review", cotc_id=cotc_id))
         if len(request.form["review"]) > 200:
             flash("评论不要超过200个字符")
-            return redirect(url_for("course_review.edit_review", cotc_id=cotc_id))
+            return redirect(url_for("course.edit_review", cotc_id=cotc_id))
 
         try:
-            student = Entity.get_student(session[SESSION_CURRENT_USER].identifier)
+            student = entity_service.get_student(session[SESSION_CURRENT_USER].identifier)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -105,4 +106,4 @@ def edit_review(cotc_id: int):
                                     escape(request.form["review"]),
                                     fuzzy_name)
         flash("评分成功。")
-        return redirect(url_for("course_review.show_review", cotc_id=cotc_id))
+        return redirect(url_for("course.show_review", cotc_id=cotc_id))

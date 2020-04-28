@@ -6,9 +6,9 @@ from flask import Blueprint, current_app as app, escape, flash, redirect, render
 
 from everyclass.common.format import contains_chinese
 from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_string_to_tuple
-from everyclass.rpc.entity import Entity
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
+from everyclass.server.entity import service as entity_service
 from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
@@ -46,7 +46,7 @@ def query():
     # 调用 api-server 搜索
     with tracer.trace('rpc_search'):
         try:
-            rpc_result = Entity.search(keyword)
+            rpc_result = entity_service.search(keyword)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -141,13 +141,13 @@ def get_student(url_sid: str, url_semester: str):
 
     if url_semester == URL_EMPTY_SEMESTER:
         try:
-            student = Entity.get_student(student_id)
+            student = entity_service.get_student(student_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
     else:
         # RPC 获得学生课表
         try:
-            student = Entity.get_student_timetable(student_id, url_semester)
+            student = entity_service.get_student_timetable(student_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -206,13 +206,13 @@ def get_teacher(url_tid, url_semester):
     if url_semester == URL_EMPTY_SEMESTER:
         # RPC to get teacher timetable
         try:
-            teacher = Entity.get_teacher(teacher_id)
+            teacher = entity_service.get_teacher(teacher_id)
         except Exception as e:
             return handle_exception_with_error_page(e)
     else:
         # RPC to get teacher timetable
         try:
-            teacher = Entity.get_teacher_timetable(teacher_id, url_semester)
+            teacher = entity_service.get_teacher_timetable(teacher_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -260,7 +260,7 @@ def get_classroom(url_rid, url_semester):
     # todo 支持没有学期的room
     # RPC to get classroom timetable
     try:
-        room = Entity.get_classroom_timetable(url_semester, room_id)
+        room = entity_service.get_classroom_timetable(url_semester, room_id)
     except Exception as e:
         return handle_exception_with_error_page(e)
 
@@ -299,7 +299,7 @@ def get_card(url_cid: str, url_semester: str):
 
     # RPC to get card
     try:
-        card = Entity.get_card(url_semester, card_id)
+        card = entity_service.get_card(url_semester, card_id)
     except Exception as e:
         return handle_exception_with_error_page(e)
 

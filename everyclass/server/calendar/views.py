@@ -7,9 +7,9 @@ from flask import Blueprint, abort, current_app as app, jsonify, redirect, rende
     send_from_directory, url_for
 
 from everyclass.common.format import is_valid_uuid
-from everyclass.rpc.entity import Entity
 from everyclass.server.calendar import service as calendar_service
 from everyclass.server.consts import MSG_400, MSG_INVALID_IDENTIFIER
+from everyclass.server.entity import service as entity_service
 from everyclass.server.models import Semester
 from everyclass.server.user import service as user_service
 from everyclass.server.utils import calendar_dir
@@ -35,7 +35,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
 
     if url_res_type == 'student':
         try:
-            student = Entity.get_student_timetable(res_id, url_semester)
+            student = entity_service.get_student_timetable(res_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -49,7 +49,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
                                                     semester=url_semester)
     else:
         try:
-            teacher = Entity.get_teacher_timetable(res_id, url_semester)
+            teacher = entity_service.get_teacher_timetable(res_id, url_semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -94,7 +94,7 @@ def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
     """
     try:
-        search_result = Entity.search(identifier)
+        search_result = entity_service.search(identifier)
     except Exception as e:
         return handle_exception_with_error_page(e)
 
@@ -129,7 +129,7 @@ def android_client_get_ics(resource_type, identifier, semester):
 
     if resource_type == 'teacher':
         try:
-            teacher = Entity.get_teacher_timetable(res_id, semester)
+            teacher = entity_service.get_teacher_timetable(res_id, semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -139,7 +139,7 @@ def android_client_get_ics(resource_type, identifier, semester):
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
     else:  # student
         try:
-            student = Entity.get_student_timetable(res_id, semester)
+            student = entity_service.get_student_timetable(res_id, semester)
         except Exception as e:
             return handle_exception_with_error_page(e)
 
@@ -175,7 +175,7 @@ def legacy_get_ics(student_id, semester_str):
 
     semester = Semester(semester_str)
 
-    search_result = Entity.search(student_id)
+    search_result = entity_service.search(student_id)
 
     if len(search_result.students) != 1:
         # bad request

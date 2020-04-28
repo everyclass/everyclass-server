@@ -10,12 +10,12 @@
         <h4 class="text-muted">{{ card.week_string }}{{ card_day }}{{ card_time }}，{{ card.room }}</h4>
 
         <h4 class="text-muted">
-            {% if config.FEATURE_GATING['course_review'] %}
+            {% if config.FEATURE_GATING['course'] %}
                 {% if cotc_rating>0 %}
                     评分：{{ cotc_rating }}分
-                    <a href="{{ url_for('course_review.show_review', cotc_id=cotc_id) }}">看看学生的评价</a>
+                    <a href="{{ url_for('course.show_review', cotc_id=cotc_id) }}">看看学生的评价</a>
                 {% else %}
-                    尚未有人评分，<a href="{{ url_for('course_review.edit_review', cotc_id=cotc_id) }}">快来抢沙发吧</a>！
+                    尚未有人评分，<a href="{{ url_for('course.edit_review', cotc_id=cotc_id) }}">快来抢沙发吧</a>！
                 {% endif %}
             {% endif %}
         </h4>

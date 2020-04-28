@@ -7,8 +7,8 @@ from zxcvbn import zxcvbn
 
 from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
-from everyclass.rpc.entity import Entity
 from everyclass.server import logger
+from everyclass.server.entity import service as entity_service
 from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor
 from everyclass.server.user.repo import privacy_settings, visit_count, user_id_sequence, visit_track
 from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
@@ -249,7 +249,7 @@ def get_visitors(identifier: str) -> List[Visitor]:
     for record in result:
         # query entity to get rich results
         # todo: entity add a multi GET interface to make this process faster when the list is long
-        search_result = Entity.search(record[0])
+        search_result = entity_service.search(record[0])
         if len(search_result.students) > 0:
             visitor_list.append(Visitor(name=search_result.students[0].name,
                                         user_type=USER_TYPE_STUDENT,
