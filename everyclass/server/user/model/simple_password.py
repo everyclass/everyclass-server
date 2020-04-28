@@ -5,6 +5,8 @@ from everyclass.server.utils.db.postgres import Base, db_session
 
 
 class SimplePassword(Base):
+    __tablename__ = 'simple_passwords'
+
     identifier = Column('student_id', String(15), nullable=False)
     time = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     password = Column(Text, nullable=False)
