@@ -9,6 +9,7 @@ from everyclass.server.consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
     SESSION_USER_REGISTERING
+from everyclass.server.entity import service as entity_service
 from everyclass.server.user import service as user_service
 from everyclass.server.utils.decorators import login_required
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
@@ -46,8 +47,8 @@ def login():
 
             # 检查学号/教工号是否存在
             try:
-                user_service.get_people_info(identifier)
-            except user_service.PeopleNotFoundError:
+                entity_service.get_people_info(identifier)
+            except entity_service.PeopleNotFoundError:
                 flash(MSG_USERNAME_NOT_EXIST)
                 return redirect(url_for("user.login"))
             except Exception as e:
@@ -91,8 +92,8 @@ def register():
         # todo: change frontend to tell users that teachers can register now
         # 检查学号/教工号是否存在
         try:
-            user_service.get_people_info(request.form.get("xh", None))
-        except user_service.PeopleNotFoundError:
+            entity_service.get_people_info(request.form.get("xh", None))
+        except entity_service.PeopleNotFoundError:
             flash(MSG_USERNAME_NOT_EXIST)
             return redirect(url_for("user.register"))
         except Exception as e:
@@ -271,7 +272,7 @@ def _set_current_user(identifier: str):
 
     :param identifier: 学号或教工号
     """
-    is_student, people = user_service.get_people_info(identifier)
+    is_student, people = entity_service.get_people_info(identifier)
     session[SESSION_CURRENT_USER] = UserSession(user_type=USER_TYPE_STUDENT if is_student else USER_TYPE_TEACHER,
                                                 identifier=people.student_id if is_student else people.teacher_id,
                                                 identifier_encoded=people.student_id_encoded if is_student else people.teacher_id_encoded,
@@ -287,7 +288,7 @@ def _set_current_registering(identifier: str):
     """
     with tracer.trace('rpc_get_student'):
         try:
-            is_student, people = user_service.get_people_info(identifier)
+            is_student, people = entity_service.get_people_info(identifier)
             session[SESSION_USER_REGISTERING] = UserSession(user_type=USER_TYPE_STUDENT if is_student else USER_TYPE_TEACHER,
                                                             identifier=people.student_id if is_student else people.teacher_id,
                                                             identifier_encoded=people.student_id_encoded if is_student else people.teacher_id_encoded,
@@ -307,7 +308,7 @@ def register_by_password_success():
 def main():
     """用户主页"""
     try:
-        is_student, student = user_service.get_people_info(session[SESSION_CURRENT_USER].identifier)
+        is_student, student = entity_service.get_people_info(session[SESSION_CURRENT_USER].identifier)
         if not is_student:
             return "Teacher is not supported at the moment. Stay tuned!"
     except Exception as e:

@@ -45,18 +45,21 @@ class VerificationRequest(Base):
         db_session.commit()
 
     def set_status_token_passed(self):
+        """设置邮件验证通过状态"""
         if self.status == self.STATUS_SENT:
             self._set_status(self.STATUS_TKN_PASSED)
         else:
             raise ValueError(f"state {self.status} cannot be transitioned to {self.STATUS_TKN_PASSED}")
 
     def set_status_password_set(self):
+        """邮件验证-设置密码设置完成状态"""
         if self.status == self.STATUS_TKN_PASSED:
             self._set_status(self.STATUS_PASSWORD_SET)
         else:
             raise ValueError(f"state {self.status} cannot be transitioned to {self.STATUS_PASSWORD_SET}")
 
     def set_status_success(self):
+        """设置密码验证成功状态"""
         if self.status == self.STATUS_WAIT_VERIFY:
             self._set_status(self.STATUS_PWD_SUCCESS)
         else:

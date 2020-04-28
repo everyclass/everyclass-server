@@ -8,8 +8,7 @@ from everyclass.common.format import contains_chinese
 from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_string_to_tuple
 from everyclass.rpc.entity import Entity
 from everyclass.server import logger
-from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_CURRENT_USER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
-from everyclass.server.user import service as user_service
+from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
 from everyclass.server.utils import semester_calculate
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
@@ -173,9 +172,6 @@ def get_student(url_sid: str, url_semester: str):
                 cards[(day, time)].append(card)
             empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
             available_semesters = semester_calculate(url_semester, sorted(student.semesters))
-
-        # 增加访客记录
-        user_service.add_visitor_count(student.student_id, session.get(SESSION_CURRENT_USER, None))
 
         return render_template('query/student.html',
                                have_semesters=True,

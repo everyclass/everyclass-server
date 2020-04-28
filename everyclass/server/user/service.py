@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Tuple, Union, List
+from typing import Optional, Tuple, List
 
 from ddtrace import tracer
 from flask import session
@@ -7,13 +7,11 @@ from zxcvbn import zxcvbn
 
 from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
-from everyclass.rpc.entity import Entity, SearchResultStudentItem, SearchResultTeacherItem
+from everyclass.rpc.entity import Entity
 from everyclass.server import logger
-from everyclass.server.user.entity import Visitor
-from everyclass.server.user.model import User, VerificationRequest
-from everyclass.server.user.repo import privacy_settings, simple_password, visit_count, user_id_sequence, identity_verify_requests, \
-    visit_track
-from everyclass.server.utils.session import UserSession
+from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor
+from everyclass.server.user.repo import privacy_settings, visit_count, user_id_sequence, visit_track
+from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
 """Registration and Login"""
 
@@ -38,74 +36,7 @@ def check_password(identifier: str, password: str) -> bool:
 
 
 def record_simple_password(password: str, identifier: str) -> None:
-    return simple_password.new(password, identifier)
-
-
-"""Privacy"""
-
-
-def get_privacy_level(student_id: str) -> int:
-    return privacy_settings.get_level(student_id)
-
-
-def set_privacy_level(student_id: str, new_level: int) -> None:
-    return privacy_settings.set_level(student_id, new_level)
-
-
-class LoginRequired(Exception):
-    pass
-
-
-class PermissionAdjustRequired(Exception):
-    pass
-
-
-def has_access(host: str, visitor: Optional[str] = None) -> bool:
-    """Check if the visitor has right to access host."""
-    privacy_level = get_privacy_level(host)
-    # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
-    if privacy_level == 2 and (not visitor or visitor != host):
-        return False
-
-    # 实名互访
-    if privacy_level == 1:
-        # 未登录，要求登录
-        if not visitor:
-            raise LoginRequired
-        # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
-        if get_privacy_level(visitor) == 2:
-            raise PermissionAdjustRequired
-
-    # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
-    if privacy_level != 2 and visitor and visitor != host:
-        update_track(host=host, visitor=visitor)
-    return True
-
-
-"""Visitor"""
-
-
-def add_visitor_count(identifier: str, visitor: UserSession = None) -> None:
-    return visit_count.add_visitor_count(identifier, visitor)
-
-
-def get_visitor_count(identifier: str) -> int:
-    return visit_count.get_visitor_count(identifier)
-
-
-def get_visitors(identifier: str) -> List[Visitor]:
-    return visit_track.get_visitors(identifier)
-
-
-def update_track(host: str, visitor: str) -> None:
-    return visit_track.update_track(host, visitor)
-
-
-def get_user_id() -> int:
-    """user id 是APM系统中的用户标识，为递增数字，不是学号。如果session中保存了就使用session中的，否则新生成一个。"""
-    if session.get('user_id', None):
-        return session.get('user_id', None)
-    return user_id_sequence.new()
+    return SimplePassword.new(password, identifier)
 
 
 class AlreadyRegisteredError(ValueError):
@@ -173,7 +104,7 @@ def register_by_email_set_password(request_id: str, password: str) -> str:
     if not req:
         raise IdentityVerifyRequestNotFoundError
 
-    if req.status != identity_verify_requests.ID_STATUS_TKN_PASSED:
+    if req.status != VerificationRequest.STATUS_TKN_PASSED:
         raise IdentityVerifyRequestStatusError
 
     # 密码强度检查
@@ -226,7 +157,7 @@ def register_by_password_status_refresh(request_id: str) -> Tuple[bool, str, Opt
     if req.method != "password":
         logger.warn("Non-password verification request is trying get status from password interface")
         raise IdentityVerifyMethodNotExpectedError
-    if req.method == identity_verify_requests.ID_STATUS_PWD_SUCCESS:
+    if req.method == VerificationRequest.STATUS_PWD_SUCCESS:
         raise RequestIDUsed("Request ID is used and password is set. It cannot be reused.")
 
     # fetch status from everyclass-auth
@@ -253,22 +184,92 @@ def score_password_strength(password: str) -> int:
     return zxcvbn(password=password)['score']
 
 
-class PeopleNotFoundError(ValueError):
+"""Privacy"""
+
+
+def get_privacy_level(student_id: str) -> int:
+    return privacy_settings.get_level(student_id)
+
+
+def set_privacy_level(student_id: str, new_level: int) -> None:
+    return privacy_settings.set_level(student_id, new_level)
+
+
+"""Visiting"""
+
+
+class LoginRequired(Exception):
     pass
 
 
-def get_people_info(identifier: str) -> Tuple[bool, Union[SearchResultStudentItem, SearchResultTeacherItem]]:
-    """
-    query Entity service to get people info
+class PermissionAdjustRequired(Exception):
+    pass
 
-    :param identifier: student ID or teacher ID
-    :return: The first parameter is a Union[bool, None]. True means it's a student, False means it's a teacher. If
-     the identifier is not found, a PeopleNotFoundError is raised. The second parameter is the info of student or
-     teacher.
+
+def has_access(host: str, visitor: Optional[str] = None, footprint: bool = True) -> bool:
+    """检查访问者是否有权限访问学生课表。footprint为True将会留下访问记录并增加访客计数。
     """
-    result = Entity.search(identifier)
-    if len(result.students) > 0:
-        return True, result.students[0]
-    if len(result.teachers) > 0:
-        return False, result.teachers[0]
-    raise PeopleNotFoundError
+    privacy_level = get_privacy_level(host)
+    # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
+    if privacy_level == 2 and (not visitor or visitor != host):
+        return False
+
+    # 实名互访
+    if privacy_level == 1:
+        # 未登录，要求登录
+        if not visitor:
+            raise LoginRequired
+        # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
+        if get_privacy_level(visitor) == 2:
+            raise PermissionAdjustRequired
+
+    # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
+    if footprint and privacy_level != 2 and visitor and visitor != host:
+        _update_track(host=host, visitor=visitor)
+        _add_visitor_count(host=host, visitor=visitor)
+    return True
+
+
+def _update_track(host: str, visitor: str) -> None:
+    return visit_track.update_track(host, visitor)
+
+
+def _add_visitor_count(host: str, visitor: str = None) -> None:
+    return visit_count.add_visitor_count(host, visitor)
+
+
+def get_visitor_count(identifier: str) -> int:
+    return visit_count.get_visitor_count(identifier)
+
+
+def get_visitors(identifier: str) -> List[Visitor]:
+    result = visit_track.get_visitors(identifier)
+
+    visitor_list = []
+    for record in result:
+        # query entity to get rich results
+        # todo: entity add a multi GET interface to make this process faster when the list is long
+        search_result = Entity.search(record[0])
+        if len(search_result.students) > 0:
+            visitor_list.append(Visitor(name=search_result.students[0].name,
+                                        user_type=USER_TYPE_STUDENT,
+                                        identifier_encoded=search_result.students[0].student_id_encoded,
+                                        last_semester=search_result.students[0].semesters[-1],
+                                        visit_time=record[1]))
+        elif len(search_result.teachers) > 0:
+            visitor_list.append(Visitor(name=search_result.teachers[0].name,
+                                        user_type=USER_TYPE_TEACHER,
+                                        identifier_encoded=search_result.teachers[0].teacher_id_encoded,
+                                        last_semester=search_result.teachers[0].semesters[-1],
+                                        visit_time=record[1]))
+    return visitor_list
+
+
+"""User sequence num"""
+
+
+def get_user_id() -> int:
+    """user id 是APM系统中的用户标识，为递增数字，不是学号。如果session中保存了就使用session中的，否则新生成一个。"""
+    if session.get('user_id', None):
+        return session.get('user_id', None)
+    return user_id_sequence.new()

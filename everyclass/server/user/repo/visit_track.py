@@ -1,9 +1,7 @@
 import datetime
-from typing import List
+from typing import List, Tuple
 
-from everyclass.server.user.entity import Visitor
 from everyclass.server.utils.db import pg_conn_context
-from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
 
 def update_track(host: str, visitor: str) -> None:
@@ -16,10 +14,8 @@ def update_track(host: str, visitor: str) -> None:
         conn.commit()
 
 
-def get_visitors(identifier: str) -> List[Visitor]:
-    """获得访客列表"""
-    from everyclass.rpc.entity import Entity
-
+def get_visitors(identifier: str) -> List[Tuple[str, int]]:
+    """获得学生访客列表，包含访客的学号或教工号及访问时间"""
     with pg_conn_context() as conn, conn.cursor() as cursor:
         select_query = """
         SELECT visitor_id, last_visit_time FROM visit_tracks where host_id=%s ORDER BY last_visit_time DESC;
@@ -27,26 +23,7 @@ def get_visitors(identifier: str) -> List[Visitor]:
         cursor.execute(select_query, (identifier,))
         result = cursor.fetchall()
         conn.commit()
-
-    visitor_list = []
-    for record in result:
-        # query entity
-        # todo: entity add a multi GET interface to make this process faster when the list is long
-        search_result = Entity.search(record[0])
-        if len(search_result.students) > 0:
-            visitor_list.append(Visitor(name=search_result.students[0].name,
-                                        user_type=USER_TYPE_STUDENT,
-                                        identifier_encoded=search_result.students[0].student_id_encoded,
-                                        last_semester=search_result.students[0].semesters[-1],
-                                        visit_time=record[1]))
-        elif len(search_result.teachers) > 0:
-            visitor_list.append(Visitor(name=search_result.teachers[0].name,
-                                        user_type=USER_TYPE_TEACHER,
-                                        identifier_encoded=search_result.teachers[0].teacher_id_encoded,
-                                        last_semester=search_result.teachers[0].semesters[-1],
-                                        visit_time=record[1]))
-
-    return visitor_list
+    return result
 
 
 def init_table() -> None:
