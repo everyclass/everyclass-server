@@ -208,6 +208,12 @@ def create_app() -> Flask:
             response.set_data(minify(response.get_data(as_text=True)))
         return response
 
+    from everyclass.server.utils.db.postgres import db_session
+
+    @app.teardown_appcontext
+    def shutdown_db_session(exception=None):
+        db_session.remove()
+
     @app.template_filter('versioned')
     def version_filter(filename):
         """
