@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from everyclass.server.utils.config import get_config
 
@@ -12,21 +12,8 @@ _engine = create_engine(
     f'postgresql+psycopg2://{_conn_config["user"]}:{_conn_config["password"]}@{_conn_config["host"]}:{_conn_config["port"]}/{_conn_config["dbname"]}',
     connect_args={'options': f'-c search_path={_config.POSTGRES_SCHEMA}'},
     echo=True)
-_session_factory = sessionmaker(bind=_engine)
+db_session = scoped_session(sessionmaker(bind=_engine))
 Base = declarative_base()
-
-
-@contextmanager
-def session_maker():
-    session = _session_factory()
-    try:
-        yield session
-        session.commit()
-    except BaseException:
-        session.rollback()
-        raise
-    finally:
-        session.close()
 
 
 def create_table():

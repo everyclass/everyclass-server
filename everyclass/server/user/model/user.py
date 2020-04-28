@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from everyclass.server.utils.db.postgres import Base, session_maker
+from everyclass.server.utils.db.postgres import Base, db_session
 
 
 class User(Base):
@@ -38,21 +38,19 @@ class User(Base):
 
         user = User(identifier=identifier, password=password_hash, create_time=datetime.datetime.now())
 
-        with session_maker() as session:
-            session.add(user)
-            try:
-                session.commit()
-            except IntegrityError as e:
-                raise ValueError("User already exists") from e
+        db_session.add(user)
+        try:
+            db_session.commit()
+        except IntegrityError as e:
+            raise ValueError("User already exists") from e
 
     @classmethod
     def get_by_id(cls, identifier: str) -> Optional["User"]:
         """通过学号或教工号获取用户，如果获取不到返回none"""
-        with session_maker() as session:
-            try:
-                return session.query(User).filter(User.identifier == identifier).one()
-            except NoResultFound:
-                return None
+        try:
+            return db_session.query(User).filter(User.identifier == identifier).one()
+        except NoResultFound:
+            return None
 
     @classmethod
     def exists(cls, identifier: str) -> bool:
