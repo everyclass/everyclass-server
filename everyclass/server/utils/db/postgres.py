@@ -8,19 +8,32 @@ from everyclass.server.utils.config import get_config
 
 _config = get_config()
 _conn_config = _config.POSTGRES_CONNECTION
-engine = create_engine(
+_engine = create_engine(
     f'postgresql+psycopg2://{_conn_config["user"]}:{_conn_config["password"]}@{_conn_config["host"]}:{_conn_config["port"]}/{_conn_config["dbname"]}',
     connect_args={'options': f'-c search_path={_config.POSTGRES_SCHEMA}'},
     echo=True)
-Session = sessionmaker(bind=engine)
+_session_factory = sessionmaker(bind=_engine)
 Base = declarative_base()
+
+
+@contextmanager
+def session_maker():
+    session = _session_factory()
+    try:
+        yield session
+        session.commit()
+    except BaseException:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def create_table():
     """建表"""
     import everyclass.server.user.model
     _ = everyclass.server.user.model
-    Base.metadata.create_all(engine)
+    Base.metadata.create_all(_engine)
 
 
 def init_pool() -> None:
@@ -28,7 +41,7 @@ def init_pool() -> None:
     from everyclass.common.postgres import init_pool as init
     init(_config.POSTGRES_SCHEMA, _config.POSTGRES_CONNECTION)
 
-    engine.dispose()
+    _engine.dispose()
 
 
 @contextmanager

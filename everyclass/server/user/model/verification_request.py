@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 
-from everyclass.server.utils.db.postgres import Base, Session
+from everyclass.server.utils.db.postgres import Base, session_maker
 
 
 class VerificationRequest(Base):
@@ -41,9 +41,9 @@ class VerificationRequest(Base):
             raise ValueError(f"invalid status {status}")
 
         self.status = status
-        session = Session()
-        session.add(self)
-        session.commit()
+        with session_maker() as session:
+            session.add(self)
+            session.commit()
 
     def set_status_token_passed(self):
         if self.status == self.STATUS_SENT:
@@ -85,9 +85,9 @@ class VerificationRequest(Base):
 
         request = VerificationRequest(request_id=request_id, identifier=identifier, method=verification_method,
                                       status=status, extra=extra_doc)
-        session = Session()
-        session.add(request)
-        session.commit()
+        with session_maker() as session:
+            session.add(request)
+            session.commit()
 
         return str(request_id)
 
@@ -102,8 +102,8 @@ class VerificationRequest(Base):
     @classmethod
     def find_by_id(cls, request_id: uuid.UUID) -> Optional["VerificationRequest"]:
         """通过ID查找注册请求，如果没找到返回None"""
-        session = Session()
-        try:
-            return session.query(cls).filter(cls.request_id == request_id).one()
-        except NoResultFound:
-            return None
+        with session_maker() as session:
+            try:
+                return session.query(cls).filter(cls.request_id == request_id).one()
+            except NoResultFound:
+                return None
