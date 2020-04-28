@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional, Tuple, Union, List
 
 from ddtrace import tracer
@@ -8,24 +9,32 @@ from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
 from everyclass.rpc.entity import Entity, SearchResultStudentItem, SearchResultTeacherItem
 from everyclass.server import logger
-from everyclass.server.user.entity import IdentityVerifyRequest, Visitor
-from everyclass.server.user.repo import privacy_settings, user, simple_password, visit_count, user_id_sequence, identity_verify_requests, \
+from everyclass.server.user.entity import Visitor
+from everyclass.server.user.model import User, VerificationRequest
+from everyclass.server.user.repo import privacy_settings, simple_password, visit_count, user_id_sequence, identity_verify_requests, \
     visit_track
 from everyclass.server.utils.session import UserSession
 
 """Registration and Login"""
 
 
+class UserNotExists(BaseException):
+    pass
+
+
 def add_user(identifier: str, password: str, password_encrypted: bool = False) -> None:
-    return user.add_user(identifier, password, password_encrypted)
+    return User.add_user(identifier, password, password_encrypted)
 
 
-def user_exist(student_id: str) -> bool:
-    return user.exist(student_id)
+def user_exist(identifier: str) -> bool:
+    return User.exists(identifier)
 
 
 def check_password(identifier: str, password: str) -> bool:
-    return user.check_password(identifier, password)
+    user = User.get_by_id(identifier)
+    if not user:
+        raise UserNotExists
+    return User.get_by_id(identifier).check_password(password)
 
 
 def record_simple_password(password: str, identifier: str) -> None:
@@ -99,11 +108,6 @@ def get_user_id() -> int:
     return user_id_sequence.new()
 
 
-def get_identity_verify_request_by_id(req_id: str) -> Optional[IdentityVerifyRequest]:
-    """通过请求ID获取身份验证请求"""
-    return identity_verify_requests.get_request_by_id(req_id)
-
-
 class AlreadyRegisteredError(ValueError):
     """已经注册过了"""
     pass
@@ -114,7 +118,7 @@ def register_by_email(identifier: str) -> str:
     if user_exist(identifier):
         raise AlreadyRegisteredError
 
-    request_id = identity_verify_requests.new_register_request(identifier, "email", identity_verify_requests.ID_STATUS_SENT)
+    request_id = VerificationRequest.new_email_request(identifier)
 
     with tracer.trace('send_email'):
         rpc_result = Auth.register_by_email(request_id, identifier)
@@ -142,13 +146,12 @@ def register_by_email_token_check(token: str) -> str:
     if not rpc_result.success:
         raise InvalidTokenError
 
-    identity_verify_requests.set_request_status(rpc_result.request_id, identity_verify_requests.ID_STATUS_TKN_PASSED)
-
-    req = identity_verify_requests.get_request_by_id(rpc_result.request_id)
-    if not req:
+    request = VerificationRequest.find_by_id(uuid.UUID(rpc_result.request_id))
+    if not request:
         raise IdentityVerifyRequestNotFoundError
+    request.set_status_token_passed()
 
-    student_id = req.identifier
+    student_id = request.identifier
     if user_exist(student_id):
         logger.info(f"User {student_id} try to register again by email token. Request filtered.")
         raise AlreadyRegisteredError
@@ -166,7 +169,7 @@ class PasswordTooWeakError(ValueError):
 
 def register_by_email_set_password(request_id: str, password: str) -> str:
     """通过邮件注册-设置密码，注册成功返回学号/教工号"""
-    req = identity_verify_requests.get_request_by_id(request_id)
+    req = VerificationRequest.find_by_id(uuid.UUID(request_id))
     if not req:
         raise IdentityVerifyRequestNotFoundError
 
@@ -184,7 +187,7 @@ def register_by_email_set_password(request_id: str, password: str) -> str:
         logger.info(f"User {req.identifier} try to register again by email token. The request is rejected by database.")
         raise AlreadyRegisteredError from e
 
-    identity_verify_requests.set_request_status(str(req.request_id), identity_verify_requests.ID_STATUS_PASSWORD_SET)
+    VerificationRequest.find_by_id(req.request_id).set_status_password_set()
     return req.identifier
 
 
@@ -194,11 +197,7 @@ def register_by_password(jw_password: str, password: str, identifier: str) -> st
     if score_password_strength(password) < 2:
         record_simple_password(password=password, identifier=identifier)
         raise PasswordTooWeakError
-
-    request_id = identity_verify_requests.new_register_request(identifier,
-                                                               "password",
-                                                               identity_verify_requests.ID_STATUS_WAIT_VERIFY,
-                                                               password=password)
+    request_id = VerificationRequest.new_password_request(identifier, password)
     # call everyclass-auth to verify password
     with tracer.trace('register_by_password'):
         rpc_result = Auth.register_by_password(request_id=str(request_id),
@@ -221,7 +220,7 @@ class RequestIDUsed(ValueError):
 
 def register_by_password_status_refresh(request_id: str) -> Tuple[bool, str, Optional[str]]:
     """通过教务密码注册-刷新状态，返回是否成功、auth message及学号/教工号（如果成功）"""
-    req = identity_verify_requests.get_request_by_id(request_id)
+    req = VerificationRequest.find_by_id(uuid.UUID(request_id))
     if not req:
         raise IdentityVerifyRequestNotFoundError
     if req.method != "password":
@@ -235,9 +234,8 @@ def register_by_password_status_refresh(request_id: str) -> Tuple[bool, str, Opt
         rpc_result = Auth.get_result(str(request_id))
 
     if rpc_result.success:  # 密码验证通过，设置请求状态并新增用户
-        identity_verify_requests.set_request_status(str(request_id), identity_verify_requests.ID_STATUS_PWD_SUCCESS)
-
-        verification_req = identity_verify_requests.get_request_by_id(str(request_id))
+        verification_req = VerificationRequest.find_by_id(uuid.UUID(request_id))
+        verification_req.set_status_success()
 
         try:
             add_user(identifier=verification_req.identifier, password=verification_req.extra["password"],

@@ -62,7 +62,7 @@ def login():
 
         try:
             success = user_service.check_password(identifier, request.form["password"])
-        except ValueError:
+        except user_service.UserNotExists:
             # 未注册
             flash(MSG_NOT_REGISTERED)
             return redirect(url_for("user.register"))
