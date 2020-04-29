@@ -322,7 +322,15 @@ def get_card(url_cid: str, url_semester: str):
 
 
 @entity_bp.route('/multi_people_schedule')
-def multi_people_schedule(people: str, date: str):
+def multi_people_schedule():
+    people = request.args['people']
+    date = request.args['date']
+
+    if not people:
+        return 'people missing'
+    if not date:
+        return 'date missing'
+
     people_list = people.split(',')
     date_tuple = date.split('-')
     date = datetime.date(*date_tuple)
