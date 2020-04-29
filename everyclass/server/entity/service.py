@@ -1,4 +1,5 @@
-from typing import Tuple, Union
+import datetime
+from typing import Tuple, Union, List
 
 from everyclass.rpc.entity import SearchResultStudentItem, SearchResultTeacherItem, Entity, SearchResult, CardResult
 
@@ -50,3 +51,9 @@ def get_people_info(identifier: str) -> Tuple[bool, Union[SearchResultStudentIte
     if len(result.teachers) > 0:
         return False, result.teachers[0]
     raise PeopleNotFoundError
+
+
+def multi_people_schedule(people: List[str], date: datetime.date):
+    """多人日程展示。输入学号或教工号列表及日期，输出多人在当天的日程"""
+    from everyclass.server.entity.model import MultiPeopleSchedule
+    return MultiPeopleSchedule(people, date)

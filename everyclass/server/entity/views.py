@@ -1,3 +1,4 @@
+import datetime
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
@@ -9,17 +10,17 @@ from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_str
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
 from everyclass.server.entity import service as entity_service
-from everyclass.server.utils import semester_calculate
+from everyclass.server.utils import semester_calculate, to_json
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 from everyclass.server.utils.encryption import decrypt
 from everyclass.server.utils.err_handle import handle_exception_with_error_page
 from everyclass.server.utils.session import StudentSession
 
-query_blueprint = Blueprint('query', __name__)
+entity_bp = Blueprint('query', __name__)
 
 
-@query_blueprint.route('/query', methods=['GET', 'POST'])
+@entity_bp.route('/query', methods=['GET', 'POST'])
 @disallow_in_maintenance
 def query():
     """
@@ -127,8 +128,8 @@ def query():
         return redirect(url_for('main.main'))
 
 
-@query_blueprint.route('/student/<string:url_sid>/<string:url_semester>')
-@query_blueprint.route('/student/<string:url_sid>/semester/<string:url_semester>')
+@entity_bp.route('/student/<string:url_sid>/<string:url_semester>')
+@entity_bp.route('/student/<string:url_sid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_student(url_sid: str, url_semester: str):
@@ -190,8 +191,8 @@ def get_student(url_sid: str, url_semester: str):
                                student=student)
 
 
-@query_blueprint.route('/teacher/<string:url_tid>/<string:url_semester>')
-@query_blueprint.route('/teacher/<string:url_tid>/semester/<string:url_semester>')
+@entity_bp.route('/teacher/<string:url_tid>/<string:url_semester>')
+@entity_bp.route('/teacher/<string:url_tid>/semester/<string:url_semester>')
 @disallow_in_maintenance
 @url_semester_check
 def get_teacher(url_tid, url_semester):
@@ -246,8 +247,8 @@ def get_teacher(url_tid, url_semester):
                                teacher=teacher)
 
 
-@query_blueprint.route('/classroom/<string:url_rid>/<string:url_semester>')
-@query_blueprint.route('/classroom/<string:url_rid>/semester/<string:url_semester>')
+@entity_bp.route('/classroom/<string:url_rid>/<string:url_semester>')
+@entity_bp.route('/classroom/<string:url_rid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_classroom(url_rid, url_semester):
@@ -285,8 +286,8 @@ def get_classroom(url_rid, url_semester):
                            current_semester=url_semester)
 
 
-@query_blueprint.route('/card/<string:url_cid>/<string:url_semester>')
-@query_blueprint.route('/card/<string:url_cid>/semester/<string:url_semester>')
+@entity_bp.route('/card/<string:url_cid>/<string:url_semester>')
+@entity_bp.route('/card/<string:url_cid>/semester/<string:url_semester>')
 @url_semester_check
 @disallow_in_maintenance
 def get_card(url_cid: str, url_semester: str):
@@ -318,6 +319,15 @@ def get_card(url_cid: str, url_semester: str):
                            cotc_rating=0,
                            current_semester=url_semester
                            )
+
+
+@entity_bp.route('/multi_people_schedule')
+def multi_people_schedule(people: str, date: str):
+    people_list = people.split(',')
+    date_tuple = date.split('-')
+    date = datetime.date(*date_tuple)
+    schedule = entity_service.multi_people_schedule(people_list, date)
+    return to_json(schedule)
 
 
 def _empty_column_check(cards: dict) -> Tuple[bool, bool, bool, bool]:

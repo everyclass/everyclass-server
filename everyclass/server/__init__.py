@@ -156,12 +156,12 @@ def create_app() -> Flask:
 
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
-    from everyclass.server.entity.views import query_blueprint
+    from everyclass.server.entity.views import entity_bp
     from everyclass.server.views import main_blueprint as main_blueprint
     from everyclass.server.user.views import user_bp
     from everyclass.server.course.views import cr_blueprint
     app.register_blueprint(cal_blueprint)
-    app.register_blueprint(query_blueprint)
+    app.register_blueprint(entity_bp)
     app.register_blueprint(main_blueprint)
     app.register_blueprint(user_bp, url_prefix='/user')
 
