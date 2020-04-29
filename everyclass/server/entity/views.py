@@ -332,8 +332,7 @@ def multi_people_schedule():
         return 'date missing'
 
     people_list = people.split(',')
-    date_tuple = date.split('-')
-    date = datetime.date(*date_tuple)
+    date = datetime.date(*map(int, date.split('-')))
     schedule = entity_service.multi_people_schedule(people_list, date)
     return to_json(schedule)
 
