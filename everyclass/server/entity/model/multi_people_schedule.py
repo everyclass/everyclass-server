@@ -38,7 +38,6 @@ class MultiPeopleSchedule(JSONSerializable):
                 cards = service.get_teacher_timetable(identifier, semester).cards
 
             cards = filter(lambda c: week in c.weeks and c.lesson[0] == str(day), cards)  # 用日期所属的周次和星期过滤card
-            print(cards)
 
             event_dict = {}
             for card in cards:
