@@ -37,7 +37,7 @@ class MultiPeopleSchedule(JSONSerializable):
             else:
                 cards = service.get_teacher_timetable(identifier, semester).cards
 
-            cards = filter(domain.related_lesson_filter, cards)  # 用日期所属的周次过滤card
+            cards = filter(lambda c: week in c.weeks and c.lesson[0] == str(day), cards)  # 用日期所属的周次和星期过滤card
             print(cards)
 
             event_dict = {}

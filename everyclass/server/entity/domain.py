@@ -1,7 +1,6 @@
 import datetime
 from typing import Tuple
 
-from everyclass.rpc.entity import CardItem
 from everyclass.server.utils.config import get_config
 
 
@@ -25,7 +24,3 @@ def get_semester_date(date: datetime.date) -> Tuple[str, int, int]:
             days_delta = (date - sem_start_date).days
             return "-".join([str(x) for x in sem[0]]), days_delta // 7 + 1, days_delta % 7
     raise ValueError("no applicable semester")
-
-
-def related_lesson_filter(c: CardItem, week: int, day: int) -> bool:
-    return week in c.weeks and c.lesson[0] == str(day)
