@@ -155,17 +155,17 @@ def create_app() -> Flask:
     app.session_interface = EncryptedSessionInterface()
 
     # 导入并注册 blueprints
-    from everyclass.server.calendar.views import cal_blueprint
+    from everyclass.server.calendar.views import calendar_bp
     from everyclass.server.entity.views import entity_bp
     from everyclass.server.user.views import user_bp
-    from everyclass.server.course.views import cr_blueprint
+    from everyclass.server.course.views import course_bp
     from everyclass.server.views_main import main_blueprint
     from everyclass.server.views_mobile_api import mobile_blueprint
-    app.register_blueprint(cal_blueprint)
+    app.register_blueprint(calendar_bp)
     app.register_blueprint(entity_bp)
+    app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(main_blueprint)
     app.register_blueprint(mobile_blueprint, url_prefix='/mobile')
-    app.register_blueprint(user_bp, url_prefix='/user')
 
     # 初始化 RPC 模块
     from everyclass.server.utils.encryption import encrypt
@@ -182,7 +182,7 @@ def create_app() -> Flask:
 
     # course review feature gating
     if app.config['FEATURE_GATING']['course']:
-        app.register_blueprint(cr_blueprint, url_prefix='/course')
+        app.register_blueprint(course_bp, url_prefix='/course')
 
     @app.before_request
     def set_user_id():

@@ -8,7 +8,7 @@ from everyclass.server.utils.db.dao import COTeachingClass, CourseReview
 from everyclass.server.utils.web_consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
 from everyclass.server.utils.web_helpers import login_required, handle_exception_with_error_page
 
-cr_blueprint = Blueprint('course', __name__)
+course_bp = Blueprint('course', __name__)
 
 
 def is_taking(cotc: Dict) -> bool:
@@ -30,7 +30,7 @@ def is_taking(cotc: Dict) -> bool:
     return user_is_taking
 
 
-@cr_blueprint.route("/<cotc_id>")
+@course_bp.route("/<cotc_id>")
 def show_review(cotc_id: int):
     """查看某个教学班的评价"""
     cotc_id = int(cotc_id)
@@ -57,7 +57,7 @@ def show_review(cotc_id: int):
                            reviewed_by_me=reviewed_by_me)
 
 
-@cr_blueprint.route("/<cotc_id>/_editMine", methods=["POST", "GET"])
+@course_bp.route("/<cotc_id>/_editMine", methods=["POST", "GET"])
 @login_required
 def edit_review(cotc_id: int):
     """进行评价"""

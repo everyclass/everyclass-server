@@ -16,10 +16,10 @@ from everyclass.server.utils.encryption import decrypt
 from everyclass.server.utils.web_consts import MSG_400, MSG_INVALID_IDENTIFIER
 from everyclass.server.utils.web_helpers import disallow_in_maintenance, handle_exception_with_error_page, check_permission
 
-cal_blueprint = Blueprint('calendar', __name__)
+calendar_bp = Blueprint('calendar', __name__)
 
 
-@cal_blueprint.route('/calendar/<url_res_type>/<url_res_identifier>/<string:url_semester>')
+@calendar_bp.route('/calendar/<url_res_type>/<url_res_identifier>/<string:url_semester>')
 @disallow_in_maintenance
 def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
     """课表导出页面视图函数"""
@@ -64,7 +64,7 @@ def cal_page(url_res_type: str, url_res_identifier: str, url_semester: str):
                            android_client_url=app.config['ANDROID_CLIENT_URL'])
 
 
-@cal_blueprint.route('/calendar/ics/<calendar_token>.ics')
+@calendar_bp.route('/calendar/ics/<calendar_token>.ics')
 @disallow_in_maintenance
 def ics_download(calendar_token: str):
     """
@@ -86,7 +86,7 @@ def ics_download(calendar_token: str):
                                mimetype='text/calendar')
 
 
-@cal_blueprint.route('/calendar/ics/_androidClient/<identifier>')
+@calendar_bp.route('/calendar/ics/_androidClient/<identifier>')
 @disallow_in_maintenance
 def android_client_get_semester(identifier):
     """android client get a student or teacher's semesters
@@ -107,7 +107,7 @@ def android_client_get_semester(identifier):
     return "Bad request (got multiple people)", 400
 
 
-@cal_blueprint.route('/calendar/ics/_androidClient/<resource_type>/<identifier>/<semester>')
+@calendar_bp.route('/calendar/ics/_androidClient/<resource_type>/<identifier>/<semester>')
 @disallow_in_maintenance
 def android_client_get_ics(resource_type, identifier, semester):
     """
@@ -160,7 +160,7 @@ def android_client_get_ics(resource_type, identifier, semester):
         return redirect(url_for('calendar.ics_download', calendar_token=cal_token))
 
 
-@cal_blueprint.route('/<student_id>-<semester_str>.ics')
+@calendar_bp.route('/<student_id>-<semester_str>.ics')
 @disallow_in_maintenance
 def legacy_get_ics(student_id, semester_str):
     """
