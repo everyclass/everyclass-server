@@ -29,8 +29,3 @@ def multi_people_schedule():
     date = datetime.date(*map(int, date.split('-')))
     schedule = entity_service.multi_people_schedule(people_list, date, username)
     return generate_success_response(schedule)
-
-
-@mobile_blueprint.app_errorhandler(500)
-def internal_exception(error):
-    return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR)
