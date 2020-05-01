@@ -4,7 +4,7 @@ from typing import List, Tuple
 from flask import current_app
 
 from everyclass.common.env import get_env
-from everyclass.server.utils.jsonable import JSONSerializable, to_json
+from everyclass.server.utils.jsonable import JSONSerializable, to_json, to_json_response
 
 
 def semester_calculate(current_semester: str, semester_list: List[str]) -> List[Tuple[str, bool]]:
