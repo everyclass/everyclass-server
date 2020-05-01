@@ -2,8 +2,8 @@ import functools
 
 from flask import render_template, session
 
-from everyclass.server.consts import MSG_400, MSG_NOT_LOGGED_IN, SESSION_CURRENT_USER
 from everyclass.server.utils.config import get_config
+from everyclass.server.utils.pc_consts import MSG_400, MSG_NOT_LOGGED_IN, SESSION_CURRENT_USER
 
 
 def disallow_in_maintenance(func):

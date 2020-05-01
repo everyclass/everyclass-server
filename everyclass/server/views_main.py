@@ -3,8 +3,8 @@ import time
 
 from flask import Blueprint, Response, jsonify, render_template, request
 
-from everyclass.server.consts import MSG_404
 from everyclass.server.utils.config import get_config
+from everyclass.server.utils.pc_consts import MSG_404
 
 main_blueprint = Blueprint('main', __name__)
 

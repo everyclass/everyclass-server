@@ -3,8 +3,8 @@ from typing import Optional, Tuple
 from flask import render_template, session
 
 from everyclass.rpc.entity import StudentTimetableResult
-from everyclass.server.consts import SESSION_CURRENT_USER
 from everyclass.server.user import service as user_service
+from everyclass.server.utils.pc_consts import SESSION_CURRENT_USER
 
 
 def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[str]]:

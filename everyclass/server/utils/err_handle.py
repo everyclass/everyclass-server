@@ -25,7 +25,7 @@ def _error_page(message: str, sentry_capture: bool = False, log: str = None):
 def handle_exception_with_error_page(e: Exception) -> Text:
     """处理抛出的异常，返回错误页。
     """
-    from everyclass.server.consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503, MSG_ALREADY_REGISTERED, \
+    from everyclass.server.utils.pc_consts import MSG_TIMEOUT, MSG_404, MSG_400, MSG_INTERNAL_ERROR, MSG_503, MSG_ALREADY_REGISTERED, \
         MSG_TOKEN_INVALID
 
     if isinstance(e, AlreadyRegisteredError):

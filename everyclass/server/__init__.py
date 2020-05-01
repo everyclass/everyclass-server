@@ -11,8 +11,7 @@ from htmlmin import minify
 from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 
-from everyclass.server import consts
-from everyclass.server.utils import plugin_available
+from everyclass.server.utils import plugin_available, pc_consts
 from everyclass.server.utils.session import EncryptedSessionInterface
 
 logger = logging.getLogger(__name__)
@@ -104,7 +103,7 @@ def cron_update_remote_manifest():
 
 def create_app() -> Flask:
     """创建 flask app"""
-    from everyclass.server.consts import MSG_INTERNAL_ERROR
+    from everyclass.server.utils.pc_consts import MSG_INTERNAL_ERROR
     from everyclass.server.utils import plugin_available
 
     app = Flask(__name__,
@@ -187,7 +186,7 @@ def create_app() -> Flask:
     @app.before_request
     def set_user_id():
         """在请求之前设置 session uid，方便 APM 标识用户"""
-        from everyclass.server.consts import SESSION_CURRENT_USER
+        from everyclass.server.utils.pc_consts import SESSION_CURRENT_USER
         from everyclass.server.user import service as user_service
 
         if not session.get('user_id', None) and request.endpoint not in ("main.health_check", "static"):
@@ -238,7 +237,7 @@ def create_app() -> Flask:
     @app.context_processor
     def inject_consts():
         """允许在模板中使用常量模块，以便使用session key等常量而不用在模板中硬编码"""
-        return dict(consts=consts)
+        return dict(consts=pc_consts)
 
     @app.errorhandler(500)
     def internal_server_error(error):
