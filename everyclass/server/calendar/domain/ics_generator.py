@@ -14,7 +14,7 @@ from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
 from everyclass.common.env import get_env
 from everyclass.common.time import get_time
-from everyclass.server.models import Semester
+from everyclass.server.entity.model import Semester
 from everyclass.server.utils.config import get_config
 
 tzc = Timezone()

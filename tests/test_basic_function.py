@@ -30,10 +30,10 @@ class BasicFunctionTestCase(unittest.TestCase):
         self.assertTrue(config)
 
     def test_string_semester(self):
-        from everyclass.server.models import Semester
+        from everyclass.server.entity.model import Semester
         self.assertTrue(Semester((2016, 2017, 2)).to_str(simplify=False) == '2016-2017-2')
         self.assertTrue(Semester((2016, 2017, 2)).to_str(simplify=True) == '16-17-2')
 
     def test_tuple_semester(self):
-        from everyclass.server.models import Semester
+        from everyclass.server.entity.model import Semester
         self.assertTrue(Semester('2016-2017-2').to_tuple() == (2016, 2017, 2))

@@ -10,7 +10,7 @@ from everyclass.common.format import is_valid_uuid
 from everyclass.server.calendar import service as calendar_service
 from everyclass.server.calendar.domain.ics_generator import calendar_dir
 from everyclass.server.entity import service as entity_service
-from everyclass.server.models import Semester
+from everyclass.server.entity.model import Semester
 from everyclass.server.user import service as user_service
 from everyclass.server.utils.encryption import decrypt
 from everyclass.server.utils.web_consts import MSG_400, MSG_INVALID_IDENTIFIER
