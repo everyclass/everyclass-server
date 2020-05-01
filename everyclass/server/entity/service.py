@@ -2,6 +2,7 @@ import datetime
 from typing import Tuple, Union, List
 
 from everyclass.rpc.entity import SearchResultStudentItem, SearchResultTeacherItem, Entity, SearchResult, CardResult
+from everyclass.server.entity.model import MultiPeopleSchedule
 
 
 def search(keyword: str) -> SearchResult:
@@ -53,7 +54,9 @@ def get_people_info(identifier: str) -> Tuple[bool, Union[SearchResultStudentIte
     raise PeopleNotFoundError
 
 
-def multi_people_schedule(people: List[str], date: datetime.date):
-    """多人日程展示。输入学号或教工号列表及日期，输出多人在当天的日程"""
-    from everyclass.server.entity.model import MultiPeopleSchedule
-    return MultiPeopleSchedule(people, date)
+def multi_people_schedule(people: List[str], date: datetime.date, current_user: str) -> MultiPeopleSchedule:
+    """多人日程展示。输入学号或教工号列表及日期，输出多人在当天的日程。
+
+    返回的第一个参数表示需要授权的用户列表，第二个参数为MultiPeopleSchedule对象。如果部分用户需要授权才能访问，只返回可以访问的师生的时间安排
+    """
+    return MultiPeopleSchedule(people, date, current_user)

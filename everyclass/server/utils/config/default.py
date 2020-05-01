@@ -187,6 +187,32 @@ class Config(object):
     RESOURCE_IDENTIFIER_ENCRYPTION_KEY = 'z094gikTit;5gt5h'
     SESSION_CRYPTO_KEY = b'\xcb\xf2\x19H\xd9l\x05\xc7j\xb2\xd0^}B*\x8d\xb6\x8aPd\x1c%\x83\x1e_\xf0\xb9C\xa9XOC'
 
+    JWT_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBANQ7c5Om5Iqakcu7
+PTwFC0JVtAU6MVYEbjVquJcxW2iICOMFgrcFrFv+8WLQvY6jATSK6URW2+vx0UNt
+eWzWWXZ7Uqe4uztGv/DrUN8PSmkO/wJ0h1gpl3dse9YHV7U6VL50Oz5eTS/MwZ30
+sC/nQFtwgECjR7JWAAgrTYE05Dy5AgMBAAECgYAQfV4JhtoS+teBINctJqctTENk
+dJUIvediNxyIgsk7YfZuzSrO1Z4Ct9hBeT6BKqEZWAGv0Z/cwTklKAhbMHxa2BDv
+Knb5AMyBefUHV9Wab7dEgIRNY8dqkvwnJ9o173j+Jt5JRTrQMxOOxFowWBob2LRS
+s8ska/FgBNb+kmJwQQJBAPNPQpP5Fk6aeMUidrupQglhNYsvf53vaUoVDtD17dpl
+3EDMBczzMYltVShxb7xLgTjmuXKOmJbO+oKpNaJDpSUCQQDfTTzAtEuXiukLG6PP
+DqM8OtkwffV/88Bjny35YUlm0wzXTwm8YfchJ4wruC4N3/DMzqXz5e9cXH4pzCR9
+dgcFAkBJ4TtaKzx2ybj6QyjCevauWnIjvVyG3HegIxzInqSGuH9UvZ7VSNM145kE
+Gs3O4y5t1MFi46G5yUeP/Uln6BpxAkBFwAOFEgw2pt5KaPTO/XyBmMQ0wHOJ5yKm
+O5eJuRjLdIsjSf35iQQ/p/HBykMgdF3sK3Rs7drJl96Uwb54LgDdAkBBGlNLnoIu
+X7E63VLo3NnmiTH/sJBzMWPVClUoQBjy+mnfIuzf20QFc2g/3EahaBErU4U7zBkx
+itvB71WSRfVV
+-----END PRIVATE KEY-----
+
+"""
+    JWT_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDUO3OTpuSKmpHLuz08BQtCVbQF
+OjFWBG41ariXMVtoiAjjBYK3Baxb/vFi0L2OowE0iulEVtvr8dFDbXls1ll2e1Kn
+uLs7Rr/w61DfD0ppDv8CdIdYKZd3bHvWB1e1OlS+dDs+Xk0vzMGd9LAv50BbcIBA
+o0eyVgAIK02BNOQ8uQIDAQAB
+-----END PUBLIC KEY-----
+"""
+
     TENCENT_CAPTCHA_AID = ''
     TENCENT_CAPTCHA_SECRET = ''
 
@@ -198,7 +224,9 @@ class Config(object):
                                    'TENCENT_CAPTCHA_AID',
                                    'TENCENT_CAPTCHA_SECRET',
                                    'RESOURCE_IDENTIFIER_ENCRYPTION_KEY',
-                                   'SESSION_CRYPTO_KEY'
+                                   'SESSION_CRYPTO_KEY',
+                                   'JWT_PRIVATE_KEY',
+                                   'JWT_PUBLIC_KEY'
                                    )
 
     # fields that should not be in log

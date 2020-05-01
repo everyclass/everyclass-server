@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional
 
 from everyclass.server.entity import domain
-from everyclass.server.entity import service
 from everyclass.server.utils import JSONSerializable
 
 
@@ -19,17 +18,32 @@ class Event(JSONSerializable):
 @dataclass
 class MultiPeopleSchedule(JSONSerializable):
     schedules: List[Dict[str, Optional[Event]]]
+    accessible_people: List[str]
+    inaccessible_people: List[str]
 
     def __json_encode__(self):
-        return {'schedules': self.schedules}
+        return {'schedules': self.schedules,
+                'inaccessible_people': self.inaccessible_people,
+                'accessible_people': self.accessible_people}
 
-    def __init__(self, people: List[str], date: datetime.date):
+    def __init__(self, people: List[str], date: datetime.date, current_user: str):
         """多人日程展示。输入学号或教工号列表及日期，输出多人在当天的日程"""
         from everyclass.server import logger
+        from everyclass.server.entity import service
+        from everyclass.server.user import service as user_service
+
+        accessible_people = []
+        inaccessible_people = []
+
+        for identifier in people:
+            if user_service.has_access(identifier, current_user):
+                accessible_people.append(identifier)
+            else:
+                inaccessible_people.append(identifier)
 
         self.schedules = list()
 
-        for identifier in people:
+        for identifier in accessible_people:
             is_student, _ = service.get_people_info(identifier)
             semester, week, day = domain.get_semester_date(date)
             if is_student:
@@ -56,3 +70,5 @@ class MultiPeopleSchedule(JSONSerializable):
                     event_dict[key] = None
 
             self.schedules.append(event_dict)
+            self.inaccessible_people = inaccessible_people
+            self.accessible_people = accessible_people

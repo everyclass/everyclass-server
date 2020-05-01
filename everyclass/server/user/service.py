@@ -1,6 +1,7 @@
 import uuid
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict
 
+import jwt
 from ddtrace import tracer
 from flask import session
 from zxcvbn import zxcvbn
@@ -9,7 +10,7 @@ from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
 from everyclass.server import logger
 from everyclass.server.entity import service as entity_service
-from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor
+from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor, Grant
 from everyclass.server.user.repo import privacy_settings, visit_count, user_id_sequence, visit_track
 from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
@@ -209,6 +210,9 @@ class PermissionAdjustRequired(Exception):
 def has_access(host: str, visitor: Optional[str] = None, footprint: bool = True) -> bool:
     """检查访问者是否有权限访问学生课表。footprint为True将会留下访问记录并增加访客计数。
     """
+    if visitor and Grant.has_grant(visitor, host):
+        return True
+
     privacy_level = get_privacy_level(host)
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
     if privacy_level == 2 and (not visitor or visitor != host):
@@ -273,3 +277,48 @@ def get_user_id() -> int:
     if session.get('user_id', None):
         return session.get('user_id', None)
     return user_id_sequence.new()
+
+
+"""JWT Token"""
+
+
+def issue_token(user_identifier: str) -> str:
+    """签发指定用户名的JWT token"""
+    from everyclass.server.utils.config import get_config
+    config = get_config()
+
+    payload = {"username": user_identifier}
+    token = jwt.encode(payload, config.JWT_PRIVATE_KEY, algorithm='RS256')
+
+    return token.decode('utf8')
+
+
+def decode_jwt_payload(token: str) -> Dict:
+    """验证JWT Token并解出payload
+
+    如果payload被修改，抛出jwt.exceptions.InvalidSignatureError。如果签名被修改，抛出jwt.exceptions.DecodeError
+    """
+    from everyclass.server.utils.config import get_config
+    config = get_config()
+
+    return jwt.decode(token, config.JWT_PUBLIC_KEY, algorithms=['RS256'])
+
+
+def get_username_from_jwt(token: str) -> Optional[str]:
+    """从JWT token中解析出用户名，如果解析失败，返回None"""
+    from everyclass.server import logger
+
+    if not token:
+        logger.warn(f"empty token received, type: {type(token)}")
+
+    try:
+        payload = decode_jwt_payload(token)
+    except jwt.exceptions.PyJWTError as e:
+        logger.warn("JWT token decode failed, maybe it was tampered with client side", extra={"token": token,
+                                                                                              "error": repr(e)})
+        return None
+
+    if 'username' not in payload:
+        logger.warn("aud not in payload. the token is weird.")
+        return None
+    return payload["username"]
