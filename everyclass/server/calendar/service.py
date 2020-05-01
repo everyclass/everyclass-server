@@ -1,5 +1,4 @@
 import os
-import time
 from collections import defaultdict
 from typing import Dict, List, Tuple
 from typing import Optional
@@ -54,9 +53,6 @@ def use_calendar_token(token: str) -> None:
     update_last_used_time(token)
 
 
-SECONDS_IN_ONE_DAY = 60 * 60 * 24
-
-
 def generate_ics_file(type_: str, identifier: str, semester: str) -> str:
     """生成ics文件并返回文件名"""
     from everyclass.server import statsd  # 需要在这里导入，否则导入的结果是None
@@ -65,7 +61,6 @@ def generate_ics_file(type_: str, identifier: str, semester: str) -> str:
     cal_full_path = os.path.join(calendar_dir(), cal_filename)
     # 有缓存、且缓存时间小于一天，且不用强刷缓存
     if os.path.exists(cal_full_path) \
-            and time.time() - os.path.getmtime(cal_full_path) < SECONDS_IN_ONE_DAY \
             and use_cache(cal_filename):
         logger.info("ics cache hit")
         statsd.increment("calendar.ics.cache.hit")

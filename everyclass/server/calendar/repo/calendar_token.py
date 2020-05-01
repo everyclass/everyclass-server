@@ -136,18 +136,19 @@ def init_table() -> None:
 
 
 SECONDS_IN_HOUR = 60 * 60
+SECONDS_IN_DAY = 60 * 60 * 24
 
 
 def use_cache(filename: str) -> bool:
     """
-    漏桶算法决定是否使用缓存好了的文件。目前规则为一小时内第三次刷新则不使用缓存
+    漏桶算法决定是否使用缓存好了的文件。目前规则为一小时内第2次刷新则不使用缓存，另外每24小时会强制更新一次
 
     :param filename: ics文件名
     :return: 表示是否使用缓存的布尔值
     """
 
     def set_current():
-        redis.set(key, f"{str(int(time.time()))},2")  # 一次过期
+        redis.set(key, f"{str(int(time.time()))},1")
 
     key = f"{redis_prefix}:cal_tkn:{filename}"
     r = redis.get(key)
@@ -167,5 +168,10 @@ def use_cache(filename: str) -> bool:
             redis.set(key, f"{str(timestamp)},{str(times - 1)}")
             return True
     else:
-        # 超过周期，可使用缓存
+        if int(time.time()) - timestamp > SECONDS_IN_DAY:
+            # 超过一天，不使用缓存
+            set_current()
+            return False
+        # 未超过一天，可使用缓存
+        set_current()
         return True
