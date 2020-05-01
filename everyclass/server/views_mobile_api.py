@@ -11,7 +11,7 @@ mobile_blueprint = Blueprint('mobile_api', __name__)
 
 @mobile_blueprint.route('/multi_people_schedule')
 def multi_people_schedule():
-    token = request.headers["X-API-Token"]
+    token = request.headers.get("X-API-Token")
     if not token:
         return generate_error_response(None, api_helpers.STATUS_CODE_TOKEN_MISSING)
 
