@@ -5,9 +5,8 @@ from flask import Blueprint, escape, flash, redirect, render_template, request, 
 from everyclass.rpc.entity import teacher_list_to_tid_str
 from everyclass.server.entity import service as entity_service
 from everyclass.server.utils.db.dao import COTeachingClass, CourseReview
-from everyclass.server.utils.decorators import login_required
-from everyclass.server.utils.err_handle import handle_exception_with_error_page
-from everyclass.server.utils.pc_consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
+from everyclass.server.utils.web_consts import MSG_404, MSG_NOT_IN_COURSE, SESSION_CURRENT_USER
+from everyclass.server.utils.web_helpers import login_required, handle_exception_with_error_page
 
 cr_blueprint = Blueprint('course', __name__)
 

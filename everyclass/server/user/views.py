@@ -6,14 +6,13 @@ from everyclass.server import logger
 from everyclass.server.calendar import service as calendar_service
 from everyclass.server.entity import service as entity_service
 from everyclass.server.user import service as user_service
-from everyclass.server.utils.decorators import login_required
-from everyclass.server.utils.err_handle import handle_exception_with_error_page
-from everyclass.server.utils.pc_consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
+from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT, UserSession
+from everyclass.server.utils.web_consts import MSG_400, MSG_ALREADY_REGISTERED, MSG_EMPTY_PASSWORD, MSG_EMPTY_USERNAME, \
     MSG_INVALID_CAPTCHA, MSG_NOT_REGISTERED, MSG_PWD_DIFFERENT, MSG_REGISTER_SUCCESS, \
     MSG_TOKEN_INVALID, MSG_USERNAME_NOT_EXIST, MSG_VIEW_SCHEDULE_FIRST, MSG_WEAK_PASSWORD, MSG_WRONG_PASSWORD, \
     SESSION_CURRENT_USER, SESSION_EMAIL_VER_REQ_ID, SESSION_LAST_VIEWED_STUDENT, SESSION_PWD_VER_REQ_ID, \
     SESSION_USER_REGISTERING
-from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT, UserSession
+from everyclass.server.utils.web_helpers import login_required, handle_exception_with_error_page
 
 user_bp = Blueprint('user', __name__)
 

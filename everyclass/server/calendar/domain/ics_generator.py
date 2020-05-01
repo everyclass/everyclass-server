@@ -9,11 +9,12 @@ from typing import Dict, List, Tuple
 
 import pytz
 from ddtrace import tracer
+from flask import current_app
 from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard
 
+from everyclass.common.env import get_env
 from everyclass.common.time import get_time
 from everyclass.server.models import Semester
-from everyclass.server.utils import calendar_dir
 from everyclass.server.utils.config import get_config
 
 tzc = Timezone()
@@ -152,3 +153,10 @@ def _build_event(card_name: str, times: Tuple[datetime, datetime], classroom: st
     alarm.add('trigger', datetime(1980, 1, 1, 3, 5, 0))
     event.add_component(alarm)
     return event
+
+
+def calendar_dir() -> str:
+    """获得日历文件路径。生产环境为/var/calendar_files/，否则为程序根目录下的calendar_files文件夹。"""
+    if get_env() == "PRODUCTION":
+        return "/var/calendar_files/"
+    return (current_app.root_path or "") + "/../../calendar_files/"

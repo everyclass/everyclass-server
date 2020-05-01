@@ -8,15 +8,13 @@ from flask import Blueprint, abort, current_app as app, jsonify, redirect, rende
 
 from everyclass.common.format import is_valid_uuid
 from everyclass.server.calendar import service as calendar_service
+from everyclass.server.calendar.domain.ics_generator import calendar_dir
 from everyclass.server.entity import service as entity_service
 from everyclass.server.models import Semester
 from everyclass.server.user import service as user_service
-from everyclass.server.utils import calendar_dir
-from everyclass.server.utils.access_control import check_permission
-from everyclass.server.utils.decorators import disallow_in_maintenance
 from everyclass.server.utils.encryption import decrypt
-from everyclass.server.utils.err_handle import handle_exception_with_error_page
-from everyclass.server.utils.pc_consts import MSG_400, MSG_INVALID_IDENTIFIER
+from everyclass.server.utils.web_consts import MSG_400, MSG_INVALID_IDENTIFIER
+from everyclass.server.utils.web_helpers import disallow_in_maintenance, handle_exception_with_error_page, check_permission
 
 cal_blueprint = Blueprint('calendar', __name__)
 

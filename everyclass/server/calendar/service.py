@@ -9,11 +9,11 @@ from everyclass.common.time import lesson_string_to_tuple
 from everyclass.rpc.entity import teacher_list_to_name_str
 from everyclass.server import logger
 from everyclass.server.calendar.domain import ics_generator
+from everyclass.server.calendar.domain.ics_generator import calendar_dir
 from everyclass.server.calendar.repo.calendar_token import reset_tokens, find_calendar_token as find_token, insert_calendar_token, \
     update_last_used_time, use_cache
 from everyclass.server.entity import service as entity_service
 from everyclass.server.models import Semester
-from everyclass.server.utils import calendar_dir
 
 
 def reset_calendar_tokens(student_id: str, typ: Optional[str] = "student") -> None:

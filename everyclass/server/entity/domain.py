@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple
+from typing import Tuple, List
 
 from everyclass.server.utils.config import get_config
 
@@ -24,3 +24,15 @@ def get_semester_date(date: datetime.date) -> Tuple[str, int, int]:
             days_delta = (date - sem_start_date).days
             return "-".join([str(x) for x in sem[0]]), days_delta // 7 + 1, days_delta % 7
     raise ValueError("no applicable semester")
+
+
+def semester_calculate(current_semester: str, semester_list: List[str]) -> List[Tuple[str, bool]]:
+    """生成一个列表，每个元素是一个二元组，分别为学期字符串和是否为当前学期的布尔值"""
+    available_semesters = []
+
+    for each_semester in semester_list:
+        if current_semester == each_semester:
+            available_semesters.append((each_semester, True))
+        else:
+            available_semesters.append((each_semester, False))
+    return available_semesters

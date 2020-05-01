@@ -8,13 +8,12 @@ from everyclass.common.format import contains_chinese
 from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_string_to_tuple
 from everyclass.server import logger
 from everyclass.server.entity import service as entity_service
-from everyclass.server.utils import semester_calculate
-from everyclass.server.utils.access_control import check_permission
-from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
+from everyclass.server.entity.domain import semester_calculate
 from everyclass.server.utils.encryption import decrypt
-from everyclass.server.utils.err_handle import handle_exception_with_error_page
-from everyclass.server.utils.pc_consts import MSG_INVALID_IDENTIFIER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
 from everyclass.server.utils.session import StudentSession
+from everyclass.server.utils.web_consts import MSG_INVALID_IDENTIFIER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
+from everyclass.server.utils.web_helpers import disallow_in_maintenance, url_semester_check, handle_exception_with_error_page, \
+    check_permission
 
 entity_bp = Blueprint('query', __name__)
 
