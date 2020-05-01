@@ -9,8 +9,10 @@ STATUS_CODE_INVALID_TOKEN = 4002
 STATUS_CODE_INTERNAL_ERROR = 5000
 
 STATUS_MESSAGES = {
+    STATUS_CODE_INVALID_REQUEST: 'invalid request',
+    STATUS_CODE_TOKEN_MISSING: 'token is missing',
+    STATUS_CODE_INVALID_TOKEN: 'token is invalid',
     STATUS_CODE_INTERNAL_ERROR: 'internal error',
-    STATUS_CODE_TOKEN_MISSING: 'token is missing'
 }
 
 
