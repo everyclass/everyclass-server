@@ -37,7 +37,3 @@ class BasicFunctionTestCase(unittest.TestCase):
     def test_tuple_semester(self):
         from everyclass.server.models import Semester
         self.assertTrue(Semester('2016-2017-2').to_tuple() == (2016, 2017, 2))
-
-    def test_semester_code(self):
-        from everyclass.server.models import Semester
-        self.assertTrue(Semester((2016, 2017, 2)).to_db_code() == "16_17_2")

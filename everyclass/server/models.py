@@ -57,9 +57,3 @@ class Semester(object):
         else:
             # return like '16-17-2'
             return str(self.year1)[2:4] + '-' + str(self.year2)[2:4] + '-' + str(self.sem)
-
-    def to_db_code(self):
-        """
-        获取用于数据表命名的学期，如 16_17_2
-        """
-        return self.to_str(simplify=True).replace('-', '_')
