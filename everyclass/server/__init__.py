@@ -107,6 +107,7 @@ def create_app() -> Flask:
     from everyclass.server.utils.web_consts import MSG_INTERNAL_ERROR
     from everyclass.server import plugin_available
     from everyclass.server.utils import generate_error_response, api_helpers
+    from everyclass.common.env import is_production
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -245,7 +246,10 @@ def create_app() -> Flask:
     def internal_server_error(error):
         # blueprint-level 500 handler is not possible at the moment, so internal error of mobile API must be handler here
         if request.path.startswith("/mobile"):
-            return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR)
+            # not show actual error in production
+            actual_error = {'status_message_overwrite': f"server internal error: {repr(error)}"} if not is_production() else {}
+
+            return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR, **actual_error)
         if plugin_available("sentry"):
             return render_template('common/error.html',
                                    message=MSG_INTERNAL_ERROR,
