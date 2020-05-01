@@ -16,6 +16,8 @@ def multi_people_schedule():
         return generate_error_response(None, api_helpers.STATUS_CODE_TOKEN_MISSING)
 
     username = user_service.get_username_from_jwt(token)
+    if not username:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_TOKEN)
 
     people = request.args['people']
     date = request.args['date']
