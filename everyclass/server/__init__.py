@@ -157,12 +157,14 @@ def create_app() -> Flask:
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import cal_blueprint
     from everyclass.server.entity.views import entity_bp
-    from everyclass.server.views import main_blueprint as main_blueprint
     from everyclass.server.user.views import user_bp
+    from everyclass.server.views import main_blueprint
     from everyclass.server.course.views import cr_blueprint
+    from everyclass.server.mobile_api_views import mobile_blueprint
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(entity_bp)
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(mobile_blueprint, url_prefix='/mobile')
     app.register_blueprint(user_bp, url_prefix='/user')
 
     # 初始化 RPC 模块
