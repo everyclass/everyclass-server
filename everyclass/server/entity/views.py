@@ -10,7 +10,7 @@ from everyclass.common.time import get_day_chinese, get_time_chinese, lesson_str
 from everyclass.server import logger
 from everyclass.server.consts import MSG_INVALID_IDENTIFIER, SESSION_LAST_VIEWED_STUDENT, URL_EMPTY_SEMESTER
 from everyclass.server.entity import service as entity_service
-from everyclass.server.utils import semester_calculate, to_json_response
+from everyclass.server.utils import semester_calculate, generate_error_response, generate_success_response
 from everyclass.server.utils.access_control import check_permission
 from everyclass.server.utils.decorators import disallow_in_maintenance, url_semester_check
 from everyclass.server.utils.encryption import decrypt
@@ -327,14 +327,14 @@ def multi_people_schedule():
     date = request.args['date']
 
     if not people:
-        return 'people missing'
+        return generate_error_response(None, 4000, 'missing people parameter')
     if not date:
-        return 'date missing'
+        return generate_error_response(None, 4000, 'missing date parameter')
 
     people_list = people.split(',')
     date = datetime.date(*map(int, date.split('-')))
     schedule = entity_service.multi_people_schedule(people_list, date)
-    return to_json_response(schedule)
+    return generate_success_response(schedule)
 
 
 def _empty_column_check(cards: dict) -> Tuple[bool, bool, bool, bool]:
