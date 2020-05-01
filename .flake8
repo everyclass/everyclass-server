@@ -6,3 +6,6 @@ ignore = E501, # E501 line too long
          E303  # too many blank lines
 per-file-ignores =
     everyclass/server/db/dao.py:W605
+    everyclass/server/user/model/__init__.py:F401
+    everyclass/server/utils/__init__.py:F401
+    everyclass/server/entity/model/__init__.py:F401
