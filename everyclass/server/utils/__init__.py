@@ -4,7 +4,7 @@ from typing import List, Tuple
 from flask import current_app
 
 from everyclass.common.env import get_env
-from everyclass.server.utils.common import generate_error_response, generate_success_response
+from everyclass.server.utils.api_common import generate_error_response, generate_success_response
 from everyclass.server.utils.jsonable import JSONSerializable
 
 

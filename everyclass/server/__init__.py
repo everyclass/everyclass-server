@@ -158,9 +158,9 @@ def create_app() -> Flask:
     from everyclass.server.calendar.views import cal_blueprint
     from everyclass.server.entity.views import entity_bp
     from everyclass.server.user.views import user_bp
-    from everyclass.server.views import main_blueprint
     from everyclass.server.course.views import cr_blueprint
-    from everyclass.server.mobile_api_views import mobile_blueprint
+    from everyclass.server.views_main import main_blueprint
+    from everyclass.server.views_mobile_api import mobile_blueprint
     app.register_blueprint(cal_blueprint)
     app.register_blueprint(entity_bp)
     app.register_blueprint(main_blueprint)

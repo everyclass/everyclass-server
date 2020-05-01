@@ -1,5 +1,9 @@
+"""
+HTTP API公共方法、错误码定义等
+"""
 from everyclass.server.utils.jsonable import to_json_response
 
+STATUS_CODE_INVALID_REQUEST = 4000
 STATUS_CODE_INTERNAL_ERROR = 5000
 
 STATUS_MESSAGES = {
