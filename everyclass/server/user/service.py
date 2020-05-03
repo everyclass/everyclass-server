@@ -30,7 +30,7 @@ def user_exist(identifier: str) -> bool:
 def check_password(identifier: str, password: str) -> bool:
     user = User.get_by_id(identifier)
     if not user:
-        raise UserNotExists
+        raise UserNotExists("user not exists")
     return User.get_by_id(identifier).check_password(password)
 
 
