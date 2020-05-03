@@ -110,7 +110,7 @@ def create_app() -> Flask:
     """创建 flask app"""
     from everyclass.server.utils.web_consts import MSG_INTERNAL_ERROR
     from everyclass.server import plugin_available
-    from everyclass.server.utils import generate_error_response, api_helpers
+    from everyclass.server.utils import generate_error_response, api_helpers, base_exceptions
     from everyclass.common.env import is_production
 
     app = Flask(__name__,
@@ -248,17 +248,21 @@ def create_app() -> Flask:
         """允许在模板中使用常量模块，以便使用session key等常量而不用在模板中硬编码"""
         return dict(consts=web_consts)
 
+    @app.errorhandler(base_exceptions.BizException)
+    def handle_biz_exception(error: base_exceptions.BizException):
+        if request.path.startswith("/mobile"):
+            if isinstance(error, base_exceptions.InternalError):
+                logger.error(repr(error))
+
+            # 业务错误的status_message可以对外展示
+            actual_error = {'status_message_overwrite': error.status_message}
+            return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR, **actual_error)
+
     @app.errorhandler(500)
     def internal_server_error(error):
-        # blueprint-level 500 handler is not possible at the moment, so internal error of mobile API must be handler here
         if request.path.startswith("/mobile"):
-            if hasattr(error, 'status_message'):
-                # 业务错误的status_message可以对外展示
-                actual_error = {'status_message_overwrite': error.status_message}
-            else:
-                # 对于非业务错误，生产环境中不进行返回，其他环境中可返回
-                actual_error = {'status_message_overwrite': f"server internal error: {repr(error)}"} if not is_production() else {}
-
+            # 对于非业务错误，生产环境中不进行返回，其他环境中可返回
+            actual_error = {'status_message_overwrite': f"server internal error: {repr(error)}"} if not is_production() else {}
             return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR, **actual_error)
         if plugin_available("sentry"):
             return render_template('common/error.html',
