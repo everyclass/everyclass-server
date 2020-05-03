@@ -7,6 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 
+from everyclass.server.utils.base_exceptions import InvalidRequestException
 from everyclass.server.utils.db.postgres import Base, db_session
 
 
@@ -49,21 +50,21 @@ class VerificationRequest(Base):
         if self.status == self.STATUS_SENT:
             self._set_status(self.STATUS_TKN_PASSED)
         else:
-            raise ValueError(f"state {self.status} cannot be transitioned to {self.STATUS_TKN_PASSED}")
+            raise InvalidRequestException(f"state {self.status} cannot be transitioned to {self.STATUS_TKN_PASSED}")
 
     def set_status_password_set(self):
         """邮件验证-设置密码设置完成状态"""
         if self.status == self.STATUS_TKN_PASSED:
             self._set_status(self.STATUS_PASSWORD_SET)
         else:
-            raise ValueError(f"state {self.status} cannot be transitioned to {self.STATUS_PASSWORD_SET}")
+            raise InvalidRequestException(f"state {self.status} cannot be transitioned to {self.STATUS_PASSWORD_SET}")
 
     def set_status_success(self):
         """设置密码验证成功状态"""
         if self.status == self.STATUS_WAIT_VERIFY:
             self._set_status(self.STATUS_PWD_SUCCESS)
         else:
-            raise ValueError(f"state {self.status} cannot be transitioned to {self.STATUS_PWD_SUCCESS}")
+            raise InvalidRequestException(f"state {self.status} cannot be transitioned to {self.STATUS_PWD_SUCCESS}")
 
     @classmethod
     def _new_request(cls, identifier: str, verification_method: str, status: str, password: str = None) -> str:

@@ -6,23 +6,29 @@ from everyclass.server.utils import base_exceptions
 class UserNotExists(base_exceptions.InvalidRequestException):
     """密码验证时，用户不存在"""
 
-    def __init__(self, status_message):
-        super().__init__(status_message, 4100)
+    def __init__(self):
+        super().__init__("用户未注册，请先注册", 4100)
 
 
 class WrongPassword(base_exceptions.InvalidRequestException):
     """登录时密码错误"""
 
-    def __init__(self, status_message):
-        super().__init__(status_message, 4101)
+    def __init__(self):
+        super().__init__("密码错误", 4101)
 
 
 class AlreadyRegisteredError(base_exceptions.InvalidRequestException):
     """用户已存在，不允许再注册"""
 
+    def __init__(self, ):
+        super().__init__("用户已经注册了，请直接登录", 4102)
+
 
 class InvalidTokenError(base_exceptions.InvalidRequestException):
     """邮件token无效"""
+
+    def __init__(self):
+        super().__init__("邮件token无效", 4103)
 
 
 class IdentityVerifyRequestNotFoundError(base_exceptions.InvalidRequestException):

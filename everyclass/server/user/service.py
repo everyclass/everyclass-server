@@ -14,6 +14,7 @@ from everyclass.server.user.exceptions import RecordNotFound, NoPermissionToAcce
     AlreadyRegisteredError, InvalidTokenError, IdentityVerifyRequestNotFoundError, PasswordTooWeakError, IdentityVerifyRequestStatusError
 from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor, Grant
 from everyclass.server.user.repo import privacy_settings, visit_count, user_id_sequence, visit_track
+from everyclass.server.utils.base_exceptions import InternalError
 from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
 """Registration and Login"""
@@ -30,7 +31,7 @@ def user_exist(identifier: str) -> bool:
 def check_password(identifier: str, password: str) -> bool:
     user = User.get_by_id(identifier)
     if not user:
-        raise UserNotExists("user not exists")
+        raise UserNotExists
     return User.get_by_id(identifier).check_password(password)
 
 
@@ -49,7 +50,7 @@ def register_by_email(identifier: str) -> str:
         rpc_result = Auth.register_by_email(request_id, identifier)
 
     if rpc_result['acknowledged'] is False:
-        raise RpcServerException("Unexpected acknowledge status")
+        raise InternalError("Unexpected acknowledge status")
 
     return request_id
 
@@ -64,7 +65,7 @@ def register_by_email_token_check(token: str) -> str:
 
     request = VerificationRequest.find_by_id(uuid.UUID(rpc_result.request_id))
     if not request:
-        raise IdentityVerifyRequestNotFoundError
+        logger.error(f"can not find related verification request of email token {token}")
     request.set_status_token_passed()
 
     student_id = request.identifier
