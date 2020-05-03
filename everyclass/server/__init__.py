@@ -256,7 +256,7 @@ def create_app() -> Flask:
 
             # 业务错误的status_message可以对外展示
             actual_error = {'status_message_overwrite': error.status_message}
-            return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR, **actual_error)
+            return generate_error_response(None, error.status_code, **actual_error)
 
     @app.errorhandler(500)
     def internal_server_error(error):
