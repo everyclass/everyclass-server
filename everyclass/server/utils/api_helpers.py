@@ -1,6 +1,11 @@
 """
 HTTP API公共方法、错误码定义等
 """
+import functools
+
+from flask import request, g
+
+from everyclass.server.user import service as user_service
 from everyclass.server.utils.jsonable import to_json_response
 
 STATUS_CODE_INVALID_REQUEST = 4000
@@ -33,3 +38,24 @@ def generate_error_response(obj, status_code: int, status_message_overwrite: str
     else:
         response_obj.update({'status_message': "unknown error"})
     return to_json_response(response_obj)
+
+
+def token_required(func):
+    """
+    检查是否携带token，如果token未携带或无效将直接返回错误，否则将username保存到g.username中
+    """
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        token = request.headers.get("X-API-Token")
+        if not token:
+            return generate_error_response(None, STATUS_CODE_TOKEN_MISSING)
+
+        username = user_service.get_username_from_jwt(token)
+        if not username:
+            return generate_error_response(None, STATUS_CODE_INVALID_TOKEN)
+
+        g.username = username
+        return func(*args, **kwargs)
+
+    return wrapped
