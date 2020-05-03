@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 from sqlalchemy import Column, String, DateTime, Integer
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm.exc import NoResultFound
@@ -27,10 +29,11 @@ class Grant(Base):
     to_user_id = Column(String(15), nullable=False)
 
     @classmethod
-    def new(cls, user_id: str, to_user_id: str):
+    def new(cls, user_id: str, to_user_id: str) -> "Grant":
         grant = Grant(user_id=user_id, to_user_id=to_user_id, grant_type=GRANT_TYPE_VIEWING, status=GRANT_STATUS_PENDING)
         db_session.add(grant)
         db_session.commit()
+        return grant
 
     def accept(self):
         if self.status == GRANT_STATUS_PENDING:
@@ -52,3 +55,34 @@ class Grant(Base):
                 return False
         except NoResultFound:
             return False
+
+    @classmethod
+    def request_for_grant(cls, user_id: str, to_user_id: str) -> "Grant":
+        from everyclass.server.user.exceptions import AlreadyGranted
+        from everyclass.server.user.exceptions import HasPendingRequest
+
+        pending_grants = db_session.query(cls). \
+            filter(cls.user_id == user_id). \
+            filter(cls.to_user_id == to_user_id). \
+            filter(cls.status == GRANT_STATUS_PENDING).all()
+
+        if len(pending_grants) > 0:
+            raise HasPendingRequest('there is pending request. new request is not allowed')
+
+        if cls.has_grant(user_id, to_user_id):
+            raise AlreadyGranted('already granted permission, do not send new one')
+        return cls.new(user_id, to_user_id)
+
+    @classmethod
+    def get_requests(cls, user_id: str) -> List["Grant"]:
+        pending_grants = db_session.query(cls). \
+            filter(cls.to_user_id == user_id). \
+            filter(cls.status == GRANT_STATUS_PENDING).all()
+        return pending_grants
+
+    @classmethod
+    def get_by_id(cls, record_id: int) -> Optional["Grant"]:
+        try:
+            db_session.query(cls).filter(cls.record_id == record_id).one()
+        except NoResultFound:
+            return None

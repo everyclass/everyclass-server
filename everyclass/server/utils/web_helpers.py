@@ -8,7 +8,7 @@ from everyclass.rpc import RpcTimeout, RpcResourceNotFound, RpcBadRequest, RpcCl
 from everyclass.rpc.entity import StudentTimetableResult
 from everyclass.server import sentry, logger
 from everyclass.server.user import service as user_service
-from everyclass.server.user.service import AlreadyRegisteredError, InvalidTokenError
+from everyclass.server.user.exceptions import AlreadyRegisteredError, InvalidTokenError, PermissionAdjustRequired, LoginRequired
 from everyclass.server.utils.config import get_config
 from everyclass.server.utils.web_consts import MSG_400, SESSION_CURRENT_USER, MSG_NOT_LOGGED_IN
 
@@ -109,13 +109,13 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
     try:
         can = user_service.has_access(student.student_id,
                                       session.get(SESSION_CURRENT_USER).identifier if session.get(SESSION_CURRENT_USER, None) else None)
-    except user_service.LoginRequired:
+    except LoginRequired:
         return False, render_template('query/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
                                       class_name=student.klass,
                                       level=1)
-    except user_service.PermissionAdjustRequired:
+    except PermissionAdjustRequired:
         return False, render_template('query/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,

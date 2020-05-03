@@ -1,6 +1,7 @@
 from ddtrace import tracer
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 
+import everyclass.server.user.exceptions
 from everyclass.rpc.tencent_captcha import TencentCaptcha
 from everyclass.server import logger
 from everyclass.server.calendar import service as calendar_service
@@ -62,7 +63,7 @@ def login():
 
         try:
             success = user_service.check_password(identifier, request.form["password"])
-        except user_service.UserNotExists:
+        except everyclass.server.user.exceptions.UserNotExists:
             # 未注册
             flash(MSG_NOT_REGISTERED)
             return redirect(url_for("user.register"))
@@ -150,12 +151,12 @@ def email_verification():
 
         try:
             identifier = user_service.register_by_email_set_password(session[SESSION_EMAIL_VER_REQ_ID], request.form["password"])
-        except user_service.IdentityVerifyRequestNotFoundError:
+        except everyclass.server.user.exceptions.IdentityVerifyRequestNotFoundError:
             return render_template("common/error.html", message=MSG_TOKEN_INVALID)
-        except user_service.PasswordTooWeakError:
+        except everyclass.server.user.exceptions.PasswordTooWeakError:
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.email_verification"))
-        except user_service.AlreadyRegisteredError:
+        except everyclass.server.user.exceptions.AlreadyRegisteredError:
             flash(MSG_ALREADY_REGISTERED)
             return redirect(url_for("user.email_verification"))
 
@@ -203,7 +204,7 @@ def register_by_password():
             request_id = user_service.register_by_password(request.form["jwPassword"],
                                                            request.form["password"],
                                                            session.get(SESSION_USER_REGISTERING, None).identifier)
-        except user_service.PasswordTooWeakError:
+        except everyclass.server.user.exceptions.PasswordTooWeakError:
             flash(MSG_WEAK_PASSWORD)
             return redirect(url_for("user.register_by_password"))
         except Exception as e:
@@ -253,11 +254,11 @@ def register_by_password_status():
         else:
             return jsonify({"message": "NEXT_TIME"})
 
-    except user_service.IdentityVerifyRequestNotFoundError:
+    except everyclass.server.user.exceptions.IdentityVerifyRequestNotFoundError:
         return "Invalid request"
     except user_service.IdentityVerifyMethodNotExpectedError:
         return "Invalid request"
-    except user_service.AlreadyRegisteredError:
+    except everyclass.server.user.exceptions.AlreadyRegisteredError:
         # 已经注册成功，但不知为何（可能是网络原因）进入了中间状态，没有执行下面的删除 session 的代码，并且用户刷新页面
         if SESSION_PWD_VER_REQ_ID in session:
             del session[SESSION_PWD_VER_REQ_ID]

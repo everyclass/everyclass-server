@@ -10,15 +10,13 @@ from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
 from everyclass.server import logger
 from everyclass.server.entity import service as entity_service
+from everyclass.server.user.exceptions import RecordNotFound, NoPermissionToAccept, LoginRequired, PermissionAdjustRequired, UserNotExists, \
+    AlreadyRegisteredError, InvalidTokenError, IdentityVerifyRequestNotFoundError, PasswordTooWeakError, IdentityVerifyRequestStatusError
 from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor, Grant
 from everyclass.server.user.repo import privacy_settings, visit_count, user_id_sequence, visit_track
 from everyclass.server.utils.session import USER_TYPE_TEACHER, USER_TYPE_STUDENT
 
 """Registration and Login"""
-
-
-class UserNotExists(BaseException):
-    pass
 
 
 def add_user(identifier: str, password: str, password_encrypted: bool = False) -> None:
@@ -40,11 +38,6 @@ def record_simple_password(password: str, identifier: str) -> None:
     return SimplePassword.new(password, identifier)
 
 
-class AlreadyRegisteredError(ValueError):
-    """已经注册过了"""
-    pass
-
-
 def register_by_email(identifier: str) -> str:
     """向学生/老师的邮箱发送验证邮件"""
     if user_exist(identifier):
@@ -59,15 +52,6 @@ def register_by_email(identifier: str) -> str:
         raise RpcServerException("Unexpected acknowledge status")
 
     return request_id
-
-
-class InvalidTokenError(ValueError):
-    """邮件token无效"""
-    pass
-
-
-class IdentityVerifyRequestNotFoundError(ValueError):
-    pass
 
 
 def register_by_email_token_check(token: str) -> str:
@@ -89,14 +73,6 @@ def register_by_email_token_check(token: str) -> str:
         raise AlreadyRegisteredError
 
     return rpc_result.request_id
-
-
-class IdentityVerifyRequestStatusError(ValueError):
-    pass
-
-
-class PasswordTooWeakError(ValueError):
-    pass
 
 
 def register_by_email_set_password(request_id: str, password: str) -> str:
@@ -199,14 +175,6 @@ def set_privacy_level(student_id: str, new_level: int) -> None:
 """Visiting"""
 
 
-class LoginRequired(Exception):
-    pass
-
-
-class PermissionAdjustRequired(Exception):
-    pass
-
-
 def has_access(host: str, visitor: Optional[str] = None, footprint: bool = True) -> bool:
     """检查访问者是否有权限访问学生课表。footprint为True将会留下访问记录并增加访客计数。
     """
@@ -232,6 +200,24 @@ def has_access(host: str, visitor: Optional[str] = None, footprint: bool = True)
         _update_track(host=host, visitor=visitor)
         _add_visitor_count(host=host, visitor=visitor)
     return True
+
+
+"""granting"""
+
+
+def get_pending_requests(user_identifier: str):
+    return Grant.get_requests(user_identifier)
+
+
+def accept_grant(grant_id: int, current_user_id: str):
+    grant = Grant.get_by_id(grant_id)
+    if not grant:
+        raise RecordNotFound("grant id not found")
+
+    if grant.to_user_id != current_user_id:
+        raise NoPermissionToAccept(f"the record {grant_id} does not belong to user {current_user_id}")
+
+    grant.accept()
 
 
 def _update_track(host: str, visitor: str) -> None:
