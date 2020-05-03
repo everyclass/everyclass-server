@@ -5,14 +5,19 @@ import functools
 
 from flask import request, g
 
-from everyclass.server.user import service as user_service
 from everyclass.server.utils.jsonable import to_json_response
 
+# 请求错误
 STATUS_CODE_INVALID_REQUEST = 4000
 STATUS_CODE_TOKEN_MISSING = 4001
 STATUS_CODE_INVALID_TOKEN = 4002
+STATUS_CODE_PERMISSION_DENIED = 4003
+
+# 服务器内部错误
 STATUS_CODE_INTERNAL_ERROR = 5000
 
+# 错误码对应的 status message
+# 领域内业务错误的 status message 不用定义在这里
 STATUS_MESSAGES = {
     STATUS_CODE_INVALID_REQUEST: 'invalid request',
     STATUS_CODE_TOKEN_MISSING: 'token is missing',
@@ -44,6 +49,7 @@ def token_required(func):
     """
     检查是否携带token，如果token未携带或无效将直接返回错误，否则将username保存到g.username中
     """
+    from everyclass.server.user import service as user_service
 
     @functools.wraps(func)
     def wrapped(*args, **kwargs):

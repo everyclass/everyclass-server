@@ -6,10 +6,10 @@ from everyclass.server.entity import service as entity_service
 from everyclass.server.utils import generate_error_response, api_helpers, generate_success_response
 from everyclass.server.utils.api_helpers import token_required
 
-mobile_blueprint = Blueprint('mobile_api', __name__)
+entity_api_bp = Blueprint('api_entity', __name__)
 
 
-@mobile_blueprint.route('/multi_people_schedule')
+@entity_api_bp.route('/multi_people_schedule')
 @token_required
 def multi_people_schedule():
     people = request.args['people']

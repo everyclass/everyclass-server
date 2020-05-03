@@ -27,10 +27,12 @@ try:
     使用 `uwsgidecorators.postfork` 装饰的函数会在 fork() 后的**每一个**子进程内被执行，执行顺序与这里的定义顺序一致
     """
 
+
     @uwsgidecorators.postfork
     def enable_gc():
         """重新启用垃圾回收"""
         gc.set_threshold(700)
+
 
     @uwsgidecorators.postfork
     def init_plugins():
@@ -57,6 +59,7 @@ try:
 
         print_config(__app, logger)
 
+
     @uwsgidecorators.postfork
     def init_db():
         """初始化数据库连接"""
@@ -73,6 +76,7 @@ try:
         因此我们只能在 fork 后的每个进程中进行请求。
         """
         cron_update_remote_manifest()
+
 
     @uwsgidecorators.cron(0, -1, -1, -1, -1)
     def daily_update_data_time(signum):
@@ -159,15 +163,17 @@ def create_app() -> Flask:
     # 导入并注册 blueprints
     from everyclass.server.calendar.views import calendar_bp
     from everyclass.server.entity.views import entity_bp
+    from everyclass.server.entity.views_api import entity_api_bp
     from everyclass.server.user.views import user_bp
+    from everyclass.server.user.views_api import user_api_bp
     from everyclass.server.course.views import course_bp
     from everyclass.server.views_main import main_blueprint
-    from everyclass.server.views_mobile_api import mobile_blueprint
     app.register_blueprint(calendar_bp)
     app.register_blueprint(entity_bp)
     app.register_blueprint(user_bp, url_prefix='/user')
+    app.register_blueprint(entity_api_bp, url_prefix='/mobile/entity')
+    app.register_blueprint(user_api_bp, url_prefix='/mobile/user')
     app.register_blueprint(main_blueprint)
-    app.register_blueprint(mobile_blueprint, url_prefix='/mobile')
 
     # 初始化 RPC 模块
     from everyclass.server.utils.encryption import encrypt
@@ -246,8 +252,12 @@ def create_app() -> Flask:
     def internal_server_error(error):
         # blueprint-level 500 handler is not possible at the moment, so internal error of mobile API must be handler here
         if request.path.startswith("/mobile"):
-            # not show actual error in production
-            actual_error = {'status_message_overwrite': f"server internal error: {repr(error)}"} if not is_production() else {}
+            if hasattr(error, 'status_message'):
+                # 业务错误的status_message可以对外展示
+                actual_error = {'status_message_overwrite': error.status_message}
+            else:
+                # 对于非业务错误，生产环境中不进行返回，其他环境中可返回
+                actual_error = {'status_message_overwrite': f"server internal error: {repr(error)}"} if not is_production() else {}
 
             return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR, **actual_error)
         if plugin_available("sentry"):
