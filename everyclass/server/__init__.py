@@ -269,7 +269,8 @@ def create_app() -> Flask:
     def internal_server_error(error):
         if request.path.startswith("/mobile"):
             # 对于非业务错误，生产环境中不进行返回，其他环境中可返回
-            actual_error = {'status_message_overwrite': f"server internal error: {repr(error)}"} if not is_production() else {}
+            actual_error = {
+                'status_message_overwrite': f"server internal error: {repr(error.original_exception)}"} if not is_production() else {}
             return generate_error_response(None, api_helpers.STATUS_CODE_INTERNAL_ERROR, **actual_error)
         if plugin_available("sentry"):
             return render_template('common/error.html',
