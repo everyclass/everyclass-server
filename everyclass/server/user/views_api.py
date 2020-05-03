@@ -45,6 +45,7 @@ def register_by_email():
     if not identifier:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "请填写用户名")
     user_service.register_by_email(identifier)
+    return generate_success_response(None)
 
 
 @user_api_bp.route('/_email_verification')
