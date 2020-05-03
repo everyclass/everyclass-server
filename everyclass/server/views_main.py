@@ -3,9 +3,7 @@ import time
 
 from flask import Blueprint, Response, jsonify, render_template, request
 
-from everyclass.server.utils import generate_error_response, api_helpers
 from everyclass.server.utils.config import get_config
-from everyclass.server.utils.web_consts import MSG_404
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -88,14 +86,3 @@ def exit_maintenance():
             'Could not verify your access level for that URL.\n'
             'You have to login with proper credentials', 401,
             {'WWW-Authenticate': 'Basic realm="Login Required"'})
-
-
-@main_blueprint.app_errorhandler(404)
-def page_not_found(error):
-    # 404 errors are never handled on the blueprint level
-    # unless raised from a view func so actual 404 errors,
-    # i.e. "no route for it" defined, need to be handled
-    # here on the application level
-    if request.path.startswith('/mobile/'):
-        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "no such API")
-    return render_template('common/error.html', message=MSG_404)

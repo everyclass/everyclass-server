@@ -112,6 +112,7 @@ def create_app() -> Flask:
     from everyclass.server import plugin_available
     from everyclass.server.utils import generate_error_response, api_helpers, base_exceptions
     from everyclass.common.env import is_production
+    from everyclass.server.utils.web_consts import MSG_404
 
     app = Flask(__name__,
                 static_folder='../../frontend/dist',
@@ -247,6 +248,12 @@ def create_app() -> Flask:
     def inject_consts():
         """允许在模板中使用常量模块，以便使用session key等常量而不用在模板中硬编码"""
         return dict(consts=web_consts)
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        if request.path.startswith('/mobile/'):
+            return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "no such API")
+        return render_template('common/error.html', message=MSG_404)
 
     @app.errorhandler(base_exceptions.BizException)
     def handle_biz_exception(error: base_exceptions.BizException):
