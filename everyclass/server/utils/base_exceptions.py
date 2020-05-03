@@ -6,7 +6,7 @@
 from everyclass.server.utils.api_helpers import STATUS_CODE_PERMISSION_DENIED, STATUS_CODE_INVALID_REQUEST, STATUS_CODE_INTERNAL_ERROR
 
 
-class BizException(BaseException):
+class BizException(Exception):
     """所有业务错误类的基类，初始化时需要携带status_message和业务status_code"""
 
     def __init__(self, status_message: str, status_code: int):
