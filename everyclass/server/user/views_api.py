@@ -57,12 +57,19 @@ def email_verification():
     4102 用户已存在，token无效
     4103 token无效
     """
+    # todo 这里发出去的邮箱里面的链接还是网页版的，要换一下
+
     email_token = request.args.get("token")
     if not email_token:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "token参数缺失")
     request_id = user_service.register_by_email_token_check(email_token)
     session[SESSION_EMAIL_VER_REQ_ID] = request_id
     return generate_success_response(None)
+
+
+@user_api_bp.route('/_email_verification_set_password')
+def email_verification():
+    pass
 
 
 @user_api_bp.route('/grants/_my_pending')
