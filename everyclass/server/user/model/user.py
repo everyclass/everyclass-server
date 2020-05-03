@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from everyclass.server.user.exceptions import AlreadyRegisteredError
 from everyclass.server.utils.db.postgres import Base, db_session
 
 
@@ -42,7 +43,7 @@ class User(Base):
         try:
             db_session.commit()
         except IntegrityError as e:
-            raise ValueError("User already exists") from e
+            raise AlreadyRegisteredError from e
 
     @classmethod
     def get_by_id(cls, identifier: str) -> Optional["User"]:

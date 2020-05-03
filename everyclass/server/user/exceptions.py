@@ -34,13 +34,22 @@ class InvalidTokenError(base_exceptions.InvalidRequestException):
 class IdentityVerifyRequestNotFoundError(base_exceptions.InvalidRequestException):
     """验证请求不存在"""
 
+    def __init__(self):
+        super().__init__("验证请求不存在", 4104)
+
 
 class IdentityVerifyRequestStatusError(base_exceptions.InvalidRequestException):
     """当前VerificationRequest的状态并非STATUS_TKN_PASSED"""
 
+    def __init__(self):
+        super().__init__("状态异常", 4105)
+
 
 class PasswordTooWeakError(base_exceptions.InvalidRequestException):
     """注册时密码太弱"""
+
+    def __init__(self):
+        super().__init__("密码过弱，请设置更强的密码", 4106)
 
 
 """visiting"""

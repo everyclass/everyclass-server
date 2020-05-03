@@ -82,6 +82,10 @@ def register_by_email_set_password(request_id: str, password: str) -> str:
     if not req:
         raise IdentityVerifyRequestNotFoundError
 
+    if req.status == VerificationRequest.STATUS_PASSWORD_SET:
+        # 已经注册，重复请求，当做成功
+        return req.identifier
+
     if req.status != VerificationRequest.STATUS_TKN_PASSED:
         raise IdentityVerifyRequestStatusError
 
@@ -90,13 +94,9 @@ def register_by_email_set_password(request_id: str, password: str) -> str:
         record_simple_password(password=password, identifier=req.identifier)
         raise PasswordTooWeakError
 
-    try:
-        add_user(req.identifier, password, False)
-    except ValueError as e:
-        logger.info(f"User {req.identifier} try to register again by email token. The request is rejected by database.")
-        raise AlreadyRegisteredError from e
+    add_user(req.identifier, password, False)
 
-    VerificationRequest.find_by_id(req.request_id).set_status_password_set()
+    req.set_status_password_set()
     return req.identifier
 
 
@@ -146,11 +146,7 @@ def register_by_password_status_refresh(request_id: str) -> Tuple[bool, str, Opt
         verification_req = VerificationRequest.find_by_id(uuid.UUID(request_id))
         verification_req.set_status_success()
 
-        try:
-            add_user(identifier=verification_req.identifier, password=verification_req.extra["password"],
-                     password_encrypted=True)
-        except ValueError as e:
-            raise AlreadyRegisteredError from e
+        add_user(identifier=verification_req.identifier, password=verification_req.extra["password"], password_encrypted=True)
 
         return True, "SUCCESS", verification_req.identifier
     else:

@@ -48,8 +48,8 @@ def register_by_email():
     return generate_success_response(None)
 
 
-@user_api_bp.route('/_email_verification')
-def email_verification():
+@user_api_bp.route('/_email_verification_check')
+def email_verification_check():
     """验证邮箱token
 
     错误码：
@@ -67,9 +67,25 @@ def email_verification():
     return generate_success_response(None)
 
 
-@user_api_bp.route('/_email_verification_set_password')
+@user_api_bp.route('/_email_verification_set_password', methods=['POST'])
 def email_verification():
-    pass
+    """邮件验证-设置密码
+
+    错误码：
+    4104 验证请求不存在（内部异常）
+    4105 当前VerificationRequest的状态并非STATUS_TKN_PASSED（排除网络卡了导致客户端没收到响应其实已经注册成功的情况）
+    4106 密码过弱
+    """
+    request_id = session.get(SESSION_EMAIL_VER_REQ_ID, None)
+    if not request_id:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "无效请求，请重新点击邮件中的链接")
+
+    password = request.form.get("password")
+    if not password:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "请输入密码")
+
+    username = user_service.register_by_email_set_password(request_id, password)
+    return generate_success_response({"token": user_service.issue_token(username)})
 
 
 @user_api_bp.route('/grants/_my_pending')
