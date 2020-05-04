@@ -58,9 +58,15 @@ class PasswordTooWeakError(base_exceptions.InvalidRequestException):
 class LoginRequired(base_exceptions.PermissionException):
     """需要登录才能访问"""
 
+    def __init__(self):
+        super().__init__("登录后即可访问此用户课表", 4107)
+
 
 class PermissionAdjustRequired(base_exceptions.PermissionException):
     """仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限"""
+
+    def __init__(self):
+        super().__init__("请调整自己的课表权限为实名互访再访问此用户", 4108)
 
 
 """granting"""
