@@ -251,7 +251,7 @@ def create_app() -> Flask:
 
     @app.errorhandler(404)
     def page_not_found(error):
-        if request.path.startswith('/mobile/'):
+        if request.path.startswith('/mobile'):
             return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "no such API")
         return render_template('common/error.html', message=MSG_404)
 
