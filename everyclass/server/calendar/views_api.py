@@ -30,11 +30,15 @@ def get_calendar_token(id_sec: str, semester: str):
         if not user_service.has_access(res_id, g.username):
             return generate_error_response(None, api_helpers.STATUS_CODE_PERMISSION_DENIED, '无权访问该用户课表')
         student = entity_service.get_student_timetable(res_id, semester)
+        if not student:
+            return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, '学生不存在')
         token = calendar_service.get_calendar_token(resource_type=res_type,
                                                     identifier=student.student_id,
                                                     semester=semester)
     else:
         teacher = entity_service.get_teacher_timetable(res_id, semester)
+        if not teacher:
+            return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, '教师不存在')
         token = calendar_service.get_calendar_token(resource_type=res_type,
                                                     identifier=teacher.teacher_id,
                                                     semester=semester)
