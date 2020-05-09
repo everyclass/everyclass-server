@@ -45,7 +45,7 @@ def replace_exception(func):
 
     def _func(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except RpcClientException as e:
             raise base_exceptions.InvalidRequestException(repr(e))
         except(RpcServerException, RpcTimeout) as e:
