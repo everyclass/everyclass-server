@@ -1,6 +1,8 @@
 import datetime
 from typing import Tuple, List
 
+from everyclass.rpc import RpcClientException, RpcServerException, RpcTimeout
+from everyclass.server.utils import base_exceptions
 from everyclass.server.utils.config import get_config
 
 
@@ -36,3 +38,17 @@ def semester_calculate(current_semester: str, semester_list: List[str]) -> List[
         else:
             available_semesters.append((each_semester, False))
     return available_semesters
+
+
+def replace_exception(func):
+    """将RPC模块的错误类型替换成业务类型的错误"""
+
+    def _func(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except RpcClientException as e:
+            raise base_exceptions.InvalidRequestException(repr(e))
+        except(RpcServerException, RpcTimeout) as e:
+            raise base_exceptions.InternalError(repr(e))
+
+    return _func

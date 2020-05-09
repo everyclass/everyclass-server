@@ -68,6 +68,12 @@ def encrypt(resource_type: str, data: str, encryption_key: str = None) -> Text:
     return _aes_encrypt(encryption_key, "%s;%s" % (resource_type, data))
 
 
+RTYPE_STUDENT = 'student'
+RTYPE_TEACHER = 'teacher'
+RTYPE_CLASS = 'klass'
+RTYPE_ROOM = 'room'
+
+
 def decrypt(data: str, encryption_key: str = None, resource_type: str = None):
     """
     解密资源标识符

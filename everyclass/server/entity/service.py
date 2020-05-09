@@ -2,33 +2,41 @@ import datetime
 from typing import Tuple, Union, List
 
 from everyclass.rpc.entity import SearchResultStudentItem, SearchResultTeacherItem, Entity, SearchResult, CardResult
+from everyclass.server.entity.domain import replace_exception
 from everyclass.server.entity.model import MultiPeopleSchedule
 
 
+@replace_exception
 def search(keyword: str) -> SearchResult:
     return Entity.search(keyword)
 
 
+@replace_exception
 def get_student(student_id: str):
     return Entity.get_student(student_id)
 
 
+@replace_exception
 def get_student_timetable(student_id: str, semester: str):
     return Entity.get_student_timetable(student_id, semester)
 
 
+@replace_exception
 def get_teacher_timetable(teacher_id: str, semester: str):
     return Entity.get_teacher_timetable(teacher_id, semester)
 
 
+@replace_exception
 def get_classroom_timetable(semester: str, room_id: str):
     return Entity.get_classroom_timetable(semester, room_id)
 
 
+@replace_exception
 def get_card(semester: str, card_id: str) -> CardResult:
     return Entity.get_card(semester, card_id)
 
 
+@replace_exception
 def get_teacher(teacher_id: str):
     return Entity.get_teacher(teacher_id)
 
