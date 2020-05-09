@@ -66,7 +66,8 @@ def register_by_email_token_check(token: str) -> str:
     request = VerificationRequest.find_by_id(uuid.UUID(rpc_result.request_id))
     if not request:
         logger.error(f"can not find related verification request of email token {token}")
-    request.set_status_token_passed()
+    if request.status != VerificationRequest.STATUS_TKN_PASSED:
+        request.set_status_token_passed()
 
     student_id = request.identifier
     if user_exist(student_id):
