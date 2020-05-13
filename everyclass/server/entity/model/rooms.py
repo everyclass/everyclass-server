@@ -47,7 +47,7 @@ class AllRooms(JSONSerializable):
 
     @classmethod
     def make(cls, dct: Dict) -> "AllRooms":
-        for k, v in dct["room_group"].items():
-            dct["campuses"][k] = Campus(k, v)
-        del dct["room_group"]
-        return cls(**ensure_slots(cls, dct))
+        dct_new = {"campuses": {}}
+        for k, v in dct.items():
+            dct_new["campuses"][k] = Campus(k, v)
+        return cls(**ensure_slots(cls, dct_new))
