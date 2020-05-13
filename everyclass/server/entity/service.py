@@ -3,7 +3,7 @@ from typing import Tuple, Union, List
 
 from everyclass.rpc.entity import SearchResultStudentItem, SearchResultTeacherItem, Entity, SearchResult, CardResult
 from everyclass.server.entity.domain import replace_exception
-from everyclass.server.entity.model import MultiPeopleSchedule
+from everyclass.server.entity.model import MultiPeopleSchedule, AllRooms, AvailableRooms
 
 
 @replace_exception
@@ -39,6 +39,17 @@ def get_card(semester: str, card_id: str) -> CardResult:
 @replace_exception
 def get_teacher(teacher_id: str):
     return Entity.get_teacher(teacher_id)
+
+
+@replace_exception
+def get_rooms():
+    return AllRooms.make(Entity.get_rooms())
+
+
+@replace_exception
+def get_available_rooms(campus: str, building: str, date: datetime.date, time: str):
+    # time 格式为0102这种，表示第1-2节
+    return AvailableRooms(campus, building, date, time)
 
 
 class PeopleNotFoundError(ValueError):

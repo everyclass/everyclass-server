@@ -103,7 +103,7 @@ def cron_update_remote_manifest():
                                       url=__app.config['ENTITY_BASE_URL'] + '/info/service',
                                       retry=True,
                                       headers={'X-Auth-Token': __app.config['ENTITY_TOKEN']})
-    __app.config['DATA_LAST_UPDATE_TIME'] = _api_server_status["data_time"]
+    __app.config['DATA_LAST_UPDATE_TIME'] = _api_server_status["data"]["data_time"]
 
 
 def create_app() -> Flask:
