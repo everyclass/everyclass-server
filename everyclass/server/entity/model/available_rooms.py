@@ -19,7 +19,6 @@ class Room(JSONSerializable):
 
 
 class AvailableRooms(JSONSerializable):
-    rooms = List[Room]
 
     def __json_encode__(self):
         return {'rooms': self.rooms}
@@ -28,5 +27,7 @@ class AvailableRooms(JSONSerializable):
         _, week, day = get_semester_date(date)
 
         resp = Entity.get_available_rooms(week, f"{day + 1}{time}", campus, building)
+
+        self.rooms: List[Room] = []
         for r in resp:
-            Room(name=r['name'], room_id=r['code'], room_id_encoded=encrypt(RTYPE_ROOM, r['code']))
+            self.rooms.append(Room(name=r['name'], room_id=r['code'], room_id_encoded=encrypt(RTYPE_ROOM, r['code'])))
