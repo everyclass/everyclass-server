@@ -35,7 +35,7 @@ class Campus(JSONSerializable):
         dct_new["buildings"] = dict()
 
         for k, v in dct.items():
-            dct_new["buildings"][k] = Building(k, v)
+            dct_new["buildings"][k] = Building.make(k, v)
         dct_new["name"] = name
         return cls(**ensure_slots(cls, dct_new))
 
