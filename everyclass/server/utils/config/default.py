@@ -217,7 +217,7 @@ o0eyVgAIK02BNOQ8uQIDAQAB
     TENCENT_CAPTCHA_SECRET = ''
 
     # define available environments for logs, APM and error tracking
-    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing', 'development')
+    SENTRY_AVAILABLE_IN = ('production', 'staging', 'testing')
 
     # fields that should be overwritten in production environment
     PRODUCTION_OVERWRITE_FIELDS = ('SECRET_KEY',
@@ -240,5 +240,6 @@ o0eyVgAIK02BNOQ8uQIDAQAB
                                 "TENCENT_CAPTCHA_SECRET",
                                 "RESOURCE_IDENTIFIER_ENCRYPTION_KEY",
                                 "ENTITY_TOKEN",
-                                "SESSION_CRYPTO_KEY"
+                                "SESSION_CRYPTO_KEY",
+                                "JWT_PRIVATE_KEY"
                                 )
