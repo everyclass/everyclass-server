@@ -110,20 +110,20 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
         can = user_service.has_access(student.student_id,
                                       session.get(SESSION_CURRENT_USER).identifier if session.get(SESSION_CURRENT_USER, None) else None)
     except LoginRequired:
-        return False, render_template('query/studentBlocked.html',
+        return False, render_template('entity/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
                                       class_name=student.klass,
                                       level=1)
     except PermissionAdjustRequired:
-        return False, render_template('query/studentBlocked.html',
+        return False, render_template('entity/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
                                       class_name=student.klass,
                                       level=3)
 
     if not can:
-        return False, render_template('query/studentBlocked.html',
+        return False, render_template('entity/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
                                       class_name=student.klass,

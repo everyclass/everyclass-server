@@ -56,7 +56,7 @@ def query():
         tracer.current_root_span().set_tag("query_type", "by_name")
 
         if len(rpc_result.classrooms) > 1:  # 多个教室选择
-            return render_template('query/multipleClassroomChoice.html',
+            return render_template('entity/multipleClassroomChoice.html',
                                    name=keyword,
                                    classrooms=rpc_result.classrooms)
         return redirect(
@@ -112,7 +112,7 @@ def query():
                 continue
             students.append(student)
         # todo 找校友功能
-        return render_template('query/peopleWithSameName.html',
+        return render_template('entity/peopleWithSameName.html',
                                name=keyword,
                                students=students,
                                teachers=rpc_result.teachers,
@@ -172,7 +172,7 @@ def get_student(url_sid: str, url_semester: str):
             empty_5, empty_6, empty_sat, empty_sun = _empty_column_check(cards)
             available_semesters = semester_calculate(url_semester, sorted(student.semesters))
 
-        return render_template('query/student.html',
+        return render_template('entity/student.html',
                                have_semesters=True,
                                student=student,
                                cards=cards,
@@ -184,7 +184,7 @@ def get_student(url_sid: str, url_semester: str):
                                current_semester=url_semester)
     else:
         # 无学期
-        return render_template('query/student.html',
+        return render_template('entity/student.html',
                                have_semesters=False,
                                student=student)
 
@@ -228,7 +228,7 @@ def get_teacher(url_tid, url_semester):
 
         available_semesters = semester_calculate(url_semester, teacher.semesters)
 
-        return render_template('query/teacher.html',
+        return render_template('entity/teacher.html',
                                have_semesters=True,
                                teacher=teacher,
                                cards=cards,
@@ -240,7 +240,7 @@ def get_teacher(url_tid, url_semester):
                                current_semester=url_semester)
     else:
         # 无学期
-        return render_template('query/teacher.html',
+        return render_template('entity/teacher.html',
                                have_semesters=False,
                                teacher=teacher)
 
@@ -273,7 +273,7 @@ def get_classroom(url_rid, url_semester):
 
     available_semesters = semester_calculate(url_semester, room.semesters)
 
-    return render_template('query/room.html',
+    return render_template('entity/room.html',
                            room=room,
                            cards=cards,
                            empty_sat=empty_sat,
@@ -307,7 +307,7 @@ def get_card(url_cid: str, url_semester: str):
     # cotc_id = COTeachingClass.get_id_by_card(card)
     # course_review_doc = CourseReview.get_review(cotc_id)
 
-    return render_template('query/card.html',
+    return render_template('entity/card.html',
                            card=card,
                            card_day=get_day_chinese(day),
                            card_time=get_time_chinese(time),
@@ -321,7 +321,12 @@ def get_card(url_cid: str, url_semester: str):
 
 @entity_bp.route('/available_rooms')
 def available_rooms():
-    return render_template("query/available_rooms.html")
+    return render_template("entity/available_rooms.html")
+
+
+@entity_bp.route('/multi_people_schedule')
+def multi_people_schedule():
+    return render_template("entity/multi_people_schedule.html")
 
 
 def _empty_column_check(cards: dict) -> Tuple[bool, bool, bool, bool]:
