@@ -5,6 +5,7 @@ from flask import Blueprint, request, g
 from everyclass.server.entity import service as entity_service
 from everyclass.server.utils import generate_error_response, api_helpers, generate_success_response
 from everyclass.server.utils.api_helpers import token_required
+from everyclass.server.utils.encryption import decrypt, RTYPE_ROOM
 
 entity_api_bp = Blueprint('api_entity', __name__)
 
@@ -49,3 +50,27 @@ def get_available_rooms():
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing date parameter')
 
     return generate_success_response(entity_service.get_available_rooms(campus, building, date, time))
+
+
+@entity_api_bp.route('/room/_report_unavailable')
+@token_required
+def report_unavailable_room():
+    room_id_encoded = request.args['room_id']
+    time = request.args['time']
+    date_str = request.args['date']
+    date = datetime.date(*map(int, date_str.split('-')))
+
+    if not room_id_encoded:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing room_id parameter')
+    if not time:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing time parameter')
+    if not date_str:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing date parameter')
+
+    try:
+        resource_type, room_id = decrypt(room_id_encoded, resource_type=RTYPE_ROOM)
+    except ValueError:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'invalid room_id')
+
+    entity_service.report_unavailable_room(room_id, date, time, g.username)
+    return generate_success_response(None)

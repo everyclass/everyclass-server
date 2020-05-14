@@ -3,7 +3,7 @@ from typing import Tuple, Union, List
 
 from everyclass.rpc.entity import SearchResultStudentItem, SearchResultTeacherItem, Entity, SearchResult, CardResult
 from everyclass.server.entity.domain import replace_exception
-from everyclass.server.entity.model import MultiPeopleSchedule, AllRooms, AvailableRooms
+from everyclass.server.entity.model import MultiPeopleSchedule, AllRooms, AvailableRooms, UnavailableRoomReport
 
 
 @replace_exception
@@ -50,6 +50,11 @@ def get_rooms():
 def get_available_rooms(campus: str, building: str, date: datetime.date, time: str):
     # time 格式为0102这种，表示第1-2节
     return AvailableRooms(campus, building, date, time)
+
+
+def report_unavailable_room(room_id: str, date: datetime.date, time: str, username: str):
+    """反馈实际不可用的教室"""
+    return UnavailableRoomReport.new(room_id, date, time, reporter=username)
 
 
 class PeopleNotFoundError(ValueError):

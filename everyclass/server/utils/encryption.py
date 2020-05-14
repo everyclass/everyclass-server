@@ -81,7 +81,7 @@ def decrypt(data: str, encryption_key: str = None, resource_type: str = None):
     :param data: 加密后的字符串
     :param encryption_key: 可选的 key
     :param resource_type: 验证资源类型（student、teacher、klass、room）
-    :return:
+    :return: 资源类型和资源ID
     """
     if not encryption_key:
         encryption_key = get_config().RESOURCE_IDENTIFIER_ENCRYPTION_KEY
