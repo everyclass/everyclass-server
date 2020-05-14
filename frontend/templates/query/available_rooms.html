@@ -1,0 +1,212 @@
+{% extends "layout.html" %}
+{% block title %}空教室查询 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">空教室查询</h1>
+        <h4 class="text-muted"><font color="green">●</font>代表教室可用 <font color="#ff8c00">●</font>代表无课程但有用户报告已被占用
+            <br>点击右侧报告按钮可以报告占用状态
+        </h4>
+        <form id="choose-form">
+            <select id="time-select" name="time">
+                <option value="0102">8:00-9:40</option>
+                <option value="0304">10:00-11:40</option>
+                <option value="0506">14:00-15:40</option>
+                <option value="0708">16:00-17:40</option>
+                <option value="0910">19:00-20:40</option>
+                <option value="1112">21:00-22:40</option>
+            </select>
+            <select id="campus-select" name="campus">
+            </select>
+            <select id="building-select" name="building">
+                <option value="default"></option>
+            </select>
+        </form>
+
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="avail-room-table">
+                        <thead>
+                        <tr>
+                            <th>状态</th>
+                            <th class="text-nowrap">教室</th>
+                            <th class="text-nowrap">报告</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        var campuses;
+        var data_date;
+        var time_select = $("select#time-select");
+        var time_selected = "select#time-select  option:selected";
+        var campus_select = $("select#campus-select");
+        var campus_selected = "select#campus-select  option:selected";
+        var building_select = $("select#building-select");
+        var building_selected = "select#building-select  option:selected";
+        var table = $("table#avail-room-table");
+        var link_seq = 0;
+
+        var time_range = function (beginTime, endTime) {
+            var strb = beginTime.split(":");
+            if (strb.length != 2) {
+                return false;
+            }
+
+            var stre = endTime.split(":");
+            if (stre.length != 2) {
+                return false;
+            }
+
+            var b = new Date();
+            var e = new Date();
+            var n = new Date();
+
+            b.setHours(strb[0]);
+            b.setMinutes(strb[1]);
+            e.setHours(stre[0]);
+            e.setMinutes(stre[1]);
+
+            return n.getTime() - b.getTime() > 0 && n.getTime() - e.getTime() < 0;
+        }
+
+        function setTime() {
+            if (time_range("0:00", "9:40")) {
+                time_select.val("0102");
+            } else if (time_range("9:40", "11:40")) {
+                time_select.val("0304");
+            } else if (time_range("11:40", "15:40")) {
+                time_select.val("0506");
+            } else if (time_range("15:40", "17:40")) {
+                time_select.val("0708");
+            } else if (time_range("17:40", "20:40")) {
+                time_select.val("0910");
+            } else {
+                time_select.val("1112");
+            }
+        }
+
+        function getRooms() {
+            try {
+                $.getJSON('{{ url_for('api_entity.get_all_rooms') }}', null, function (resp) {
+                    Object.keys(resp.data.campuses).forEach(function (key) {
+                        campuses = resp.data.campuses;
+                        var option = new Option(key, resp.data.campuses[key].name);
+                        campus_select.append($(option));
+                    });
+
+                    refreshBuildingSelect();
+                })
+            } catch (e) {
+                alert(`获取教室信息时出现错误：${e}`);
+            }
+
+        }
+
+        function refreshBuildingSelect() {
+            building_select.empty();
+
+            buildings = campuses[$(campus_selected).val()].buildings
+
+            for (var i in buildings) {
+                var option = new Option(buildings[i].name, buildings[i].name);
+                $('select#building-select').append($(option));
+            }
+
+            // query available rooms after refreshing building select
+            queryAvailableRooms()
+        }
+
+        function queryAvailableRooms() {
+            try {
+                $.getJSON('{{ url_for('api_entity.get_available_rooms') }}', {
+                    'campus': $(campus_selected).val(),
+                    'building': $(building_selected).val(),
+                    'time': $(time_selected).val()
+                }, function (resp) {
+                    // clear table
+                    $("#avail-room-table  tr:not(:first)").html("");
+
+                    data_date = resp.data.date;
+
+                    // add rows
+                    let rooms = resp.data.rooms;
+                    console.log(rooms);
+                    for (let i in rooms) {
+                        room = rooms[i];
+                        console.log(room);
+                        let content = "<tr>";
+                        if (room.occupied_feedback_cnt === 0) {
+                            content += "<td><font color=\"green\">●</font></td>"
+                        } else {
+                            content += "<td><font color=\"#ff8c00\">●</font></td>"
+                        }
+                        content += "<td>" + room.name + "</td>"
+                        if (room.occupied_feedback_cnt === 0) {
+                            content += `<td><a id="report-link-${link_seq}" data-roomid="${room.room_id_encoded}">无用户报告占用</a></td>`
+                        } else {
+                            content += `<td><a id="report-link-${link_seq}" data-roomid="${room.room_id_encoded}">${room.occupied_feedback_cnt}人反馈已被占用</a></td>`
+                        }
+                        content += "</tr>";
+                        table.append(content);
+                        $(document).on('click', `a#report-link-${link_seq}`, function () {
+                            reportUnavailable($(`a#report-link-${link_seq}`).data("roomid"))
+                        });
+
+                        link_seq += 1;
+                    }
+                })
+            } catch (e) {
+                alert(`获取空教室时出现错误：${e}`)
+            }
+        }
+
+        function reportUnavailable(room_id) {
+            let r = confirm("确定要报告此教室已被占用吗？只有当该教室出现排他性使用时才应该报告，如班会等活动；如果是有人安静的自习则不应报告。");
+            if (r === true) {
+                $.getJSON('{{ url_for('api_entity.report_unavailable_room') }}', {
+                    'room_id': room_id,
+                    'date': data_date,
+                    'time': $(time_selected).val()
+                }, function (resp) {
+                    if (resp.status === "success") {
+                        alert("报告成功");
+
+                        // refresh
+                        queryAvailableRooms();
+                    } else {
+                        alert("报告失败：" + resp.status_message)
+                    }
+                })
+            }
+        }
+
+        $(document).ready(function () {
+            setTime();
+            getRooms();
+            campus_select.change(function () {
+                refreshBuildingSelect();
+            })
+            building_select.change(function () {
+                queryAvailableRooms();
+            })
+            time_select.change(function () {
+                queryAvailableRooms();
+            })
+        });
+
+
+    </script>
+{% endblock %}

@@ -7,17 +7,30 @@ from everyclass.server.utils.encryption import encrypt, RTYPE_ROOM
 
 
 @dataclass
+class Room(JSONSerializable):
+    name: str
+    room_id: str
+    room_id_encoded: str
+
+    def __json_encode__(self):
+        return {'name': self.name, 'room_id_encoded': self.room_id_encoded}
+
+    @classmethod
+    def make(cls, room_id: str, name: str) -> "Room":
+        return cls(**ensure_slots(cls, {"name": name, "room_id": room_id, "room_id_encoded": encrypt(RTYPE_ROOM, room_id)}))
+
+
+@dataclass
 class Building(JSONSerializable):
     name: str
     rooms: List[str]
-    rooms_encoded: List[str]
 
     def __json_encode__(self):
-        return {'name': self.name, 'rooms_encoded': self.rooms_encoded}
+        return {'name': self.name, 'rooms': self.rooms}
 
     @classmethod
-    def make(cls, name: str, rooms: List[str]) -> "Building":
-        dct_new = {"name": name, "rooms": rooms, 'rooms_encoded': [encrypt(RTYPE_ROOM, room) for room in rooms]}
+    def make(cls, name: str, rooms: Dict[str, str]) -> "Building":
+        dct_new = {"name": name, "rooms": [Room.make(room_id, name) for room_id, name in rooms.items()]}
         return cls(**ensure_slots(cls, dct_new))
 
 

@@ -10,6 +10,7 @@ All session keys should be defined here. If a key is deprecated, it should be KE
 SESSION_LAST_VIEWED_STUDENT = "last_viewed_student"  # a everyclass.server.db.model.StudentSession type
 SESSION_USER_REGISTERING = "user_registering"  # a UserSession type marking the current registering people
 SESSION_CURRENT_USER = "current_user"  # a UserSession type marking the current logged-in user
+SESSION_USER_SEQ = "user_id"  # 序列ID，非学号/教工号
 SESSION_PWD_VER_REQ_ID = "verification_req_id"  # current verification req id, a uuid.UUID type
 SESSION_EMAIL_VER_REQ_ID = "email_verify_req_id"
 

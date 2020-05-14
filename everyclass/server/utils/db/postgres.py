@@ -19,7 +19,9 @@ Base = declarative_base()
 def create_table():
     """建表"""
     import everyclass.server.user.model
+    import everyclass.server.entity.model
     _ = everyclass.server.user.model
+    _ = everyclass.server.entity.model
     Base.metadata.create_all(_engine)
 
 

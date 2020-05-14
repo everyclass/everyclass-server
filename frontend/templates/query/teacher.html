@@ -85,29 +85,9 @@
 
 {% endblock %}
 {% block scripts %}
-    {% if sid == 'PEBJvQPd11RwMwDMj3At2ELn+i+Jk0XTQjST-SQeONA=' %}
-        <script type="text/javascript">
-            function specialColor() {
-                //special pink color
-                $('.swag-line').addClass("swag-line-special");
-
-                $('.navbar-default .navbar-brand').animate({'color': '#71d4ff'});
-                $('.navbar-default .navbar-nav>li>a').animate({'color': '#4bbaff'});
-
-                $('.panel-floating').animate({'border-top-color': '#61e2ff'});
-                $('.template-index a').animate({'color': '#71d4ff'});
-
-            }
-
-            $(document).ready(function () {
-                setTimeout(specialColor, 1000);
-            });
-        </script>
-    {% endif %}
     <script>
         $("select#semester-select").change(function () {
             window.location.href = "/teacher/" + "{{ teacher.teacher_id_encoded }}" + "/" + $('select#semester-select option:selected').val();
         });
-
     </script>
 {% endblock %}

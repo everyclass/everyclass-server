@@ -319,6 +319,11 @@ def get_card(url_cid: str, url_semester: str):
                            )
 
 
+@entity_bp.route('/available_rooms')
+def available_rooms():
+    return render_template("query/available_rooms.html")
+
+
 def _empty_column_check(cards: dict) -> Tuple[bool, bool, bool, bool]:
     """检查是否周末和晚上有课，返回三个布尔值"""
     with tracer.trace('_empty_column_check'):

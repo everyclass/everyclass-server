@@ -1,8 +1,11 @@
 import datetime
 from typing import Tuple, Union, List
 
+from sqlalchemy.exc import IntegrityError
+
 from everyclass.rpc.entity import SearchResultStudentItem, SearchResultTeacherItem, Entity, SearchResult, CardResult
 from everyclass.server.entity.domain import replace_exception
+from everyclass.server.entity.exceptions import AlreadyReported
 from everyclass.server.entity.model import MultiPeopleSchedule, AllRooms, AvailableRooms, UnavailableRoomReport
 
 
@@ -52,9 +55,12 @@ def get_available_rooms(campus: str, building: str, date: datetime.date, time: s
     return AvailableRooms(campus, building, date, time)
 
 
-def report_unavailable_room(room_id: str, date: datetime.date, time: str, username: str):
+def report_unavailable_room(room_id: str, date: datetime.date, time: str, user_type: str, user_id: str):
     """反馈实际不可用的教室"""
-    return UnavailableRoomReport.new(room_id, date, time, reporter=username)
+    try:
+        return UnavailableRoomReport.new(room_id, date, time, user_type, user_id)
+    except IntegrityError as e:
+        raise AlreadyReported from e
 
 
 class PeopleNotFoundError(ValueError):

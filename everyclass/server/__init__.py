@@ -198,14 +198,14 @@ def create_app() -> Flask:
     @app.before_request
     def set_user_id():
         """在请求之前设置 session uid，方便 APM 标识用户"""
-        from everyclass.server.utils.web_consts import SESSION_CURRENT_USER
+        from everyclass.server.utils.web_consts import SESSION_CURRENT_USER, SESSION_USER_SEQ
         from everyclass.server.user import service as user_service
 
         if not session.get('user_id', None) and request.endpoint not in ("main.health_check", "static"):
             logger.info(f"Give a new user ID for new user. endpoint: {request.endpoint}")
             session['user_id'] = user_service.get_user_id()
         if session.get('user_id', None):
-            tracer.current_root_span().set_tag("user_id", session['user_id'])  # 唯一用户 ID
+            tracer.current_root_span().set_tag("user_id", session[SESSION_USER_SEQ])  # 唯一用户 ID
         if session.get(SESSION_CURRENT_USER, None):
             tracer.current_root_span().set_tag("username", session[SESSION_CURRENT_USER].identifier)  # 学号或教工号
 
@@ -279,7 +279,7 @@ def create_app() -> Flask:
                                    message=MSG_INTERNAL_ERROR,
                                    event_id=g.sentry_event_id,
                                    public_dsn=sentry.client.get_public_dsn('https'))
-        return "<h4>500 Error: {}</h4><br>You are seeing this page because Sentry is not available.".format(repr(error))
+        return f"<h4>500 Error: {repr(error.original_exception)}</h4><br>You are seeing this page because Sentry is not available."
 
     global __app
     __app = app
