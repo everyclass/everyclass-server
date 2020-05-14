@@ -27,6 +27,6 @@ class AvailableRooms(JSONSerializable):
     def __init__(self, campus: str, building: str, date: datetime.date, time: str):
         _, week, day = get_semester_date(date)
 
-        resp = Entity.get_available_rooms(week, f"{day}{time}", campus, building)
+        resp = Entity.get_available_rooms(week, f"{day + 1}{time}", campus, building)
         for r in resp:
             Room(name=r['name'], room_id=r['code'], room_id_encoded=encrypt(RTYPE_ROOM, r['code']))
