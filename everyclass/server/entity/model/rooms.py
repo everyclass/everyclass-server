@@ -17,7 +17,7 @@ class Building(JSONSerializable):
 
     @classmethod
     def make(cls, name: str, rooms: List[str]) -> "Building":
-        dct_new = {"name": name, "rooms": rooms, 'rooms_encoded': [encrypt(RTYPE_ROOM, x) for x in rooms]}
+        dct_new = {"name": name, "rooms": rooms, 'rooms_encoded': [encrypt(RTYPE_ROOM, room) for room in rooms]}
         return cls(**ensure_slots(cls, dct_new))
 
 
@@ -32,7 +32,6 @@ class Campus(JSONSerializable):
     @classmethod
     def make(cls, name: str, dct: Dict) -> "Campus":
         dct_new = {"name": name, "buildings": list()}
-
         for k, v in dct.items():
             dct_new["buildings"].append(Building.make(k, v))
         return cls(**ensure_slots(cls, dct_new))
@@ -49,5 +48,5 @@ class AllRooms(JSONSerializable):
     def make(cls, dct: Dict) -> "AllRooms":
         dct_new = {"campuses": {}}
         for k, v in dct.items():
-            dct_new["campuses"][k] = Campus(k, v)
+            dct_new["campuses"][k] = Campus.make(k, v)
         return cls(**ensure_slots(cls, dct_new))
