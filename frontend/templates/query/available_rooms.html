@@ -155,9 +155,9 @@
                         }
                         content += "<td>" + room.name + "</td>"
                         if (room.occupied_feedback_cnt === 0) {
-                            content += `<td><a id="report-link-${link_seq}" data-roomid="${room.room_id_encoded}">无用户报告占用</a></td>`
+                            content += `<td><a id="report-link-${link_seq}">无用户报告占用</a></td>`
                         } else {
-                            content += `<td><a id="report-link-${link_seq}" data-roomid="${room.room_id_encoded}">${room.occupied_feedback_cnt}人反馈已被占用</a></td>`
+                            content += `<td><a id="report-link-${link_seq}">${room.occupied_feedback_cnt}人反馈已被占用</a></td>`
                         }
                         content += "</tr>";
                         table.append(content);
