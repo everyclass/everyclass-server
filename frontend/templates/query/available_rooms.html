@@ -145,7 +145,7 @@
                     let rooms = resp.data.rooms;
                     console.log(rooms);
                     for (let i in rooms) {
-                        room = rooms[i];
+                        let room = rooms[i];
                         console.log(room);
                         let content = "<tr>";
                         if (room.occupied_feedback_cnt === 0) {
@@ -162,7 +162,8 @@
                         content += "</tr>";
                         table.append(content);
                         $(document).on('click', `a#report-link-${link_seq}`, function () {
-                            reportUnavailable($(`a#report-link-${link_seq}`).data("roomid"))
+                            console.log(room.room_id_encoded);
+                            reportUnavailable(room.room_id_encoded)
                         });
 
                         link_seq += 1;
