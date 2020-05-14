@@ -15,17 +15,17 @@ class Room(JSONSerializable):
     name: str  # 教室名
     room_id: str  # 教室 ID
     room_id_encoded: str  # 编码后的教室 ID
-    feedback_cnt: int  # 反馈已占用的人数
+    occupied_feedback_cnt: int  # 反馈已占用的人数
 
     def __json_encode__(self):
-        return {'name': self.name, 'room_id_encoded': self.room_id_encoded}
+        return {'name': self.name, 'room_id_encoded': self.room_id_encoded, 'occupied_feedback_cnt': self.occupied_feedback_cnt}
 
     @classmethod
     def make(cls, name: str, room_id: str, feedback_cnt: int):
         dct = {'name': name,
                'room_id': room_id,
                'room_id_encoded': encrypt(RTYPE_ROOM, room_id),
-               'feedback_cnt': feedback_cnt}
+               'occupied_feedback_cnt': feedback_cnt}
         return cls(**ensure_slots(cls, dct))
 
 
