@@ -149,13 +149,13 @@
                         console.log(room);
                         let content = "<tr>";
                         if (room.occupied_feedback_cnt === 0) {
-                            content += "<td><font color=\"green\">●</font></td>"
+                            content += "<td><font color=\"green\">●</font>可用</td>"
                         } else {
-                            content += "<td><font color=\"#ff8c00\">●</font></td>"
+                            content += "<td><font color=\"#ff8c00\">●</font>有人</td>"
                         }
                         content += "<td>" + room.name + "</td>"
                         if (room.occupied_feedback_cnt === 0) {
-                            content += `<td><a id="report-link-${link_seq}" style="cursor:pointer">无用户报告占用</a></td>`
+                            content += `<td><a id="report-link-${link_seq}" style="cursor:pointer">无人报告占用，点击报告</a></td>`
                         } else {
                             content += `<td><a id="report-link-${link_seq}" style="cursor:pointer">${room.occupied_feedback_cnt}人反馈已被占用</a></td>`
                         }
