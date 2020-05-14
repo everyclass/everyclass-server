@@ -24,19 +24,17 @@ class Building(JSONSerializable):
 @dataclass
 class Campus(JSONSerializable):
     name: str
-    buildings: Dict[str, Building]
+    buildings: List[Building]
 
     def __json_encode__(self):
         return {'name': self.name, 'buildings': self.buildings}
 
     @classmethod
     def make(cls, name: str, dct: Dict) -> "Campus":
-        dct_new = dict()
-        dct_new["buildings"] = dict()
+        dct_new = {"name": name, "buildings": list()}
 
         for k, v in dct.items():
-            dct_new["buildings"][k] = Building.make(k, v)
-        dct_new["name"] = name
+            dct_new["buildings"].append(Building.make(k, v))
         return cls(**ensure_slots(cls, dct_new))
 
 

@@ -2,6 +2,7 @@ import datetime
 from dataclasses import dataclass
 from typing import List
 
+from everyclass.rpc import ensure_slots
 from everyclass.rpc.entity import Entity
 from everyclass.server.entity.domain import get_semester_date
 from everyclass.server.utils import JSONSerializable
@@ -17,6 +18,11 @@ class Room(JSONSerializable):
     def __json_encode__(self):
         return {'name': self.name, 'room_id_encoded': self.room_id_encoded}
 
+    @classmethod
+    def make(cls, name: str, room_id: str):
+        dct = {'name': name, 'room_id': room_id, 'room_id_encoded': encrypt(RTYPE_ROOM, room_id)}
+        return cls(**ensure_slots(cls, dct))
+
 
 class AvailableRooms(JSONSerializable):
 
@@ -30,4 +36,6 @@ class AvailableRooms(JSONSerializable):
 
         self.rooms: List[Room] = []
         for r in resp:
-            self.rooms.append(Room(name=r['name'], room_id=r['code'], room_id_encoded=encrypt(RTYPE_ROOM, r['code'])))
+            # 反馈占用计数
+
+            self.rooms.append(Room.make(name=r['name'], room_id=r['code']))
