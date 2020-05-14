@@ -13,7 +13,7 @@ def _fill_16(text):
     :param text: 需要被填充的字符串
     :return: 已经被空白符填充的字符串
     """
-    text += '\0' * (16 - (len(text) % 16))
+    text += '\0' * (16 - (len(text.encode()) % 16))
     return str.encode(text)
 
 
