@@ -99,19 +99,19 @@
         }
 
         function getRooms() {
-            try {
-                $.getJSON('{{ url_for('api_entity.get_all_rooms') }}', null, function (resp) {
+            $.getJSON('{{ url_for('api_entity.get_all_rooms') }}', null, function (resp) {
+                try {
                     Object.keys(resp.data.campuses).forEach(function (key) {
                         campuses = resp.data.campuses;
                         var option = new Option(key, resp.data.campuses[key].name);
                         campus_select.append($(option));
                     });
-
                     refreshBuildingSelect();
-                })
-            } catch (e) {
-                alert(`获取教室信息时出现错误：${e}`);
-            }
+                } catch (e) {
+                    alert(`获取教室信息时出现错误：${e}`);
+                }
+            })
+
 
         }
 
@@ -130,12 +130,12 @@
         }
 
         function queryAvailableRooms() {
-            try {
-                $.getJSON('{{ url_for('api_entity.get_available_rooms') }}', {
-                    'campus': $(campus_selected).val(),
-                    'building': $(building_selected).val(),
-                    'time': $(time_selected).val()
-                }, function (resp) {
+            $.getJSON('{{ url_for('api_entity.get_available_rooms') }}', {
+                'campus': $(campus_selected).val(),
+                'building': $(building_selected).val(),
+                'time': $(time_selected).val()
+            }, function (resp) {
+                try {
                     // clear table
                     $("#avail-room-table  tr:not(:first)").html("");
 
@@ -167,10 +167,11 @@
 
                         link_seq += 1;
                     }
-                })
-            } catch (e) {
-                alert(`获取空教室时出现错误：${e}`)
-            }
+                } catch (e) {
+                    alert(`获取空教室时出现错误：${e}`)
+                }
+            })
+
         }
 
         function reportUnavailable(room_id) {
