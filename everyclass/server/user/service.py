@@ -10,7 +10,7 @@ from everyclass.rpc import RpcServerException
 from everyclass.rpc.auth import Auth
 from everyclass.server import logger
 from everyclass.server.entity import service as entity_service
-from everyclass.server.user.exceptions import RecordNotFound, NoPermissionToAccept, LoginRequired, PermissionAdjustRequired, UserNotExists, \
+from everyclass.server.user.exceptions import RecordNotFound, NoPermissionToAccept, UserNotExists, \
     AlreadyRegisteredError, InvalidTokenError, IdentityVerifyRequestNotFoundError, PasswordTooWeakError, IdentityVerifyRequestStatusError
 from everyclass.server.user.model import User, VerificationRequest, SimplePassword, Visitor, Grant
 from everyclass.server.user.repo import privacy_settings, visit_count, user_id_sequence, visit_track
@@ -172,35 +172,43 @@ def set_privacy_level(student_id: str, new_level: int) -> None:
 
 """Visiting"""
 
+REASON_LOGIN_REQUIRED = 'require_login'
+REASON_PERMISSION_ADJUST_REQUIRED = 'require_permission_adjust'
+REASON_SELF_ONLY = 'self_only'
 
-def has_access(host: str, visitor: Optional[str] = None, footprint: bool = True) -> bool:
+
+def has_access(host: str, visitor: Optional[str] = None, footprint: bool = True) -> (bool, Optional[str]):
     """检查访问者是否有权限访问学生课表。footprint为True将会留下访问记录并增加访客计数。
     """
     if visitor and Grant.has_grant(visitor, host):
-        return True
+        return True, None
 
     privacy_level = get_privacy_level(host)
     # 仅自己可见、且未登录或登录用户非在查看的用户，拒绝访问
     if privacy_level == 2 and (not visitor or visitor != host):
-        return False
+        return False, REASON_SELF_ONLY
 
     # 实名互访
     if privacy_level == 1:
         # 未登录，要求登录
         if not visitor:
-            raise LoginRequired
+            return False, REASON_LOGIN_REQUIRED
         # 仅自己可见的用户访问实名互访的用户，拒绝，要求调整自己的权限
         if get_privacy_level(visitor) == 2:
-            raise PermissionAdjustRequired
+            return False, REASON_PERMISSION_ADJUST_REQUIRED
 
     # 公开或实名互访模式、已登录、不是自己访问自己，则留下轨迹
     if footprint and privacy_level != 2 and visitor and visitor != host:
         _update_track(host=host, visitor=visitor)
         _add_visitor_count(host=host, visitor=visitor)
-    return True
+    return True, None
 
 
 """granting"""
+
+
+def new_grant_request(from_uid: str, to_uid: str):
+    return Grant.request_for_grant(from_uid, to_uid)
 
 
 def get_pending_requests(user_identifier: str):

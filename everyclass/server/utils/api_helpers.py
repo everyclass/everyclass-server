@@ -5,6 +5,7 @@ import functools
 
 from flask import request, g
 
+from everyclass.server.utils.common_helpers import get_ut_uid, UTYPE_GUEST
 from everyclass.server.utils.jsonable import to_json_response
 
 # 请求错误
@@ -62,6 +63,24 @@ def token_required(func):
             return generate_error_response(None, STATUS_CODE_INVALID_TOKEN)
 
         g.username = username
+        return func(*args, **kwargs)
+
+    return wrapped
+
+
+def login_required(func):
+    """检查用户是否已登录，如未登录则返回错误"""
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        try:
+            ut, uid = get_ut_uid()
+            if ut == UTYPE_GUEST:
+                return generate_error_response(None, STATUS_CODE_PERMISSION_DENIED, "此功能需要登陆后使用")
+        except NotImplementedError:
+            return generate_error_response(None, STATUS_CODE_PERMISSION_DENIED, "检测身份时遇到未知错误")
+
+        g.user_id = uid
         return func(*args, **kwargs)
 
     return wrapped

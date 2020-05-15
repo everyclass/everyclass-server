@@ -4,6 +4,8 @@ from everyclass.server.user import exceptions
 from everyclass.server.user import service as user_service
 from everyclass.server.utils import generate_success_response, generate_error_response, api_helpers
 from everyclass.server.utils.api_helpers import token_required
+from everyclass.server.utils.common_helpers import get_ut_uid, UTYPE_GUEST
+from everyclass.server.utils.encryption import decrypt, RTYPE_STUDENT
 from everyclass.server.utils.web_consts import SESSION_EMAIL_VER_REQ_ID
 
 user_api_bp = Blueprint('api_user', __name__)
@@ -86,6 +88,22 @@ def email_verification():
 
     username = user_service.register_by_email_set_password(request_id, password)
     return generate_success_response({"token": user_service.issue_token(username)})
+
+
+@user_api_bp.route('/grants/_apply')
+def apply_grant():
+    to_user_id_encoded = request.args.get('to_user_id')
+    if not to_user_id_encoded:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "mising to_user_id")
+
+    ut, uid = get_ut_uid()
+    if ut == UTYPE_GUEST:
+        return generate_error_response(None, api_helpers.STATUS_CODE_PERMISSION_DENIED, "您需要登录才能进行此操作")
+
+    to_uid = decrypt(to_user_id_encoded, resource_type=RTYPE_STUDENT)[1]
+
+    user_service.new_grant_request(uid, to_uid)
+    return generate_success_response(None)
 
 
 @user_api_bp.route('/grants/_my_pending')

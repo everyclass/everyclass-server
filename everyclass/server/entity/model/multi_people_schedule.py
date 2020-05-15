@@ -4,6 +4,7 @@ from typing import List, Dict, Optional
 
 from everyclass.server.entity import domain
 from everyclass.server.utils import JSONSerializable
+from everyclass.server.utils.encryption import encrypt, RTYPE_STUDENT, RTYPE_TEACHER
 
 
 @dataclass
@@ -16,10 +17,19 @@ class Event(JSONSerializable):
 
 
 @dataclass
+class People(JSONSerializable):
+    name: str
+    id_encoded: str
+
+    def __json_encode__(self):
+        return {'name': self.name, 'id': self.id_encoded}
+
+
+@dataclass
 class MultiPeopleSchedule(JSONSerializable):
     schedules: List[Dict[str, Optional[Event]]]
-    accessible_people: List[str]
-    inaccessible_people: List[str]
+    accessible_people: List[People]
+    inaccessible_people: List[People]
 
     def __json_encode__(self):
         return {'schedules': self.schedules,
@@ -31,20 +41,25 @@ class MultiPeopleSchedule(JSONSerializable):
         from everyclass.server import logger
         from everyclass.server.entity import service
         from everyclass.server.user import service as user_service
+        from everyclass.server.entity import service as entity_service
 
+        accessible_people_ids = []
         accessible_people = []
         inaccessible_people = []
 
         for identifier in people:
-            if user_service.has_access(identifier, current_user):
-                accessible_people.append(identifier)
+            if user_service.has_access(identifier, current_user)[0]:
+                accessible_people_ids.append(identifier)
             else:
-                inaccessible_people.append(identifier)
-
+                inaccessible_people.append(People(entity_service.get_student(identifier).name, encrypt(RTYPE_STUDENT, identifier)))
         self.schedules = list()
 
-        for identifier in accessible_people:
-            is_student, _ = service.get_people_info(identifier)
+        for identifier in accessible_people_ids:
+            is_student, people_info = service.get_people_info(identifier)
+
+            accessible_people.append(
+                People(people_info.name, encrypt(RTYPE_STUDENT, identifier) if is_student else encrypt(RTYPE_TEACHER, identifier)))
+
             semester, week, day = domain.get_semester_date(date)
             if is_student:
                 cards = service.get_student_timetable(identifier, semester).cards
@@ -72,3 +87,18 @@ class MultiPeopleSchedule(JSONSerializable):
             self.schedules.append(event_dict)
             self.inaccessible_people = inaccessible_people
             self.accessible_people = accessible_people
+
+
+@dataclass
+class SearchResultItem(JSONSerializable):
+    name: str
+    description: str
+    people_type: str
+    id_encoded: str
+    has_access: bool
+    forbid_reason: Optional[bool]
+
+    def __json_encode__(self):
+        return {'name': self.name, 'description': self.description,
+                'people_type': self.people_type, 'id_encoded': self.id_encoded,
+                'has_access': self.has_access, 'forbid_reason': self.forbid_reason}

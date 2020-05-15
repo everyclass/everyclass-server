@@ -27,7 +27,7 @@ def get_calendar_token(id_sec: str, semester: str):
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, '用户ID无效')
 
     if res_type == encryption.RTYPE_STUDENT:
-        if not user_service.has_access(res_id, g.username):
+        if not user_service.has_access(res_id, g.username)[0]:
             return generate_error_response(None, api_helpers.STATUS_CODE_PERMISSION_DENIED, '无权访问该用户课表')
         student = entity_service.get_student_timetable(res_id, semester)
         if not student:

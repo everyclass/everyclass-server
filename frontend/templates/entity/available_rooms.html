@@ -118,10 +118,10 @@
         function refreshBuildingSelect() {
             building_select.empty();
 
-            buildings = campuses[$(campus_selected).val()].buildings
+            let buildings = campuses[$(campus_selected).val()].buildings
 
-            for (var i in buildings) {
-                var option = new Option(buildings[i].name, buildings[i].name);
+            for (let i in buildings) {
+                const option = new Option(buildings[i].name, buildings[i].name);
                 $('select#building-select').append($(option));
             }
 

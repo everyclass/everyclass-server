@@ -1,31 +1,52 @@
 import datetime
 
-from flask import Blueprint, request, g
+from flask import Blueprint, request
 
 from everyclass.server.entity import service as entity_service
+from everyclass.server.entity.model import SearchResultItem
+from everyclass.server.user import service as user_service
 from everyclass.server.utils import generate_error_response, api_helpers, generate_success_response
-from everyclass.server.utils.api_helpers import token_required
-from everyclass.server.utils.common_helpers import get_user_id
+from everyclass.server.utils.common_helpers import get_logged_in_uid, get_ut_uid
 from everyclass.server.utils.encryption import decrypt, RTYPE_ROOM
 
 entity_api_bp = Blueprint('api_entity', __name__)
 
 
 @entity_api_bp.route('/multi_people_schedule')
-@token_required
 def multi_people_schedule():
-    people = request.args['people']
-    date = request.args['date']
+    people_encoded = request.args.get('people')
+    date = request.args.get('date')
 
-    if not people:
+    uid = get_logged_in_uid()
+
+    if not people_encoded:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing people parameter')
     if not date:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing date parameter')
 
-    people_list = people.split(',')
+    people_list = [decrypt(people)[1] for people in people_encoded.split(',')]
     date = datetime.date(*map(int, date.split('-')))
-    schedule = entity_service.multi_people_schedule(people_list, date, g.username)
+    schedule = entity_service.multi_people_schedule(people_list, date, uid)
     return generate_success_response(schedule)
+
+
+@entity_api_bp.route('/multi_people_schedule/_search')
+def multi_people_schedule_search():
+    keyword = request.args.get('keyword')
+    if not keyword:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing keyword parameter')
+
+    search_result = entity_service.search(keyword)
+
+    uid = get_logged_in_uid()
+
+    items = [SearchResultItem(s.name, s.deputy + s.klass, "student", s.student_id_encoded,
+                              *user_service.has_access(s.student_id, uid, False)) for s in search_result.students if
+             ((s.klass[-4:].isdigit() and int(s.klass[-4:-2]) > datetime.date.today().year - 5) or not s.klass[-4:].isdigit())]
+
+    items.extend([SearchResultItem(t.name, t.unit + t.title, "teacher", t.teacher_id_encoded,
+                                   *user_service.has_access(t.teacher_id, uid, False)) for t in search_result.teachers])
+    return generate_success_response({'items': items, 'keyword': keyword, 'is_guest': True if uid is None else False})
 
 
 @entity_api_bp.route('/room')
@@ -77,5 +98,5 @@ def report_unavailable_room():
     except ValueError:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'invalid room_id')
 
-    entity_service.report_unavailable_room(room_id, date, time, *get_user_id())
+    entity_service.report_unavailable_room(room_id, date, time, *get_ut_uid())
     return generate_success_response(None)

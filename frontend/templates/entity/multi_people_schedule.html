@@ -1,0 +1,466 @@
+{% extends "layout.html" %}
+{% block title %}多人日程排期 - 每课{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.17/css/bootstrap-select.min.css">
+
+    <style type="text/css">
+        .btn-white, .btn-white:focus, .btn-white:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .available-time-block {
+            background: #f0fce7 !important;
+        }
+
+        tr:hover.available-time-block {
+            background: #ecf8de !important;
+        }
+
+        .no-bg {
+            background: none;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">多人日程排期</h1>
+        <h4 class="text-muted">通过同时查询多人课表，对多人参与的日程进行排期。
+        </h4>
+        <form id="choose-form" role="form" class="form-inline">
+            日期：<input id="date" type="date" min="2016-09-01" max="2021-04-30" class="form-control">
+            &nbsp;&nbsp;&nbsp;
+            参与人：
+            <div id="avatars" style="display:inline;">
+
+            </div>
+
+            <button id="open-modal-button" type="button" class="btn btn-md" style="display: inline-block; padding: 5px 10px; border-radius:20px;" data-toggle="modal"
+                    data-target="#myModal" disabled>+
+            </button>
+
+        </form>
+    </div>
+
+
+
+
+    <br><br>
+    <div class="row row-backbordered" id="table-back-div" style="display: none">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="avail-room-table">
+                        <thead>
+                        <tr id="timetable-header">
+                            <th></th>
+                            <th class="text-nowrap"><img src="https://ui-avatars.com/api/?rounded=true&size=512&name=%E6%B3%BD%E5%AE%87" alt="avatar"
+                                                         style="height:3em;"/><br>詹泽宇
+                            </th>
+                            <th class="text-nowrap"><img src="https://ui-avatars.com/api/?rounded=true&size=512&name=博霖" alt="avatar" style="height:3em;"/><br>张博霖</th>
+                            <th class="text-nowrap"><img src="https://ui-avatars.com/api/?rounded=true&size=512&name=儿子" alt="avatar" style="height:3em;"/><br>吴佳桂</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.17/js/bootstrap-select.min.js"></script>
+    <script type="text/javascript">
+        chosenPeople = [];
+        var isGuest;
+
+        function addPadding(num, length) {
+            for (let len = (num + "").length; len < length; len = num.length) {
+                num = "0" + num;
+            }
+            return num;
+        }
+
+        function setDate() {
+            let startDate = new Date();
+            let startDateString = startDate.getFullYear().toString() + '-' + addPadding(startDate.getMonth() + 1, 2) + '-' + addPadding(startDate.getDate().toString(), 2)
+            $('#date').val(startDateString);
+        }
+
+        // https://gist.github.com/0x263b/2bdd90886c2036a1ad5bcf06d6e6fb37
+        String.prototype.toColor = function () {
+            let colors = [
+                "#de2ea0", "#398d4e", "#db9928", "#6531c2",
+                "#3f51b5", "#5677fc", "#03a9f4", "#00bcd4",
+                "#009688", "#259b24", "#8bc34a", "#afb42b",
+                "#ff9800", "#ff5722", "#795548", "#607d8b"];
+
+            let hash = 0;
+            if (this.length === 0) return hash;
+            for (let i = 0; i < this.length; i++) {
+                hash = this.charCodeAt(i) + ((hash << 5) - hash);
+                hash = hash & hash;
+            }
+            hash = ((hash % colors.length) + colors.length) % colors.length;
+            return colors[hash];
+        }
+
+        function searchPeople() {
+            let nameSelect = $("#name-select");
+            let inputSelector = '#peopleSearchForm .open input';
+            let inputVal = $(inputSelector).val();
+
+            //判定键入的值长度>=2，才调用ajax
+            if (inputVal.length >= 2) {
+                $.getJSON('{{ url_for("api_entity.multi_people_schedule_search") }}',
+                    {
+                        keyword: inputVal
+                    },
+                    function (resp) {
+                        if (resp.status === 'error') {
+                            alert(`获取搜索结果失败：${resp.status_message}`)
+                        } else {
+                            if (resp.data.keyword !== $(inputSelector).val()) {
+                                // 可能网络原因先发起的请求后收到回复，这里把这种回复丢弃掉
+                                return
+                            }
+
+                            isGuest = resp.data.is_guest;
+
+                            cleanListExceptSelected();
+                            for (let i in resp.data.items) {
+                                let item = resp.data.items[i];
+                                if (chosenPeople.findIndex(function (value, index, arr) {
+                                    return value.id_encoded === item.id_encoded;
+                                }) === -1) {
+                                    // 如果已选择则不在搜索的时候append到下拉框
+                                    nameSelect.append(`<option value="${item.id_encoded}" data-subtext="${item.description}" data-tokens="${item.name}" data-has-access="${item.has_access}" data-forbid-reason="${item.forbid_reason}">${item.name}</option>`);
+                                }
+                            }
+                            nameSelect.selectpicker('refresh');
+                        }
+                    }
+                )
+            } else {
+                //如果输入的字符为空，清除之前option标签
+                cleanListExceptSelected();
+                nameSelect.selectpicker('refresh');
+            }
+        }
+
+        function cleanListExceptSelected() {
+            // 清空人名搜索列表中除了已经选中的选项
+            let nameSelect = $("#name-select");
+            let currentSelected = nameSelect.val();
+
+            let toRemove = [];
+            $("#name-select option").each(function () {
+                if (currentSelected == null || currentSelected.indexOf($(this).val()) === -1) {
+                    toRemove.push($(this).val())
+                }
+            });
+
+            for (let i in toRemove) {
+                $(`#name-select option[value='${toRemove[i]}']`).remove();
+            }
+
+            nameSelect.selectpicker('refresh');
+        }
+
+        function removePeopleFromSelectionByIDs(ids_encoded) {
+            // 在选择列表中移除指定学号/教工号的人
+            let nameSelect = $("#name-select");
+
+            for (let i in ids_encoded) {
+                let id_encoded = ids_encoded[i];
+                $(`#name-select option[value='${id_encoded}']`).remove();
+            }
+            nameSelect.selectpicker('refresh');
+            peopleSelectChange() // 这里是可选项的变化，不是选择的变化，需要手动触发
+        }
+
+        function getAvatarSrc(name) {
+            // 根据姓名获得头像的地址
+            // 3个字的姓名优化成名
+            if (name.length === 3) {
+                name = name.substr(1)
+            }
+
+            return `https://ui-avatars.com/api/?rounded=true&size=512&name=${encodeURIComponent(name)}&background=${name.toColor().substr(1)}&color=fff`
+        }
+
+        function addParticipantAvatar(id_encoded, name) {
+            // 添加顶部参与人小头像
+            $("#avatars").append(`<img src="${getAvatarSrc(name)}" alt="${name}" style="height:2em;margin-left: 3px;margin-right: 3px;"/>`)
+        }
+
+        function refreshTable() {
+            // 参与人变化后刷新时间表
+
+            let header = $("tr#timetable-header");
+            header.empty();
+            header.append("<th></th>");
+            for (let i in chosenPeople) {
+                let p = chosenPeople[i];
+                header.append(`<th class="text-nowrap"><img src="${getAvatarSrc(p.name)}" alt="avatar" style="height:3em;"/><br>${p.name}</th>`)
+            }
+
+            let timetable_body = $('#avail-room-table tbody');
+            timetable_body.empty();
+
+            let peopleStr = '';
+            for (let i in chosenPeople) {
+                peopleStr += chosenPeople[i].id_encoded + ','
+            }
+            peopleStr = peopleStr.substr(0, peopleStr.length - 1);
+
+            if (peopleStr.length === 0) {
+                // 无参与人时隐藏表格
+                $('#table-back-div').hide();
+                console.log('no people, no refresh table')
+                return
+            } else {
+                $('#table-back-div').show();
+            }
+
+            $.getJSON('{{ url_for("api_entity.multi_people_schedule") }}', {
+                people: peopleStr,
+                date: $('#date').val(),
+            }, function (resp) {
+                try {
+                    if (resp.status !== "success") {
+                        alert(`获取日程失败：${resp.status_message}`)
+                    } else {
+                        if (resp.data.inaccessible_people.length > 0) {
+                            let peopleStr = '';
+                            let ids_list = [];
+                            let peopleList = resp.data.inaccessible_people;
+                            for (let i in peopleList) {
+                                peopleStr += peopleList[i].name + '、'
+                                ids_list.push(peopleList[i].id)
+                            }
+                            peopleStr = peopleStr.substr(0, peopleStr.length - 1);
+                            alert(`获取日程时出现错误：您不再有权限访问${peopleStr}的课表`)
+
+                            removePeopleFromSelectionByIDs(ids_list)
+                            return
+                        }
+
+                        console.log(resp.data);
+                        let sessions = [
+                            {name: "1-2节", code: "0102"},
+                            {name: "3-4节", code: "0304"},
+                            {name: "5-6节", code: "0506"},
+                            {name: "7-8节", code: "0708"},
+                            {name: "9-10节", code: "0910"},
+                            {name: "11-12节", code: "1112"}]
+                        for (let i in sessions) {
+                            let current_session = sessions[i];
+
+                            let allAvailable = true;
+                            for (let j in resp.data.schedules) {
+                                let schedule = resp.data.schedules[j];
+                                if (schedule[current_session.code] != null) {
+                                    allAvailable = false;
+                                }
+                            }
+
+                            let rowContent = '';
+                            if (allAvailable) {
+                                rowContent += `<tr class="available-time-block">`
+                            } else {
+                                rowContent += `<tr>`
+                            }
+
+                            rowContent += `<td>${current_session.name}</td>`
+                            for (let j in resp.data.schedules) {
+                                let schedule = resp.data.schedules[j];
+                                if (schedule[current_session.code] == null) {
+                                    if (allAvailable) {
+                                        rowContent += `<td class="no-bg"></td>`
+                                    } else {
+                                        rowContent += `<td></td>`
+                                    }
+                                } else {
+                                    let event = schedule[current_session.code];
+                                    rowContent += `<td>${event.name}<br>${event.room}</td>`
+                                }
+                            }
+                            rowContent += `</tr>`
+                            timetable_body.append(rowContent)
+                        }
+                        console.log("finish")
+                    }
+                } catch (err) {
+                    alert(`获取日程时出现错误：${err}`)
+                }
+
+            })
+        }
+
+        function applyPermission(toUserID) {
+            // 申请访问权限
+
+            if (isGuest) {
+                alert("您还未登录，请先登录")
+                window.location.href = '{{ url_for("user.login") }}'
+            } else {
+                $.getJSON('{{ url_for("api_user.apply_grant") }}', {
+                    to_user_id: toUserID
+                }, function (resp) {
+                    if (resp.status !== "success") {
+                        alert(`权限申请失败：${resp.status_message}`)
+                    } else {
+                        alert(`权限申请成功，请等待对方同意`)
+                    }
+                })
+            }
+        }
+
+        function peopleSelectChange() {
+            // 选择改变时，检查是否有权限，并将选择同步到数组，触发头像和课表内容更新
+
+            let nameSelect = $("#name-select");
+            let currentSelected = nameSelect.val();
+
+            // 取消选择无权限的
+            for (let i in currentSelected) {
+                let opt = $(`#name-select option[value='${currentSelected[i]}']`);
+                if (opt.data("hasAccess") === false) {
+                    if (opt.data("forbidReason") === "self_only") {
+                        let apply_permission = confirm("您暂无权限查看该学生课表，因为其设置了课表仅自己可见。您可以向对方申请授权，对方同意后即可将其加入多人日程。要现在申请吗？")
+                        if (apply_permission === true) {
+                            // 申请授权
+                            applyPermission(opt.val())
+                        }
+                    } else if (opt.data("forbidReason") === "require_permission_adjust") {
+                        let apply_permission = confirm("您暂无权限查看该学生课表，因为其设置了课表实名互访。您可以向对方申请授权，对方同意后即可将其加入多人日程。要现在申请吗？")
+                        if (apply_permission === true) {
+                            // 申请授权
+                            applyPermission(opt.val())
+                        }
+                    } else if (opt.data("forbidReason") === "require_login") {
+                        let to_login = confirm("需要登录才能查看该学生课表，要现在登录吗？")
+                        if (to_login === true) {
+                            window.location.href = '{{ url_for("user.login") }}'
+                        }
+                    } else {
+                        alert("出现未知错误：未知的拒绝访问原因")
+                    }
+
+                    // remove from selection
+                    opt.removeAttr("selected");
+                    nameSelect.selectpicker('refresh');
+                }
+            }
+
+            // 数据同步到数组（这里假设一次只会有一种变动，增加或删除）
+            if (!currentSelected) {
+                chosenPeople.length = 0;
+            } else {
+                if (chosenPeople.length < currentSelected.length) {
+                    // 尾部增加
+                    for (let i = chosenPeople.length; i < currentSelected.length; i++) {
+                        let item = $(`#name-select option[value='${currentSelected[i]}']`);
+                        chosenPeople.push({id_encoded: item.val(), name: item.text()})
+                    }
+                } else {
+                    // 删除
+                    let csIndex = 0;
+                    for (let cpIndex in chosenPeople) {
+                        if (chosenPeople[cpIndex].id_encoded !== currentSelected[csIndex]) {
+                            chosenPeople[cpIndex] = null;
+                        } else {
+                            csIndex += 1;
+                        }
+                    }
+
+                    // remove nulls
+                    let len = chosenPeople.length, i;
+                    for (i = 0; i < len; i++)
+                        chosenPeople[i] && chosenPeople.push(chosenPeople[i]);
+                    chosenPeople.splice(0, len);
+                }
+            }
+
+
+            // 触发头像更新和表格刷新
+
+            $("#avatars").empty();
+            $("#name-select option:selected").each(function () {
+                addParticipantAvatar($(this).val(), $(this).text())
+            });
+
+            refreshTable()
+        }
+
+        function initDropdown(nameSelect) {
+            console.log("initDropdown called")
+            if (nameSelect.next().next().find('.bs-searchbox').find('input').length > 0) {
+                $("#name-select").next().next().find('.bs-searchbox').find('input').on('input', function () {
+                    console.log("call search")
+                    searchPeople()
+                });
+                $("button.btn-white.dropdown-toggle").on("click", function (e) {
+                    // clean dropdown list at each open
+                    cleanListExceptSelected()
+                })
+            } else {
+                setTimeout(function () {
+                    initDropdown(nameSelect)
+                }, 500);
+            }
+        }
+
+        $(document).ready(function () {
+            setDate()
+
+            let nameSelect = $("#name-select");
+
+            // 选项发生变化时进行权限检查、日程安排
+            nameSelect.change(function () {
+                peopleSelectChange()
+            });
+            $("#date").change(function () {
+                refreshTable()
+            });
+
+            $("#add-people-button").on("click", function () {
+                $('#myModal').modal('hide')
+            })
+
+            initDropdown(nameSelect)
+
+            // make button available after document ready
+            $('#open-modal-button').prop('disabled', false)
+        })
+
+    </script>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">添加或删除参与人</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form" id="peopleSearchForm">
+                        <div class="form-group">
+                            <select class="selectpicker show-tick form-control" id="name-select" title="选择学生或老师" data-style="btn-white" data-max-options="20"
+                                    data-live-search="true" data-live-search-placeholder="输入姓名、学号或教工号查找" multiple>
+                            </select>
+                        </div>
+                    </form>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="add-people-button">完成</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+{% endblock %}

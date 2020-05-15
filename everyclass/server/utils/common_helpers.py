@@ -23,10 +23,19 @@ UTYPE_USER = "user"
 UTYPE_GUEST = "guest"
 
 
-def get_user_id():
+def get_ut_uid():
     """已登录用户获得学号，未登录用户获得user序列ID"""
     if SESSION_CURRENT_USER in session:
         return UTYPE_USER, session[SESSION_CURRENT_USER].identifier
     if SESSION_USER_SEQ in session:
         return UTYPE_GUEST, session[SESSION_USER_SEQ]
     raise NotImplementedError("user seq not exist in session")
+
+
+def get_logged_in_uid():
+    """获得当前已登录的用户ID，如果未登录返回None"""
+    ut, uid = get_ut_uid()
+    if ut == UTYPE_GUEST:
+        return None
+    else:
+        return uid

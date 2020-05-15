@@ -67,10 +67,10 @@ class Grant(Base):
             filter(cls.status == GRANT_STATUS_PENDING).all()
 
         if len(pending_grants) > 0:
-            raise HasPendingRequest('there is pending request. new request is not allowed')
+            raise HasPendingRequest('当前已有等待通过的申请，请勿重复申请')
 
         if cls.has_grant(user_id, to_user_id):
-            raise AlreadyGranted('already granted permission, do not send new one')
+            raise AlreadyGranted('权限已具备，请勿重复申请')
         return cls.new(user_id, to_user_id)
 
     @classmethod

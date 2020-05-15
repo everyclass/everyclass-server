@@ -8,7 +8,7 @@ from everyclass.rpc import RpcTimeout, RpcResourceNotFound, RpcBadRequest, RpcCl
 from everyclass.rpc.entity import StudentTimetableResult
 from everyclass.server import sentry, logger
 from everyclass.server.user import service as user_service
-from everyclass.server.user.exceptions import AlreadyRegisteredError, InvalidTokenError, PermissionAdjustRequired, LoginRequired
+from everyclass.server.user.exceptions import AlreadyRegisteredError, InvalidTokenError
 from everyclass.server.utils.config import get_config
 from everyclass.server.utils.web_consts import MSG_400, SESSION_CURRENT_USER, MSG_NOT_LOGGED_IN
 
@@ -105,23 +105,20 @@ def check_permission(student: StudentTimetableResult) -> Tuple[bool, Optional[st
     :param student: 被访问的学生
     :return: 第一个返回值为布尔类型，True 标识可以访问，False 表示没有权限访问。第二个返回值为没有权限访问时需要返回的模板
     """
-
-    try:
-        can = user_service.has_access(student.student_id,
-                                      session.get(SESSION_CURRENT_USER).identifier if session.get(SESSION_CURRENT_USER, None) else None)
-    except LoginRequired:
+    can, reason = user_service.has_access(student.student_id,
+                                          session.get(SESSION_CURRENT_USER).identifier if session.get(SESSION_CURRENT_USER, None) else None)
+    if reason == user_service.REASON_LOGIN_REQUIRED:
         return False, render_template('entity/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
                                       class_name=student.klass,
                                       level=1)
-    except PermissionAdjustRequired:
+    if reason == user_service.REASON_PERMISSION_ADJUST_REQUIRED:
         return False, render_template('entity/studentBlocked.html',
                                       name=student.name,
                                       falculty=student.deputy,
                                       class_name=student.klass,
                                       level=3)
-
     if not can:
         return False, render_template('entity/studentBlocked.html',
                                       name=student.name,
