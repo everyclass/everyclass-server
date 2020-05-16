@@ -226,6 +226,17 @@ def accept_grant(grant_id: int, current_user_id: str):
     grant.accept()
 
 
+def reject_grant(grant_id: int, current_user_id: str):
+    grant = Grant.get_by_id(grant_id)
+    if not grant:
+        raise RecordNotFound("grant id not found")
+
+    if grant.to_user_id != current_user_id:
+        raise NoPermissionToAccept(f"the record {grant_id} does not belong to user {current_user_id}")
+
+    grant.reject()
+
+
 def _update_track(host: str, visitor: str) -> None:
     return visit_track.update_track(host, visitor)
 

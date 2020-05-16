@@ -76,7 +76,7 @@ def login_required(func):
         try:
             ut, uid = get_ut_uid()
             if ut == UTYPE_GUEST:
-                return generate_error_response(None, STATUS_CODE_PERMISSION_DENIED, "此功能需要登陆后使用")
+                return generate_error_response(None, STATUS_CODE_PERMISSION_DENIED, "您需要登录才能进行此操作")
         except NotImplementedError:
             return generate_error_response(None, STATUS_CODE_PERMISSION_DENIED, "检测身份时遇到未知错误")
 

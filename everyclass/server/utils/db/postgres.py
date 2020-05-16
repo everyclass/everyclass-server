@@ -16,12 +16,16 @@ db_session = scoped_session(sessionmaker(bind=_engine))
 Base = declarative_base()
 
 
-def create_table():
-    """建表"""
+def register_model_to_base():
     import everyclass.server.user.model
     import everyclass.server.entity.model
     _ = everyclass.server.user.model
     _ = everyclass.server.entity.model
+
+
+def create_table():
+    """建表"""
+    register_model_to_base()
     Base.metadata.create_all(_engine)
 
 

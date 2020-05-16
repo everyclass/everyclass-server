@@ -314,11 +314,24 @@ def main():
     except Exception as e:
         return handle_exception_with_error_page(e)
 
+    pending_grant_reqs = user_service.get_pending_requests(session[SESSION_CURRENT_USER].identifier)
+    pending_grant_names = []
+    for req in pending_grant_reqs:
+        pending_grant_names.append(entity_service.get_people_info(req.user_id)[1].name)
+
     return render_template('user/main.html',
                            name=session[SESSION_CURRENT_USER].name,
                            student_id_encoded=session[SESSION_CURRENT_USER].identifier_encoded,
                            last_semester=student.semesters[-1] if student.semesters else None,
-                           privacy_level=user_service.get_privacy_level(session[SESSION_CURRENT_USER].identifier))
+                           privacy_level=user_service.get_privacy_level(session[SESSION_CURRENT_USER].identifier),
+                           pending_grant_names=pending_grant_names)
+
+
+@user_bp.route('/pending_grants')
+@login_required
+def pending_grants():
+    """待处理的课表访问请求"""
+    return render_template('user/pendingGrants.html')
 
 
 @user_bp.route('/logout')

@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block title %}待处理的课表访问申请 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">待处理的申请</h1>
+        <h4 class="text-muted">以下用户申请访问您的课表，点击右侧链接同意或拒绝。
+        </h4>
+
+    </div>
+    <br><br>
+    <div class="row row-backbordered">
+        <div class="col-sm-12">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="pending-grants-table">
+                        <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th class="text-nowrap">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        function handleGrant(record_id, action) {
+            $.getJSON(`/mobile/user/grants/${record_id}/_approve`, {
+                action: action
+            }, function (resp) {
+                if (resp.status !== 'success') {
+                    alert(`操作失败：${resp.status_message}`);
+                    return
+                }
+                alert("操作成功")
+                $('#pending-grants-table tbody').empty();
+                getMyPendingGrants();
+                if ($("table tr").size() - 1 === 0) {
+                    window.location.href = "{{ url_for('user.main') }}";
+                }
+            })
+        }
+
+        function acceptGrant(record_id) {
+            handleGrant(record_id, "accept")
+        }
+
+        function rejectGrant(record_id) {
+            handleGrant(record_id, "reject")
+        }
+
+        function getMyPendingGrants() {
+            $.getJSON('{{ url_for('api_user.my_pending_grants') }}', {}, function (resp) {
+                if (resp.status !== 'success') {
+                    alert(`获取申请失败：${resp.status_message}`);
+                    return
+                }
+                for (let i in resp.data) {
+                    let req = resp.data[i];
+
+                    let personalPageURL = '';
+                    if (req.user_type === 'student') {
+                        personalPageURL = `/student/${req.user_id}/semester/${req.last_semester}`
+                    } else {
+                        personalPageURL = `/teacher/${req.user_id}/semester/${req.last_semester}`
+                    }
+
+                    let content = `<tr><td><a href="${personalPageURL}">${req.name}</a></td>`
+                    content += `<td><a href="javascript:void(0)" onclick="acceptGrant(${req.record_id})">同意</a> <a href="javascript:void(0)" onclick="rejectGrant(${req.record_id})">拒绝</a></td></tr>`
+                    $('#pending-grants-table tbody').append(content)
+                }
+            })
+        }
+
+        $(document).ready(function () {
+            getMyPendingGrants()
+        })
+    </script>
+{% endblock %}

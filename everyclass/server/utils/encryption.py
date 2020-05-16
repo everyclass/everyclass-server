@@ -60,7 +60,7 @@ def encrypt(resource_type: str, data: str, encryption_key: str = None) -> Text:
     :param encryption_key: 加密使用的 key
     :return: 加密后的资源标识符
     """
-    if resource_type not in ('student', 'teacher', 'klass', 'room'):
+    if resource_type not in (RTYPE_STUDENT, RTYPE_TEACHER, RTYPE_CLASS, RTYPE_ROOM, RTYPE_PEOPLE):
         raise ValueError("resource_type not valid")
     if not encryption_key:
         encryption_key = get_config().RESOURCE_IDENTIFIER_ENCRYPTION_KEY
@@ -72,6 +72,8 @@ RTYPE_STUDENT = 'student'
 RTYPE_TEACHER = 'teacher'
 RTYPE_CLASS = 'klass'
 RTYPE_ROOM = 'room'
+
+RTYPE_PEOPLE = 'people'  # 用于不区分学生和老师的场景
 
 
 def decrypt(data: str, encryption_key: str = None, resource_type: str = None):

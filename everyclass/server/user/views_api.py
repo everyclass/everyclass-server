@@ -3,8 +3,7 @@ from flask import Blueprint, g, request, session
 from everyclass.server.user import exceptions
 from everyclass.server.user import service as user_service
 from everyclass.server.utils import generate_success_response, generate_error_response, api_helpers
-from everyclass.server.utils.api_helpers import token_required
-from everyclass.server.utils.common_helpers import get_ut_uid, UTYPE_GUEST
+from everyclass.server.utils.api_helpers import login_required
 from everyclass.server.utils.encryption import decrypt, RTYPE_STUDENT
 from everyclass.server.utils.web_consts import SESSION_EMAIL_VER_REQ_ID
 
@@ -91,28 +90,34 @@ def email_verification():
 
 
 @user_api_bp.route('/grants/_apply')
+@login_required
 def apply_grant():
     to_user_id_encoded = request.args.get('to_user_id')
     if not to_user_id_encoded:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "mising to_user_id")
 
-    ut, uid = get_ut_uid()
-    if ut == UTYPE_GUEST:
-        return generate_error_response(None, api_helpers.STATUS_CODE_PERMISSION_DENIED, "您需要登录才能进行此操作")
-
     to_uid = decrypt(to_user_id_encoded, resource_type=RTYPE_STUDENT)[1]
 
-    user_service.new_grant_request(uid, to_uid)
+    user_service.new_grant_request(g.user_id, to_uid)
     return generate_success_response(None)
 
 
 @user_api_bp.route('/grants/_my_pending')
-@token_required
+@login_required
 def my_pending_grants():
-    return generate_success_response(user_service.get_pending_requests(g.username))
+    return generate_success_response(user_service.get_pending_requests(g.user_id))
 
 
-@user_api_bp.route('/grants/<int:grant_id>/_accept')
-@token_required
+@user_api_bp.route('/grants/<int:grant_id>/_approve')
+@login_required
 def accept_grant(grant_id: int):
-    return generate_success_response(user_service.accept_grant(grant_id, g.username))
+    action = request.args.get('action')
+    if not action:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "action not found")
+
+    if action == 'accept':
+        return generate_success_response(user_service.accept_grant(grant_id, g.user_id))
+    elif action == 'reject':
+        return generate_success_response(user_service.reject_grant(grant_id, g.user_id))
+    else:
+        return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, "invalid action")
