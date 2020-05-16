@@ -85,8 +85,8 @@ class MultiPeopleSchedule(JSONSerializable):
                     event_dict[key] = None
 
             self.schedules.append(event_dict)
-            self.inaccessible_people = inaccessible_people
-            self.accessible_people = accessible_people
+        self.inaccessible_people = inaccessible_people
+        self.accessible_people = accessible_people
 
 
 @dataclass
