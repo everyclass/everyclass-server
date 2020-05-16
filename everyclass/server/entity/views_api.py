@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from flask import Blueprint, request
 
@@ -40,9 +41,19 @@ def multi_people_schedule_search():
 
     uid = get_logged_in_uid()
 
-    items = [SearchResultItem(s.name, s.deputy + s.klass, "student", s.student_id_encoded,
-                              *user_service.has_access(s.student_id, uid, False)) for s in search_result.students if
-             ((s.klass[-4:].isdigit() and int(s.klass[-4:-2]) > datetime.date.today().year - 5) or not s.klass[-4:].isdigit())]
+    items = []
+    for s in search_result.students:
+        eligible = False
+        groups = re.findall(r'\d+', s.klass)
+        if len(groups) > 0:
+            if int(groups[0][:2]) + 5 >= datetime.date.today().year - 2000:
+                eligible = True
+        else:
+            eligible = True
+
+        if eligible:
+            items.append(SearchResultItem(s.name, s.deputy + s.klass, "student", s.student_id_encoded,
+                                          *user_service.has_access(s.student_id, uid, False)))
 
     items.extend([SearchResultItem(t.name, t.unit + t.title, "teacher", t.teacher_id_encoded,
                                    *user_service.has_access(t.teacher_id, uid, False)) for t in search_result.teachers])
