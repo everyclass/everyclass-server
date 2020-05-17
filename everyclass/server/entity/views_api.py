@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from flask import Blueprint, request
+from flask import Blueprint, request, session
 
 from everyclass.server.entity import service as entity_service
 from everyclass.server.entity.model import SearchResultItem
@@ -43,7 +43,7 @@ def multi_people_schedule_search():
 
     uid = get_logged_in_uid()
 
-    print(uid)
+    print(f"session:{session.values()} \n uid:{uid}")
 
     items = []
     for s in search_result.students:
