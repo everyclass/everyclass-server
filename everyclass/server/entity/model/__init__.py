@@ -1,4 +1,4 @@
-from everyclass.server.entity.model.available_rooms import AvailableRooms, UnavailableRoomReport
-from everyclass.server.entity.model.multi_people_schedule import MultiPeopleSchedule, Event, SearchResultItem
-from everyclass.server.entity.model.rooms import AllRooms
-from everyclass.server.entity.model.semester import Semester
+from .available_rooms import AvailableRooms, UnavailableRoomReport
+from .multi_people_schedule import MultiPeopleSchedule, Event, SearchResultItem
+from .rooms import AllRooms
+from .semester import Semester

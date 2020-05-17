@@ -19,8 +19,10 @@ Base = declarative_base()
 def register_model_to_base():
     import everyclass.server.user.model
     import everyclass.server.entity.model
+    import everyclass.server.calendar.model
     _ = everyclass.server.user.model
     _ = everyclass.server.entity.model
+    _ = everyclass.server.calendar.model
 
 
 def create_table():
