@@ -43,6 +43,8 @@ def multi_people_schedule_search():
 
     uid = get_logged_in_uid()
 
+    print(uid)
+
     items = []
     for s in search_result.students:
         eligible = False
