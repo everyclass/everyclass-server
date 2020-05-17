@@ -20,21 +20,3 @@ def set_level(student_id: str, new_level: int) -> None:
         """
         cursor.execute(insert_query, (student_id, new_level, datetime.datetime.now()))
         conn.commit()
-
-
-def init_table() -> None:
-    with pg_conn_context() as conn, conn.cursor() as cursor:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS privacy_settings
-            (
-                student_id character varying(15) NOT NULL PRIMARY KEY,
-                level smallint NOT NULL,
-                create_time  timestamp with time zone NOT NULL
-            )
-            WITH (
-                OIDS = FALSE
-            );
-        """
-        cursor.execute(create_table_query)
-
-        conn.commit()

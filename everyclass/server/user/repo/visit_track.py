@@ -24,31 +24,3 @@ def get_visitors(identifier: str) -> List[Tuple[str, int]]:
         result = cursor.fetchall()
         conn.commit()
     return result
-
-
-def init_table() -> None:
-    with pg_conn_context() as conn, conn.cursor() as cursor:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS visit_tracks
-            (
-                host_id character varying(15) NOT NULL,
-                visitor_id character varying(15) NOT NULL,
-                last_visit_time timestamp with time zone NOT NULL
-            )
-            WITH (
-                OIDS = FALSE
-            );
-        """
-        cursor.execute(create_table_query)
-
-        create_index_query = """
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_host_time
-            ON visit_tracks USING btree("host_id", "last_visit_time" DESC);
-        """
-        cursor.execute(create_index_query)
-
-        create_constraint_query = """
-        ALTER TABLE visit_tracks ADD CONSTRAINT unq_host_visitor UNIQUE ("host_id", "visitor_id");
-        """
-        cursor.execute(create_constraint_query)
-        conn.commit()

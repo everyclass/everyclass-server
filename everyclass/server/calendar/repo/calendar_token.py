@@ -93,48 +93,6 @@ def find_calendar_token(tid=None, sid=None, semester=None, token=None):
             raise ValueError("tid/sid together with semester or token must be given to search a token document")
 
 
-def init_table() -> None:
-    with pg_conn_context() as conn, conn.cursor() as cursor:
-        create_type_query = """
-        DO $$ BEGIN
-            CREATE TYPE people_type AS enum('student', 'teacher');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
-        END $$;
-        """
-        cursor.execute(create_type_query)
-
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS calendar_tokens
-            (
-                "type" people_type NOT NULL,
-                identifier character varying(15) NOT NULL,
-                semester character varying(15) NOT NULL,
-                token uuid NOT NULL,
-                create_time  timestamp with time zone NOT NULL,
-                last_used_time  timestamp with time zone
-            )
-            WITH (
-                OIDS = FALSE
-            );
-        """
-        cursor.execute(create_table_query)
-
-        create_index_query = """
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_token
-            ON calendar_tokens USING btree(token);
-        """
-        cursor.execute(create_index_query)
-
-        create_index_query2 = """
-        CREATE INDEX IF NOT EXISTS idx_type_idt_sem
-            ON calendar_tokens USING btree("type", identifier, semester);
-        """
-        cursor.execute(create_index_query2)
-
-        conn.commit()
-
-
 SECONDS_IN_HOUR = 60 * 60
 SECONDS_IN_DAY = 60 * 60 * 24
 
