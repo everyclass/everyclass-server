@@ -41,4 +41,5 @@ def to_json_response(obj) -> Response:
     resp.headers.add_header('Access-Control-Allow-Origin',
                             'https://everyclass.xyz' if is_production() else 'https://staging.everyclass.xyz')
     resp.headers.add_header('Access-Control-Allow-Credentials', 'true')
+    # resp.headers.add_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     return resp

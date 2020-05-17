@@ -196,6 +196,12 @@
         }
 
         $(document).ready(function () {
+            $.ajaxSetup({
+                xhrFields: {
+                    withCredentials: true
+                }
+            });
+
             setTime();
             getRooms();
             campus_select.change(function () {

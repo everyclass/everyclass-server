@@ -80,6 +80,11 @@
         }
 
         $(document).ready(function () {
+            $.ajaxSetup({
+                xhrFields: {
+                    withCredentials: true
+                }
+            });
             getMyPendingGrants()
         })
     </script>

@@ -416,6 +416,12 @@
         }
 
         $(document).ready(function () {
+            $.ajaxSetup({
+                xhrFields: {
+                    withCredentials: true
+                }
+            });
+
             setDate()
 
             let nameSelect = $("#name-select");
