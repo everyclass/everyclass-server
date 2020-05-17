@@ -4,6 +4,8 @@ from typing import Dict
 
 from flask import Response
 
+from everyclass.common.env import is_production
+
 
 class JSONSerializable:
     """需要被序列化为JSON返回给上游的对象要继承这个类（实际上是接口）"""
@@ -36,6 +38,6 @@ def to_json(obj) -> str:
 
 def to_json_response(obj) -> Response:
     resp = Response(to_json(obj), mimetype='application/json')
-    resp.headers.add_header('Access-Control-Allow-Origin', 'https://*.everyclass.xyz')
+    resp.headers.add_header('Access-Control-Allow-Origin', 'https://everyclass.xyz' if is_production else 'https://staging.everyclass.xyz')
     resp.headers.add_header('Access-Control-Allow-Credentials', 'true')
     return resp
