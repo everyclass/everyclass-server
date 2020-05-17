@@ -38,6 +38,7 @@ def to_json(obj) -> str:
 
 def to_json_response(obj) -> Response:
     resp = Response(to_json(obj), mimetype='application/json')
-    resp.headers.add_header('Access-Control-Allow-Origin', 'https://everyclass.xyz' if is_production else 'https://staging.everyclass.xyz')
+    resp.headers.add_header('Access-Control-Allow-Origin',
+                            'https://everyclass.xyz' if is_production() else 'https://staging.everyclass.xyz')
     resp.headers.add_header('Access-Control-Allow-Credentials', 'true')
     return resp
