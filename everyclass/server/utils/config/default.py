@@ -3,6 +3,8 @@ import os
 
 import git
 
+from everyclass.common.env import is_production, is_staging
+
 
 class LazyRefType:
     """
@@ -97,6 +99,12 @@ class Config(object):
     ENTITY_TOKEN = ''
     AUTH_BASE_URL = 'http://everyclass-auth'
     MOBILE_API_BASE_URL = 'https://api.everyclass.xyz'
+
+    # API域名不同，此处强制指定cookie的domain
+    if is_production():
+        SESSION_COOKIE_DOMAIN = 'everyclass.xyz'
+    elif is_staging():
+        SESSION_COOKIE_DOMAIN = 'staging.everyclass.xyz'
 
     """
     维护模式
