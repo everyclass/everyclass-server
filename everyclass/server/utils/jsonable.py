@@ -35,4 +35,7 @@ def to_json(obj) -> str:
 
 
 def to_json_response(obj) -> Response:
-    return Response(to_json(obj), mimetype='application/json')
+    resp = Response(to_json(obj), mimetype='application/json')
+    resp.headers.add_header('Access-Control-Allow-Origin', 'https://*.everyclass.xyz')
+    resp.headers.add_header('Access-Control-Allow-Credentials', 'true')
+    return resp
