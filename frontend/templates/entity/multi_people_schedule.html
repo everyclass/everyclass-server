@@ -115,11 +115,16 @@
 
             //判定键入的值长度>=2，才调用ajax
             if (inputVal.length >= 2) {
-                $.getJSON('{{ api_base_url + url_for("api_entity.multi_people_schedule_search") }}',
-                    {
+                $.ajax({
+                    dataType: "json",
+                    url: '{{ api_base_url + url_for("api_entity.multi_people_schedule_search") }}',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    data: {
                         keyword: inputVal
                     },
-                    function (resp) {
+                    success: function (resp) {
                         if (resp.status === 'error') {
                             alert(`获取搜索结果失败：${resp.status_message}`)
                         } else {
@@ -143,7 +148,7 @@
                             nameSelect.selectpicker('refresh');
                         }
                     }
-                )
+                });
             } else {
                 //如果输入的字符为空，清除之前option标签
                 cleanListExceptSelected();
