@@ -96,6 +96,7 @@ class Config(object):
     ENTITY_BASE_URL = 'http://everyclass-api-server'
     ENTITY_TOKEN = ''
     AUTH_BASE_URL = 'http://everyclass-auth'
+    MOBILE_API_BASE_URL = 'https://api.everyclass.xyz'
 
     """
     维护模式

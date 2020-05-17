@@ -99,7 +99,7 @@
         }
 
         function getRooms() {
-            $.getJSON('{{ url_for('api_entity.get_all_rooms') }}', null, function (resp) {
+            $.getJSON('{{ api_base_url + url_for('api_entity.get_all_rooms') }}', null, function (resp) {
                 try {
                     Object.keys(resp.data.campuses).forEach(function (key) {
                         campuses = resp.data.campuses;
@@ -130,7 +130,7 @@
         }
 
         function queryAvailableRooms() {
-            $.getJSON('{{ url_for('api_entity.get_available_rooms') }}', {
+            $.getJSON('{{ api_base_url + url_for('api_entity.get_available_rooms') }}', {
                 'campus': $(campus_selected).val(),
                 'building': $(building_selected).val(),
                 'time': $(time_selected).val()
@@ -178,7 +178,7 @@
         function reportUnavailable(room_id) {
             let r = confirm("确定要报告此教室已被占用吗？只有当该教室出现排他性使用时才应该报告，如班会等活动；如果是有人安静的自习则不应报告。");
             if (r === true) {
-                $.getJSON('{{ url_for('api_entity.report_unavailable_room') }}', {
+                $.getJSON('{{ api_base_url + url_for('api_entity.report_unavailable_room') }}', {
                     'room_id': room_id,
                     'date': data_date,
                     'time': $(time_selected).val()

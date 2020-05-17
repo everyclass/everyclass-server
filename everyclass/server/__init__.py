@@ -249,7 +249,8 @@ def create_app() -> Flask:
     @app.context_processor
     def inject_consts():
         """允许在模板中使用常量模块，以便使用session key等常量而不用在模板中硬编码"""
-        return dict(consts=web_consts)
+        return dict(consts=web_consts,
+                    api_base_url=app.config['MOBILE_API_BASE_URL'])
 
     @app.errorhandler(404)
     def page_not_found(error):

@@ -57,7 +57,7 @@
         }
 
         function getMyPendingGrants() {
-            $.getJSON('{{ url_for('api_user.my_pending_grants') }}', {}, function (resp) {
+            $.getJSON('{{ api_base_url + url_for('api_user.my_pending_grants') }}', {}, function (resp) {
                 if (resp.status !== 'success') {
                     alert(`获取申请失败：${resp.status_message}`);
                     return

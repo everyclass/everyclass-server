@@ -115,7 +115,7 @@
 
             //判定键入的值长度>=2，才调用ajax
             if (inputVal.length >= 2) {
-                $.getJSON('{{ url_for("api_entity.multi_people_schedule_search") }}',
+                $.getJSON('{{ api_base_url + url_for("api_entity.multi_people_schedule_search") }}',
                     {
                         keyword: inputVal
                     },
@@ -226,7 +226,7 @@
                 $('#table-back-div').show();
             }
 
-            $.getJSON('{{ url_for("api_entity.multi_people_schedule") }}', {
+            $.getJSON('{{ api_base_url + url_for("api_entity.multi_people_schedule") }}', {
                 people: peopleStr,
                 date: $('#date').val(),
             }, function (resp) {
@@ -308,7 +308,7 @@
                 alert("您还未登录，请先登录")
                 window.location.href = '{{ url_for("user.login") }}'
             } else {
-                $.getJSON('{{ url_for("api_user.apply_grant") }}', {
+                $.getJSON('{{ api_base_url + url_for("api_user.apply_grant") }}', {
                     to_user_id: toUserID
                 }, function (resp) {
                     if (resp.status !== "success") {
