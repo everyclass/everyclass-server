@@ -37,7 +37,7 @@ def multi_people_schedule_search():
     if not keyword:
         return generate_error_response(None, api_helpers.STATUS_CODE_INVALID_REQUEST, 'missing keyword parameter')
 
-    print(request.cookies.items())
+    print([request.cookies.items()])
 
     search_result = entity_service.search(keyword)
 
