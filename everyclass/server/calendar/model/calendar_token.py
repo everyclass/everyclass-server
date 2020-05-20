@@ -13,4 +13,5 @@ class CalendarToken(Base):
     last_used_time = sa.Column('last_used_time', postgresql.TIMESTAMP(timezone=True), autoincrement=False, nullable=True)
 
     __tablename__ = 'calendar_tokens'
-    __table_args__ = (sa.Index('idx_type_idt_sem', 'type', 'identifier', 'semester'),)
+    __table_args__ = (sa.Index('idx_type_idt_sem', 'type', 'identifier', 'semester'),
+                      sa.Index('idx_token', 'token', unique=True))
