@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+{% block title %}全校性选修课 - 每课{% endblock %}
+{% block head %}
+    <style type="text/css">
+        .category-panel {
+            margin-bottom: 3rem;
+        }
+
+        .category-title-container {
+            overflow: hidden;
+            zoom: 1;
+        }
+
+        .category-title {
+            padding-left: 2rem;
+            font-size: 3rem;
+            padding-top: 1rem;
+            float: left;
+        }
+
+        .category-more {
+            float: right;
+            padding-top: 3rem;
+            padding-right: 2rem;
+        }
+
+        .class-container {
+            border-radius: 9px;
+            background: #f0f8ff;
+            margin: 0rem 2rem 1rem 2rem;
+            padding: 0.6rem;
+            border: 1px solid #e7f0f7;
+        }
+
+        .class-title {
+            font-weight: 500;
+        }
+
+        .class-quote {
+            color: #888;
+            padding: 1em 1.5em 1em 1.5em;
+            position: relative;
+            text-indent: 10px;
+        }
+
+        .class-quote:before {
+            color: #a8beca;
+            content: "\201C";
+            font-size: 3em;
+            position: absolute;
+            left: -12px;
+            top: 40px;
+            line-height: 0.1em;
+        }
+
+        .class-quote:after {
+            color: #a8beca;
+            content: "\201D";
+            font-size: 3em;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            line-height: 0.1em;
+        }
+
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">全校性选修课</h1>
+        <h4 class="text-muted" id="classes-count-text">课程加载中，请稍等...</h4>
+        <h4 class="text-muted"><a href="{{ url_for("course.elective_assistant") }}">不知道怎么选？选课助手来帮你</a></h4>
+
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-3" id="category-container">
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        function fillCategories() {
+            $.getJSON('{{ api_base_url + url_for("api_course.class_categories") }}', null, function (resp) {
+                if (resp.status !== "success") {
+                    alert(`获取课程分类失败：${resp.status_message}`)
+                } else {
+                    $('#classes-count-text').text(`共已收录 ${resp.data.total_classes} 节课程`);
+
+                    let categoryColumn = $('#category-container');
+                    for (let i in resp.data.categories) {
+                        let category = resp.data.categories[i];
+                        let content = `<div class="panel panel-default panel-floating panel-floating-inline category-panel">
+                <div class="category-title-container">
+                    <div class="category-title">${category.name}</div>
+                    <div class="category-more">查看更多</div>
+                </div>`;
+
+                        for (let j in category.classes) {
+                            let klass = category.classes[j];
+
+                            let teacherString = "";
+                            for (let k in klass.teachers) {
+                                let teacher = klass.teachers[k];
+                                teacherString += `${teacher.name}${teacher.title}、`;
+                            }
+                            teacherString = teacherString.substr(0, teacherString.length - 1);
+
+                            let scoreString;
+                            if (klass.score > 0) {
+                                scoreString = `${klass.score}分`;
+                            } else {
+                                scoreString = `暂无评分`;
+                            }
+
+                            content += `<div class="class-container">`;
+                            content += `
+                    <span class="class-title">${klass.name}</span>
+                    <br>
+                    ${teacherString} <span class="glyphicon glyphicon-star" style="color: #ff8f00"></span> ${scoreString}
+                    <br>`;
+                            if (klass.review_quote !== null) {
+                                content += `<span class="class-quote">${klass.review_quote}</span>`;
+                            }
+                            content += '</div>';
+                        }
+
+                        content += `</div>`;
+                        categoryColumn.append(content)
+                    }
+                }
+            })
+        }
+
+        $(document).ready(function () {
+            fillCategories();
+        })
+
+    </script>
+{% endblock %}

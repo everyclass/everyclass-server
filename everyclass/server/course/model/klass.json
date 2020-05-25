@@ -1,0 +1,822 @@
+[
+  {
+    "course_code": "1-02",
+    "teacher_list": "[{\"code\": \"205015\", \"name\": \"戴国斌\", \"title\": \"副教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-02",
+    "teacher_list": "[{\"code\": \"705034\", \"name\": \"刘健\", \"title\": \"讲师\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-03",
+    "teacher_list": "[{\"code\": \"219067\", \"name\": \"强宏杰\", \"title\": \"\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-04",
+    "teacher_list": "[{\"code\": \"219168\", \"name\": \"谌金宇\", \"title\": \"特聘副教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-04",
+    "teacher_list": "[{\"code\": \"707018\", \"name\": \"李康祥\", \"title\": \"讲师\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-05",
+    "teacher_list": "[{\"code\": \"139073\", \"name\": \"袁乐平\", \"title\": \"教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-07",
+    "teacher_list": "[{\"code\": \"209116\", \"name\": \"修宗峰\", \"title\": \"副教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-11",
+    "teacher_list": "[{\"code\": \"136243\", \"name\": \"田晖\", \"title\": \"教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-13",
+    "teacher_list": "[{\"code\": \"705081\", \"name\": \"郑海元\", \"title\": \"副教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-16",
+    "teacher_list": "[{\"code\": \"707031\", \"name\": \"丁瑞莲\", \"title\": \"教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "1-18",
+    "teacher_list": "[{\"code\": \"138146\", \"name\": \"洪开荣\", \"title\": \"教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-24",
+    "teacher_list": "[{\"code\": \"206212\", \"name\": \"陶辉锦\", \"title\": \"副教授\", \"department\": \"材料科学与工程学院\"}, {\"code\": \"207023\", \"name\": \"李苑\", \"title\": \"讲师\", \"department\": \"商学院\"}, {\"code\": \"216043\", \"name\": \"宗传鑫\", \"title\": \"讲师\", \"department\": \"冶金与环境学院\"}, {\"code\": \"700508\", \"name\": \"杨芳\", \"title\": \"研究员\", \"department\": \"本科生院\"}, {\"code\": \"705057\", \"name\": \"韩雷\", \"title\": \"助理研究员\", \"department\": \"本科生院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-24",
+    "teacher_list": "[{\"code\": \"216043\", \"name\": \"宗传鑫\", \"title\": \"讲师\", \"department\": \"冶金与环境学院\"}, {\"code\": \"700508\", \"name\": \"杨芳\", \"title\": \"研究员\", \"department\": \"本科生院\"}, {\"code\": \"705057\", \"name\": \"韩雷\", \"title\": \"助理研究员\", \"department\": \"本科生院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"207021\", \"name\": \"滕晓雯\", \"title\": \"副教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"207054\", \"name\": \"胡幽\", \"title\": \"讲师\", \"department\": \"地球科学与信息物理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"211103\", \"name\": \"黄永明\", \"title\": \"讲师\", \"department\": \"交通运输工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"31160280\", \"name\": \"黄河沙\", \"title\": \"讲师\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"31170168\", \"name\": \"杨鑫山\", \"title\": \"\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"31180169\", \"name\": \"李联凯\", \"title\": \"\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-25",
+    "teacher_list": "[{\"code\": \"31190203\", \"name\": \"许宁\", \"title\": \"助教\", \"department\": \"计算机学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-26",
+    "teacher_list": "[{\"code\": \"211130\", \"name\": \"姬欣欣\", \"title\": \"讲师\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-26",
+    "teacher_list": "[{\"code\": \"31160281\", \"name\": \"王芬\", \"title\": \"\", \"department\": \"数学与统计学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-26",
+    "teacher_list": "[{\"code\": \"801696\", \"name\": \"汤志斌\", \"title\": \"副研究员\", \"department\": \"保卫处\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-27",
+    "teacher_list": "[{\"code\": \"211075\", \"name\": \"纪晓飞\", \"title\": \"讲师\", \"department\": \"土木工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-27",
+    "teacher_list": "[{\"code\": \"31190167\", \"name\": \"刘世宏\", \"title\": \"\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-28",
+    "teacher_list": "[{\"code\": \"215031\", \"name\": \"张国强\", \"title\": \"\", \"department\": \"机电工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-60",
+    "teacher_list": "[{\"code\": \"138139\", \"name\": \"禹智潭\", \"title\": \"副教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-62",
+    "teacher_list": "[{\"code\": \"139154\", \"name\": \"彭忠益\", \"title\": \"教授\", \"department\": \"科学研究部\"}, {\"code\": \"207034\", \"name\": \"欧阳辰星\", \"title\": \"讲师\", \"department\": \"本科生院\"}, {\"code\": \"700222\", \"name\": \"刘芳\", \"title\": \"高级统计师\", \"department\": \"科学研究部\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-64",
+    "teacher_list": "[{\"code\": \"138156\", \"name\": \"熊勇清\", \"title\": \"教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "1-65",
+    "teacher_list": "[{\"code\": \"205180\", \"name\": \"王昶\", \"title\": \"教授\", \"department\": \"商学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-01",
+    "teacher_list": "[{\"code\": \"2013204\", \"name\": \"周韧\", \"title\": \"\", \"department\": \"职工医院\"}, {\"code\": \"803217\", \"name\": \"陈富周\", \"title\": \"副主任医师\", \"department\": \"职工医院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-01",
+    "teacher_list": "[{\"code\": \"717047\", \"name\": \"彭学军\", \"title\": \"副主任医师\", \"department\": \"职工医院\"}, {\"code\": \"717216\", \"name\": \"田飒\", \"title\": \"副主任医师\", \"department\": \"职工医院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-05",
+    "teacher_list": "[{\"code\": \"114013\", \"name\": \"陈媛\", \"title\": \"副教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-06",
+    "teacher_list": "[{\"code\": \"139204\", \"name\": \"谭忠诚\", \"title\": \"副教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-07",
+    "teacher_list": "[{\"code\": \"139132\", \"name\": \"刘忠泉\", \"title\": \"讲师\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-09",
+    "teacher_list": "[{\"code\": \"203198\", \"name\": \"贺少华\", \"title\": \"副教授\", \"department\": \"学工部\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-10",
+    "teacher_list": "[{\"code\": \"702146\", \"name\": \"彭立静\", \"title\": \"副教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-12",
+    "teacher_list": "[{\"code\": \"139153\", \"name\": \"欧阳万福\", \"title\": \"讲师\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-121",
+    "teacher_list": "[{\"code\": \"139172\", \"name\": \"周五香\", \"title\": \"讲师\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-124",
+    "teacher_list": "[{\"code\": \"144001\", \"name\": \"马薇薇\", \"title\": \"讲师\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-13",
+    "teacher_list": "[{\"code\": \"205201\", \"name\": \"姜美霞\", \"title\": \"讲师（高校）\", \"department\": \"马克思主义学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-15",
+    "teacher_list": "[{\"code\": \"208131\", \"name\": \"杨俊\", \"title\": \"讲师\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-16",
+    "teacher_list": "[{\"code\": \"707094\", \"name\": \"米满月\", \"title\": \"副教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-19",
+    "teacher_list": "[{\"code\": \"209126\", \"name\": \"徐陶\", \"title\": \"副教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-21",
+    "teacher_list": "[{\"code\": \"139120\", \"name\": \"蒋美仕\", \"title\": \"教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-23",
+    "teacher_list": "[{\"code\": \"132372\", \"name\": \"马晓虹\", \"title\": \"讲师（高校）\", \"department\": \"学工部\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-25",
+    "teacher_list": "[{\"code\": \"139202\", \"name\": \"刘立夫\", \"title\": \"教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-29",
+    "teacher_list": "[{\"code\": \"139170\", \"name\": \"钟虎妹\", \"title\": \"教授\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-32",
+    "teacher_list": "[{\"code\": \"802545\", \"name\": \"黄碧云\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}, {\"code\": \"803085\", \"name\": \"虢毅\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-32",
+    "teacher_list": "[{\"code\": \"802546\", \"name\": \"刘雁书\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}, {\"code\": \"802574\", \"name\": \"李忠民\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-32",
+    "teacher_list": "[{\"code\": \"803255\", \"name\": \"刘海霞\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}, {\"code\": \"803298\", \"name\": \"胡德华\", \"title\": \"教授\", \"department\": \"生命科学学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-33",
+    "teacher_list": "[{\"code\": \"220269\", \"name\": \"吴胜其\", \"title\": \"教授\", \"department\": \"湘雅医学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-37",
+    "teacher_list": "[{\"code\": \"203035\", \"name\": \"魏颖\", \"title\": \"副教授\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-40",
+    "teacher_list": "[{\"code\": \"702139\", \"name\": \"李俊芳\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-41",
+    "teacher_list": "[{\"code\": \"139203\", \"name\": \"罗会钧\", \"title\": \"教授\", \"department\": \"马克思主义学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-43",
+    "teacher_list": "[{\"code\": \"139143\", \"name\": \"陈锐\", \"title\": \"讲师\", \"department\": \"马克思主义学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-49",
+    "teacher_list": "[{\"code\": \"802151\", \"name\": \"央泉\", \"title\": \"教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-50",
+    "teacher_list": "[{\"code\": \"136225\", \"name\": \"屈典宁\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-50",
+    "teacher_list": "[{\"code\": \"136257\", \"name\": \"唐陆军\", \"title\": \"讲师\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-50",
+    "teacher_list": "[{\"code\": \"710034\", \"name\": \"李延林\", \"title\": \"教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-52",
+    "teacher_list": "[{\"code\": \"136166\", \"name\": \"李晓红\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-52",
+    "teacher_list": "[{\"code\": \"136210\", \"name\": \"蒋小燕\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-52",
+    "teacher_list": "[{\"code\": \"170035\", \"name\": \"傅晓燕\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-52",
+    "teacher_list": "[{\"code\": \"212008\", \"name\": \"欧阳婷\", \"title\": \"讲师\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-54",
+    "teacher_list": "[{\"code\": \"136180\", \"name\": \"夏玉芳\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-54",
+    "teacher_list": "[{\"code\": \"136246\", \"name\": \"陈洁\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-54",
+    "teacher_list": "[{\"code\": \"702031\", \"name\": \"田湘映\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-56",
+    "teacher_list": "[{\"code\": \"136154\", \"name\": \"张永玲\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-56",
+    "teacher_list": "[{\"code\": \"136187\", \"name\": \"刘光辉\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-56",
+    "teacher_list": "[{\"code\": \"136192\", \"name\": \"彭灿辉\", \"title\": \"讲师\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-56",
+    "teacher_list": "[{\"code\": \"204070\", \"name\": \"李艳花\", \"title\": \"讲师\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-56",
+    "teacher_list": "[{\"code\": \"802142\", \"name\": \"王芹\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-57",
+    "teacher_list": "[{\"code\": \"136191\", \"name\": \"李瑶\", \"title\": \"教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-59",
+    "teacher_list": "[{\"code\": \"136164\", \"name\": \"李丽君\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-64",
+    "teacher_list": "[{\"code\": \"212029\", \"name\": \"邓婷婷\", \"title\": \"副教授\", \"department\": \"法学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-77",
+    "teacher_list": "[{\"code\": \"136286\", \"name\": \"谭蓓\", \"title\": \"讲师\", \"department\": \"外国语学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-80",
+    "teacher_list": "[{\"code\": \"803349\", \"name\": \"欧阳建平\", \"title\": \"副教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-81",
+    "teacher_list": "[{\"code\": \"208119\", \"name\": \"万琼华\", \"title\": \"教授\", \"department\": \"马克思主义学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-82",
+    "teacher_list": "[{\"code\": \"136131\", \"name\": \"侯先绒\", \"title\": \"教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-83",
+    "teacher_list": "[{\"code\": \"139114\", \"name\": \"姜国钧\", \"title\": \"教授\", \"department\": \"公共管理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "2-90",
+    "teacher_list": "[{\"code\": \"212139\", \"name\": \"孙玫\", \"title\": \"副教授\", \"department\": \"湘雅护理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-92",
+    "teacher_list": "[{\"code\": \"203137\", \"name\": \"刘学\", \"title\": \"副教授\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-93",
+    "teacher_list": "[{\"code\": \"215031\", \"name\": \"张国强\", \"title\": \"\", \"department\": \"机电工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-94",
+    "teacher_list": "[{\"code\": \"215031\", \"name\": \"张国强\", \"title\": \"\", \"department\": \"机电工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-95",
+    "teacher_list": "[{\"code\": \"215031\", \"name\": \"张国强\", \"title\": \"\", \"department\": \"机电工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "2-96",
+    "teacher_list": "[{\"code\": \"111046\", \"name\": \"罗军飞\", \"title\": \"研究员\", \"department\": \"文学与新闻传播学院\"}, {\"code\": \"216038\", \"name\": \"唐苗\", \"title\": \"讲师\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-22",
+    "teacher_list": "[{\"code\": \"112165\", \"name\": \"周亮\", \"title\": \"副教授\", \"department\": \"体育教研部\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "3-24",
+    "teacher_list": "[{\"code\": \"150006\", \"name\": \"夏君玫\", \"title\": \"副教授\", \"department\": \"体育教研部\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-26",
+    "teacher_list": "[{\"code\": \"208058\", \"name\": \"陈国雄\", \"title\": \"副教授\", \"department\": \"文学与新闻传播学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-28",
+    "teacher_list": "[{\"code\": \"704203\", \"name\": \"曾元滔\", \"title\": \"讲师\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-31",
+    "teacher_list": "[{\"code\": \"204151\", \"name\": \"罗红胜\", \"title\": \"教授\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-33",
+    "teacher_list": "[{\"code\": \"214039\", \"name\": \"周亮\", \"title\": \"讲师\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-35",
+    "teacher_list": "[{\"code\": \"136125\", \"name\": \"曾春英\", \"title\": \"副教授\", \"department\": \"外国语学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-36",
+    "teacher_list": "[{\"code\": \"212132\", \"name\": \"胡悍\", \"title\": \"讲师\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-37",
+    "teacher_list": "[{\"code\": \"204075\", \"name\": \"向跃华\", \"title\": \"助理研究员\", \"department\": \"校团委\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-39",
+    "teacher_list": "[{\"code\": \"215058\", \"name\": \"向彬\", \"title\": \"教授\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-40",
+    "teacher_list": "[{\"code\": \"212132\", \"name\": \"胡悍\", \"title\": \"讲师\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-40",
+    "teacher_list": "[{\"code\": \"214039\", \"name\": \"周亮\", \"title\": \"讲师\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-42",
+    "teacher_list": "[{\"code\": \"215031\", \"name\": \"张国强\", \"title\": \"\", \"department\": \"机电工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-43",
+    "teacher_list": "[{\"code\": \"701052\", \"name\": \"蒋烨\", \"title\": \"教授\", \"department\": \"建筑与艺术学院\"}, {\"code\": \"701056\", \"name\": \"孔果\", \"title\": \"讲师\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "3-44",
+    "teacher_list": "[{\"code\": \"206141\", \"name\": \"周巧云\", \"title\": \"副教授\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "3-45",
+    "teacher_list": "[{\"code\": \"218131\", \"name\": \"齐宇飞\", \"title\": \"\", \"department\": \"体育教研部\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-01",
+    "teacher_list": "[{\"code\": \"131257\", \"name\": \"柏振海\", \"title\": \"副教授\", \"department\": \"材料科学与工程学院\"}, {\"code\": \"131261\", \"name\": \"王斌\", \"title\": \"副教授\", \"department\": \"材料科学与工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-04",
+    "teacher_list": "[{\"code\": \"212154\", \"name\": \"王海燕\", \"title\": \"副教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-05",
+    "teacher_list": "[{\"code\": \"706003\", \"name\": \"张鹏飞\", \"title\": \"副教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-06",
+    "teacher_list": "[{\"code\": \"135261\", \"name\": \"邓飞跃\", \"title\": \"教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-07",
+    "teacher_list": "[{\"code\": \"135297\", \"name\": \"李春华\", \"title\": \"副教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-08",
+    "teacher_list": "[{\"code\": \"209194\", \"name\": \"徐海\", \"title\": \"教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-09",
+    "teacher_list": "[{\"code\": \"208187\", \"name\": \"张红亮\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-10",
+    "teacher_list": "[{\"code\": \"207126\", \"name\": \"田庆华\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}, {\"code\": \"219019\", \"name\": \"王亲猛\", \"title\": \"特聘副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-11",
+    "teacher_list": "[{\"code\": \"205118\", \"name\": \"张治安\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-12",
+    "teacher_list": "[{\"code\": \"208160\", \"name\": \"吕晓军\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-13",
+    "teacher_list": "[{\"code\": \"211215\", \"name\": \"李青竹\", \"title\": \"副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-13",
+    "teacher_list": "[{\"code\": \"218134\", \"name\": \"程义\", \"title\": \"特聘教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-13",
+    "teacher_list": "[{\"code\": \"218151\", \"name\": \"赵飞平\", \"title\": \"特聘副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-17",
+    "teacher_list": "[{\"code\": \"151009\", \"name\": \"刘佳佳\", \"title\": \"教授\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-20",
+    "teacher_list": "[{\"code\": \"208158\", \"name\": \"杜作娟\", \"title\": \"副教授\", \"department\": \"航空航天学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-21",
+    "teacher_list": "[{\"code\": \"211136\", \"name\": \"刘新儒\", \"title\": \"副教授\", \"department\": \"数学与统计学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-22",
+    "teacher_list": "[{\"code\": \"137215\", \"name\": \"徐富新\", \"title\": \"教授\", \"department\": \"物理与电子学院\"}, {\"code\": \"160009\", \"name\": \"孙锡良\", \"title\": \"高级实验师\", \"department\": \"物理与电子学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-24",
+    "teacher_list": "[{\"code\": \"129180\", \"name\": \"周洪波\", \"title\": \"教授\", \"department\": \"资源加工与生物工程学院\"}, {\"code\": \"129188\", \"name\": \"朱建裕\", \"title\": \"教授\", \"department\": \"资源加工与生物工程学院\"}, {\"code\": \"206023\", \"name\": \"余润兰\", \"title\": \"教授\", \"department\": \"资源加工与生物工程学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-25",
+    "teacher_list": "[{\"code\": \"129182\", \"name\": \"杨宇\", \"title\": \"教授\", \"department\": \"资源加工与生物工程学院\"}, {\"code\": \"203221\", \"name\": \"吴学玲\", \"title\": \"教授\", \"department\": \"资源加工与生物工程学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-32",
+    "teacher_list": "[{\"code\": \"701120\", \"name\": \"王英\", \"title\": \"副教授\", \"department\": \"土木工程学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-35",
+    "teacher_list": "[{\"code\": \"203110\", \"name\": \"刘慧敏\", \"title\": \"副教授\", \"department\": \"地球科学与信息物理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-38",
+    "teacher_list": "[{\"code\": \"706096\", \"name\": \"王修琼\", \"title\": \"副教授\", \"department\": \"土木工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-40",
+    "teacher_list": "[{\"code\": \"803128\", \"name\": \"林茜\", \"title\": \"教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-42",
+    "teacher_list": "[{\"code\": \"209134\", \"name\": \"秦虹\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-43",
+    "teacher_list": "[{\"code\": \"211223\", \"name\": \"陈继华\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-44",
+    "teacher_list": "[{\"code\": \"207114\", \"name\": \"杨丽娜\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-45",
+    "teacher_list": "[{\"code\": \"128048\", \"name\": \"吴超\", \"title\": \"教授\", \"department\": \"资源与安全工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-45",
+    "teacher_list": "[{\"code\": \"203097\", \"name\": \"陈沅江\", \"title\": \"副教授\", \"department\": \"资源与安全工程学院\"}, {\"code\": \"206025\", \"name\": \"黄锐\", \"title\": \"副教授\", \"department\": \"资源与安全工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-46",
+    "teacher_list": "[{\"code\": \"803080\", \"name\": \"李战辉\", \"title\": \"工程师\", \"department\": \"化学化工学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-47",
+    "teacher_list": "[{\"code\": \"802351\", \"name\": \"王安\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-48",
+    "teacher_list": "[{\"code\": \"206125\", \"name\": \"陈爱良\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-48",
+    "teacher_list": "[{\"code\": \"218054\", \"name\": \"何利华\", \"title\": \"特聘副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-49",
+    "teacher_list": "[{\"code\": \"130300\", \"name\": \"郭朝晖\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-49",
+    "teacher_list": "[{\"code\": \"217017\", \"name\": \"彭驰\", \"title\": \"特聘副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-50",
+    "teacher_list": "[{\"code\": \"219041\", \"name\": \"仲奇凡\", \"title\": \"待确认\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-50",
+    "teacher_list": "[{\"code\": \"219042\", \"name\": \"洪波\", \"title\": \"特聘副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-51",
+    "teacher_list": "[{\"code\": \"212214\", \"name\": \"肖芳\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-52",
+    "teacher_list": "[{\"code\": \"130301\", \"name\": \"周向阳\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-52",
+    "teacher_list": "[{\"code\": \"217011\", \"name\": \"唐晶晶\", \"title\": \"特聘副教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-53",
+    "teacher_list": "[{\"code\": \"802371\", \"name\": \"曾明\", \"title\": \"教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-58",
+    "teacher_list": "[{\"code\": \"132256\", \"name\": \"张祖平\", \"title\": \"教授\", \"department\": \"计算机学院\"}, {\"code\": \"803089\", \"name\": \"蒋立平\", \"title\": \"副教授\", \"department\": \"基础医学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-60",
+    "teacher_list": "[{\"code\": \"207143\", \"name\": \"丁萍\", \"title\": \"教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-61",
+    "teacher_list": "[{\"code\": \"208136\", \"name\": \"段燕英\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-64",
+    "teacher_list": "[{\"code\": \"802375\", \"name\": \"关岚\", \"title\": \"讲师\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-70",
+    "teacher_list": "[{\"code\": \"203097\", \"name\": \"陈沅江\", \"title\": \"副教授\", \"department\": \"资源与安全工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-71",
+    "teacher_list": "[{\"code\": \"205165\", \"name\": \"王明玉\", \"title\": \"教授\", \"department\": \"冶金与环境学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-72",
+    "teacher_list": "[{\"code\": \"802541\", \"name\": \"刘莉\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}, {\"code\": \"802544\", \"name\": \"刘建炜\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}, {\"code\": \"802574\", \"name\": \"李忠民\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}, {\"code\": \"802582\", \"name\": \"陈先来\", \"title\": \"教授\", \"department\": \"信息安全与大数据研究院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-73",
+    "teacher_list": "[{\"code\": \"206076\", \"name\": \"唐璐璐\", \"title\": \"副教授\", \"department\": \"生命科学学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-74",
+    "teacher_list": "[{\"code\": \"207114\", \"name\": \"杨丽娜\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}, {\"code\": \"209134\", \"name\": \"秦虹\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}, {\"code\": \"211223\", \"name\": \"陈继华\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}, {\"code\": \"802416\", \"name\": \"任国锋\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}, {\"code\": \"802641\", \"name\": \"胡敏予\", \"title\": \"教授\", \"department\": \"湘雅公共卫生学院\"}, {\"code\": \"803128\", \"name\": \"林茜\", \"title\": \"教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-75",
+    "teacher_list": "[{\"code\": \"212056\", \"name\": \"阳军亮\", \"title\": \"教授\", \"department\": \"物理与电子学院\"}, {\"code\": \"217022\", \"name\": \"李业军\", \"title\": \"\", \"department\": \"物理与电子学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-76",
+    "teacher_list": "[{\"code\": \"208177\", \"name\": \"冯光财\", \"title\": \"副教授\", \"department\": \"地球科学与信息物理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-77",
+    "teacher_list": "[{\"code\": \"127258\", \"name\": \"胡斌\", \"title\": \"副教授\", \"department\": \"地球科学与信息物理学院\"}]",
+    "count(1)": 2
+  },
+  {
+    "course_code": "4-77",
+    "teacher_list": "[{\"code\": \"212173\", \"name\": \"王智琳\", \"title\": \"副教授\", \"department\": \"地球科学与信息物理学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-78",
+    "teacher_list": "[{\"code\": \"205065\", \"name\": \"陈长坤\", \"title\": \"教授\", \"department\": \"土木工程学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-79",
+    "teacher_list": "[{\"code\": \"802005\", \"name\": \"黄菊芳\", \"title\": \"研究员\", \"department\": \"生命科学学院\"}, {\"code\": \"803003\", \"name\": \"王晓晟\", \"title\": \"副教授\", \"department\": \"基础医学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-81",
+    "teacher_list": "[{\"code\": \"803127\", \"name\": \"邓静\", \"title\": \"副教授\", \"department\": \"湘雅公共卫生学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "4-82",
+    "teacher_list": "[{\"code\": \"215022\", \"name\": \"柳文洁\", \"title\": \"副教授\", \"department\": \"湘雅药学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "5-01",
+    "teacher_list": "[{\"code\": \"208182\", \"name\": \"郭克华\", \"title\": \"教授\", \"department\": \"计算机学院\"}, {\"code\": \"31160225\", \"name\": \"刘逸峰\", \"title\": \"助教\", \"department\": \"计算机学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "5-02",
+    "teacher_list": "[{\"code\": \"132212\", \"name\": \"陈明义\", \"title\": \"教授\", \"department\": \"自动化学院\"}, {\"code\": \"208148\", \"name\": \"余伶俐\", \"title\": \"副教授\", \"department\": \"自动化学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "5-03",
+    "teacher_list": "[{\"code\": \"802033\", \"name\": \"罗自强\", \"title\": \"教授\", \"department\": \"基础医学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "5-04",
+    "teacher_list": "[{\"code\": \"209149\", \"name\": \"周娉\", \"title\": \"副教授\", \"department\": \"建筑与艺术学院\"}]",
+    "count(1)": 1
+  },
+  {
+    "course_code": "5-05",
+    "teacher_list": "[{\"code\": \"802037\", \"name\": \"许建平\", \"title\": \"副教授\", \"department\": \"基础医学院\"}]",
+    "count(1)": 1
+  }
+]

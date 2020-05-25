@@ -189,7 +189,6 @@ class Config(object):
 
     FEATURE_GATING = {
         'course': False,
-        'user': True
     }
     DEFAULT_PRIVACY_LEVEL = 0
 

@@ -1,11 +1,9 @@
-from everyclass.server.course.model import Question, Questionnaire, AnswerSheet
+from everyclass.server.course.model import Question, Questionnaire, AnswerSheet, CourseMeta, KlassMeta, Score
 
 
-def get_classes():
-    """从课程池中获得本学期所有课程列表"""
-
-    #
-    pass
+def get_class_categories():
+    """获得所有课程分类及课程"""
+    return CourseMeta.get_categories()
 
 
 def get_advice_questions():
@@ -23,7 +21,10 @@ def get_advice_questions():
     # 如果q1选了'尽可能提升加权成绩'，作为过滤器使用，不符合要求直接过滤；
     # 否则：当满足成绩要求时，满足度=100，每低于要求一档，满足度-20
 
-    q2 = Question("你感兴趣的课程主题是？", ['前沿科技', '社会心理', '户外实践', '文学'], multiple=True)
+    q2 = Question("你感兴趣的课程主题是？",
+                  ['创新与创业', '经济', '职业生涯规划', '医学与健康', '科学与工程技术',
+                   '文学与外语', '军事与体育', '音乐与艺术', '中国传统文化', '人际与心理', '政治与政务',
+                   '思维与哲学', '学术', '法律', '自然与社会'], multiple=True)
     # ThemeProcessor：
     # 如果q1选了'学习专业外感兴趣的知识'，表明有非常强的选题倾向性，满足所选分类的课程给100满足度，否则给20
     # 如果q1选择了'结识具有相同兴趣的同学'，满足所选分类给100满足度，否则给50
@@ -46,7 +47,10 @@ def get_advice_questions():
 
 def get_advice_result(answer_sheet: AnswerSheet):
     """根据选修课推荐问卷获得推荐结果"""
-    # 从 entity 获得教学班列表
+    # 获得教学班列表
+    classes = [(klass, Score()) for klass in KlassMeta.get_all()]
+
+    answer_sheet.get_answer(0)
 
     # 使用过滤器过滤，如果最终结果太多，调用精排方法
     pass

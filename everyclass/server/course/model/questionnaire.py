@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Optional
 
 from everyclass.server.utils import JSONSerializable
 
@@ -15,12 +15,14 @@ class Option(JSONSerializable):
 
 class Question(JSONSerializable):
     question_id: int
+    description: str
     options: List[Option]
     multiple: bool
     condition: str
 
     def __json_encode__(self):
         return {'questionID': self.question_id,
+                'description': self.description,
                 'options': self.options,
                 'multiple': self.multiple,
                 'condition': self.condition}
@@ -47,31 +49,25 @@ class Questionnaire(JSONSerializable):
             self.questions.append(question)
 
 
-class SingleChoiceAnswer:
-    def __init__(self, question_id: int, answer: int):
+class Answer:
+    def __init__(self, question_id: int, answer: List[int]):
         self.question_id = question_id
         self.answer = answer
 
 
-class MultipleChoiceAnswer:
-    def __init__(self, question_id: int, answers: List[int]):
-        self.question_id = question_id
-        self.answers = answers
-
-
 class AnswerSheet:
-    def __init__(self, answers: List[Union[SingleChoiceAnswer, MultipleChoiceAnswer]]):
+    def __init__(self, answers: List[Answer]):
         self.answers = answers
 
         self.answers.sort(key=lambda a: a.question_id)
 
-    def get_answer(self, question_id: int) -> Optional[Union[SingleChoiceAnswer, MultipleChoiceAnswer]]:
+    def get_answer(self, question_id: int) -> Optional[List[int]]:
         if question_id < len(self.answers):
             if self.answers[question_id].question_id == question_id:
-                return self.answers[question_id]
+                return self.answers[question_id].answer
             else:
                 for i in range(question_id + 1, len(self.answers)):
                     if self.answers[i].question_id == question_id:
-                        return self.answers[i]
+                        return self.answers[i].answer
                 return None
         return None

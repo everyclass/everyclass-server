@@ -169,6 +169,7 @@ def create_app() -> Flask:
     from everyclass.server.user.views import user_bp
     from everyclass.server.user.views_api import user_api_bp
     from everyclass.server.course.views import course_bp
+    from everyclass.server.course.views_api import course_api_bp
     from everyclass.server.views_main import main_blueprint
     app.register_blueprint(calendar_bp)
     app.register_blueprint(entity_bp)
@@ -176,24 +177,15 @@ def create_app() -> Flask:
     app.register_blueprint(entity_api_bp, url_prefix='/mobile/entity')
     app.register_blueprint(user_api_bp, url_prefix='/mobile/user')
     app.register_blueprint(calendar_api_bp, url_prefix='/mobile/calendar')
+    if 'course' in _config.FEATURE_GATING and _config.FEATURE_GATING['course']:
+        app.register_blueprint(course_api_bp, url_prefix='/mobile/course')
+        app.register_blueprint(course_bp, url_prefix='/course')
     app.register_blueprint(main_blueprint)
 
     # 初始化 RPC 模块
-    from everyclass.server.utils.encryption import encrypt
-    from everyclass.rpc import init as init_rpc
-    from everyclass.rpc.entity import Entity
     from everyclass.rpc.auth import Auth
-    init_rpc(resource_id_encrypt_function=encrypt)  # 为 everyclass.rpc 模块注入 encrypt 函数
-    if 'ENTITY_BASE_URL' in app.config:
-        Entity.set_base_url(app.config['ENTITY_BASE_URL'])
-    if 'ENTITY_TOKEN' in app.config:
-        Entity.set_request_token(app.config['ENTITY_TOKEN'])
     if 'AUTH_BASE_URL' in app.config:
         Auth.set_base_url(app.config['AUTH_BASE_URL'])
-
-    # course review feature gating
-    if app.config['FEATURE_GATING']['course']:
-        app.register_blueprint(course_bp, url_prefix='/course')
 
     @app.before_request
     def set_user_id():

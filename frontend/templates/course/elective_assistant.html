@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+{% block title %}选修课助手 - 每课{% endblock %}
+{% block body %}
+    <div class="hero hero-homepage">
+        <h1 class="hero-header">选修课助手</h1>
+        <h4 class="text-muted" id="notice-text">请稍候...
+        </h4>
+
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-3">
+            <div class="panel panel-default panel-floating panel-floating-inline">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="questionnaire-table">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        let questions;
+        let q_table_body = $('#questionnaire-table tbody');
+        let notice_text = $('#notice-text');
+        let current_question = 0;
+
+        function showQuestion(questionID) {
+            let question = questions[questionID];
+
+            if (question.condition !== null) {
+                let qna = question.condition.split(':');
+                if (getRadioValues(qna[0]) !== qna[1]) {
+                    nextQuestion(false);
+                    return;
+                }
+            }
+
+            notice_text.text(`回答我几个问题，即可为你推荐选修课（${questionID + 1}/${questions.length}）`);
+            let radio = '';
+            if (question.multiple === false) {
+                for (let i in question.options) {
+                    let option = question.options[i];
+                    radio += `<label><input type="radio" name="question-${questionID}" value="${option.optionID}">${option.description}</label><br>`
+                }
+            } else {
+                for (let i in question.options) {
+                    let option = question.options[i];
+                    radio += `<label><input type="checkbox" name="question-${questionID}" value="${option.optionID}">${option.description}</label><br>`
+                }
+            }
+            q_table_body.prepend(`<tr id="question-row-${questionID}"><td><b>${question.description}</b><br>${radio}</td></tr>`)
+            if (questionID === 0) {
+                q_table_body.append(`<tr><td style="text-align: center;"><button type="button" onclick="nextQuestion()" id="next">下一个</button></td></tr>`)
+            }
+        }
+
+        function getCheckboxValues(questionID) {
+            return $(`input:checkbox[name='question-${questionID}']:checked`).map(function (index, elem) {
+                return $(elem).val();
+            }).get()
+        }
+
+        function getRadioValues(questionID) {
+            return $(`input:radio[name='question-${questionID}']:checked`).val()
+        }
+
+        function nextQuestion(check = true) {
+            // 检查是否选择了选项
+            if (check) {
+                if (questions[current_question].multiple === true) {
+                    if (getCheckboxValues(current_question).length === 0) {
+                        alert("请选择回答后继续")
+                        return
+                    }
+                } else {
+                    if (getRadioValues(current_question) == null) {
+                        alert("请选择回答后继续")
+                        return
+                    }
+                }
+            }
+
+            $(`tr#question-row-${current_question}`).hide();
+
+            if (current_question + 1 === questions.length) {
+                submitQuestionnaire();
+                return
+            }
+
+            current_question += 1;
+            showQuestion(current_question);
+            if (current_question + 1 === questions.length) {
+                $('button#next').text("提交");
+            }
+        }
+
+        function showQuestionnaire() {
+            $.getJSON('{{ api_base_url + url_for("api_course.get_advice_questionnaire") }}', null, function (resp) {
+                if (resp.status !== "success") {
+                    alert(`获取问题失败：${resp.status_message}`)
+                } else {
+                    questions = resp.data.questions;
+                    showQuestion(0);
+                }
+            })
+        }
+
+        function submitQuestionnaire() {
+            notice_text.text("正在获取结果，请稍候...");
+            let answers = {};
+            for (let i in questions) {
+                let question = questions[i];
+                if (question.multiple === true) {
+                    answers[question.questionID] = getCheckboxValues(question.questionID).join(',')
+                } else {
+                    answers[question.questionID] = getRadioValues(question.questionID)
+                }
+            }
+
+            $.getJSON('{{ api_base_url + url_for("api_course.get_advice")}}', answers, function (resp) {
+            })
+        }
+
+        $(document).ready(function () {
+            showQuestionnaire();
+        })
+
+    </script>
+{% endblock %}

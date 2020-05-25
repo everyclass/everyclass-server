@@ -30,6 +30,16 @@ def is_taking(cotc: Dict) -> bool:
     return user_is_taking
 
 
+@course_bp.route("/electives")
+def electives():
+    return render_template('course/electives.html')
+
+
+@course_bp.route("/electives/assistant")
+def elective_assistant():
+    return render_template('course/elective_assistant.html')
+
+
 @course_bp.route("/<cotc_id>")
 def show_review(cotc_id: int):
     """查看某个教学班的评价"""
@@ -48,7 +58,7 @@ def show_review(cotc_id: int):
         reviewed_by_me = True
     else:
         reviewed_by_me = False
-    return render_template('course_review/review.html',
+    return render_template('course/review.html',
                            cotc=cotc,
                            count=review_info['count'],
                            avg_rate=avg_rate,
@@ -77,7 +87,7 @@ def edit_review(cotc_id: int):
         else:
             my_rating = 0
             my_review = ""
-        return render_template("course_review/add_review.html",
+        return render_template("course/add_review.html",
                                cotc=cotc,
                                my_rating=my_rating,
                                my_review=my_review)
