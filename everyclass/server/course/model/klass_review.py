@@ -63,6 +63,48 @@ class KlassReview(Base):
         db_session.commit()
 
     @classmethod
+    def sync_to_class_meta(cls):
+        """同步class评价到class元信息表"""
+        from everyclass.server.course.model import KlassMeta
+
+        all_classes = db_session.query(KlassMeta).all()
+        for klass in all_classes:
+            if len(klass.reviews) == 0:
+                klass.score = -1
+                klass.rating_knowledge = -1
+                klass.rating_attendance = -1
+                klass.final_score = -1
+                klass.gender_rate = -1
+
+                db_session.commit()
+                continue
+
+            rating_knowledge = 0
+            rating_attendance = 0
+            final_score = 0
+            gender_rate = 0
+            for review in klass.reviews:
+                rating_knowledge += review.rating_knowledge
+                rating_attendance += review.rating_attendance
+                final_score += review.final_score
+                gender_rate += review.gender_rate
+
+            rating_knowledge /= len(klass.reviews)
+            rating_attendance /= len(klass.reviews)
+            final_score /= len(klass.reviews)
+            gender_rate /= len(klass.reviews)
+            overall_score = (rating_knowledge * 4 + rating_attendance * 3 + final_score / 20 * 3) / 10
+
+            klass.score = round(overall_score, 2)
+            klass.rating_knowledge = round(rating_knowledge, 2)
+            klass.rating_attendance = round(rating_attendance)
+            klass.final_score = round(final_score, 2)
+            klass.gender_rate = round(gender_rate, 2)
+
+            db_session.commit()
+        return
+
+    @classmethod
     def import_demo_content(cls):
         """给每一门class导入若干随机生成的评价"""
         from everyclass.server.course.model import KlassMeta

@@ -19,7 +19,13 @@ class KlassMeta(Base, JSONSerializable):
     semester = Column(String(15), nullable=False)  # 所在学期
     teachers = Column(pg.ARRAY(String))  # 任课教师名单
 
+    # 评分的缓存，来源是klass_review，每日cron刷新
     score = Column("score", Float, nullable=False)
+    rating_knowledge = Column(Float)
+    rating_attendance = Column(Float)
+    final_score = Column(Float)
+    gender_rate = Column(Float)
+
     review_quote = Column(String, nullable=True)  # 示例评价内容
     reviews = relationship("KlassReview", back_populates="klass", lazy=True)
 
