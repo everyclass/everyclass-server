@@ -97,7 +97,7 @@ class KlassReview(Base):
 
             klass.score = round(overall_score, 2)
             klass.rating_knowledge = round(rating_knowledge, 2)
-            klass.rating_attendance = round(rating_attendance)
+            klass.rating_attendance = round(rating_attendance, 2)
             klass.final_score = round(final_score, 2)
             klass.gender_rate = round(gender_rate, 2)
 

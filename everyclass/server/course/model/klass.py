@@ -36,7 +36,7 @@ class KlassMeta(Base, JSONSerializable):
                 'name': self.course.name,
                 'teachers': [{'name': t.name, 'title': t.title} for t in [get_people_info(teacher_id)[1] for teacher_id in self.teachers]],
                 # todo 速度太慢了，entity要出批量查询接口
-                'score': self.score,
+                'score': round(self.score, 1),
                 'review_quote': self.review_quote}
 
     @classmethod
