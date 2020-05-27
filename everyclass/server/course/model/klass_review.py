@@ -134,4 +134,4 @@ class KlassReview(Base):
                 student_id = random.choice(student_ids)
                 print("student_id: %s" % student_id)
                 cls.new(klass.klass_id, student_id, random.randint(2, 5), random.randint(2, 5), random.randint(60, 100),
-                        random.randint(0, 5), f"{random.choice(comments_content)}，{random.choice(comments_score)}")
+                        random.randint(3, 8), f"{random.choice(comments_content)}，{random.choice(comments_score)}")

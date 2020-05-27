@@ -10,8 +10,7 @@ _config = get_config()
 _conn_config = _config.POSTGRES_CONNECTION
 _engine = create_engine(
     f'postgresql+psycopg2://{_conn_config["user"]}:{_conn_config["password"]}@{_conn_config["host"]}:{_conn_config["port"]}/{_conn_config["dbname"]}',
-    connect_args={'options': f'-c search_path={_config.POSTGRES_SCHEMA}'},
-    echo=True)
+    connect_args={'options': f'-c search_path={_config.POSTGRES_SCHEMA}'})  # set echo=True to show logs
 db_session = scoped_session(sessionmaker(bind=_engine))
 Base = declarative_base()
 

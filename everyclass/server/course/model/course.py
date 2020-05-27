@@ -19,6 +19,10 @@ class CourseMeta(Base):
     __table_args__ = (sa.Index('idx_main_category', 'main_category'),
                       )
 
+    CATEGORIES = ['创新与创业', '经济', '职业生涯规划', '医学与健康', '科学与工程技术',
+                  '文学与外语', '军事与体育', '音乐与艺术', '中国传统文化', '人际与心理', '政治与政务',
+                  '思维与哲学', '学术', '法律', '自然与社会']
+
     @classmethod
     def get_categories(cls):
         """获得所有类别和对应的课程ID"""

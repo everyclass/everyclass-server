@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}选修课助手 - 每课{% endblock %}
+{% block head %}
+    {% include "course/elective_styles.html" %}
+{% endblock %}
 {% block body %}
     <div class="hero hero-homepage">
         <h1 class="hero-header">选修课助手</h1>
@@ -9,8 +12,8 @@
     </div>
     <br><br>
     <div class="row">
-        <div class="col-sm-6 col-sm-offset-3">
-            <div class="panel panel-default panel-floating panel-floating-inline">
+        <div class="col-sm-6 col-sm-offset-3" id="main-column">
+            <div class="panel panel-default panel-floating panel-floating-inline" id="questionnaire-panel">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="questionnaire-table">
                         <tbody>
@@ -90,6 +93,7 @@
 
             if (current_question + 1 === questions.length) {
                 submitQuestionnaire();
+                $('button#next').hide();
                 return
             }
 
@@ -124,6 +128,51 @@
             }
 
             $.getJSON('{{ api_base_url + url_for("api_course.get_advice")}}', answers, function (resp) {
+                if (resp.status !== "success") {
+                    alert(`获取推荐结果失败：${resp.status_message}`)
+                } else {
+                    notice_text.text("为你推荐以下课程");
+                    $("#questionnaire-panel").hide();
+
+                    let content = '';
+                    for (let i in resp.data.classes) {
+                        let klass_tuple = resp.data.classes[i];
+                        let klass = klass_tuple[0];
+                        let score = klass_tuple[1];
+
+                        let teacherString = "";
+                        for (let k in klass.teachers) {
+                            let teacher = klass.teachers[k];
+                            teacherString += `${teacher.name}${teacher.title}、`;
+                        }
+                        teacherString = teacherString.substr(0, teacherString.length - 1);
+
+                        let scoreString = "";
+                        for (let k in score.reasons) {
+                            let reason = score.reasons[k];
+                            scoreString += `${reason}、`;
+                        }
+                        if (klass.score > 0) {
+                            scoreString += `综合评分${klass.score}分`;
+                        } else {
+                            scoreString = `暂无评分`;
+                        }
+
+                        content += `<div class="class-container">`;
+                        content += `
+                    <span class="class-title">${klass.name}</span>
+                    <br>
+                    ${teacherString} <br><span class="glyphicon glyphicon-star" style="color: #ff8f00"></span> ${scoreString}
+                    <br>`;
+                        if (klass.review_quote !== null) {
+                            content += `<span class="class-quote">${klass.review_quote}</span>`;
+                        }
+                        content += '</div>';
+                    }
+
+                    content += ``;
+                    $('#main-column').append(content)
+                }
             })
         }
 
